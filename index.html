@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EasyTasksz</title>
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Telegram Mini Apps SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <img id="avatar" src="assets/default-avatar.png" alt="Profile">
+
+    <h2 id="username">
+        Loading...
+    </h2>
+
+    <div class="balance-card">
+
+        <h3>Balance</h3>
+
+        <h1 id="balance">
+            $0.00
+        </h1>
+
+    </div>
+
+    <button id="watchBtn">
+        Watch Ads
+    </button>
+
+</div>
+
+<script src="js/supabase.js"></script>
+<script src="js/telegram.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
