@@ -6,12 +6,12 @@ export async function watchAdAndReward() {
     throw new Error("Not running inside Telegram");
   }
 
-  if (typeof window.show_3385926 !== "function") {
+  if (typeof window.show_11203298 !== "function") {
     throw new Error("Ad SDK function not found on window");
   }
 
   try {
-    await window.show_3385926();
+    await window.show_11203298();
   } catch (adErr) {
     throw new Error("Ad SDK error: " + (adErr?.message || adErr?.toString() || JSON.stringify(adErr)));
   }
