@@ -7,10 +7,14 @@ export async function watchAdAndReward() {
   }
 
   if (typeof window.show_3385926 !== "function") {
-    throw new Error("Ad SDK not loaded yet. Try again in a moment.");
+    throw new Error("Ad SDK function not found on window");
   }
 
-  await window.show_3385926();
+  try {
+    await window.show_3385926();
+  } catch (adErr) {
+    throw new Error("Ad SDK error: " + (adErr?.message || adErr?.toString() || JSON.stringify(adErr)));
+  }
 
   const response = await fetch(
     "https://iewdxruivjwblsnsjicq.supabase.co/functions/v1/reward-user",
@@ -24,7 +28,7 @@ export async function watchAdAndReward() {
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.error || "Failed to reward user");
+    throw new Error("Backend error: " + (result.error || "unknown"));
   }
 
   return result.user;
