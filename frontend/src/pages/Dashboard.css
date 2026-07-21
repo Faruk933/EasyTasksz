@@ -1,0 +1,44 @@
+.dashboard{
+    min-height:100vh;
+      background:#0B1120;
+        padding:20px;
+          color:white;
+            font-family:Arial,sans-serif;
+            }
+
+            .stats{
+              display:grid;
+                grid-template-columns:1fr 1fr;
+                  gap:15px;
+                    margin-top:20px;
+                    }
+
+                    .stat-card{
+                      background:#1E293B;
+                        padding:18px;
+                          border-radius:18px;
+                            text-align:center;
+                            }
+
+                            .stat-card h3{
+                              font-size:15px;
+                                margin-bottom:10px;
+                                }
+
+                                .stat-card p{
+                                  color:#22C55E;
+                                    font-size:20px;
+                                    }
+
+                                    .watch-btn{
+                                      width:100%;
+                                        margin-top:20px;
+                                          padding:18px;
+                                            border:none;
+                                              border-radius:18px;
+                                                background:linear-gradient(90deg,#2563EB,#3B82F6);
+                                                  color:white;
+                                                    font-size:18px;
+                                                      font-weight:bold;
+                                                      }
+}
