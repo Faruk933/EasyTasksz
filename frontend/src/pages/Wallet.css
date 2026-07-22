@@ -1,0 +1,53 @@
+.wallet-card {
+  background: #1e293b;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.wallet-card h2 {
+  font-size: 15px;
+  margin: 0 0 8px 0;
+  color: #94a3b8;
+}
+
+.wallet-balance {
+  font-size: 32px;
+  font-weight: bold;
+  color: #22c55e;
+  margin: 0;
+}
+
+.wallet-input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: white;
+  margin-bottom: 12px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.wallet-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.wallet-note {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 10px;
+}
+
+.wallet-empty {
+  color: #94a3b8;
+  font-size: 14px;
+}
