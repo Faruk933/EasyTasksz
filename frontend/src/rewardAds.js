@@ -1,26 +1,6 @@
-export function checkAdSdkStatus() {
-  return {
-    exists: typeof window.show_11203298 === "function",
-    loaded: window.__adSdkLoaded === true,
-    scriptError: window.__adSdkError === true,
-  };
-}
+import createAdHandler from "monetag-tg-sdk";
 
-function waitForAdSdk(timeoutMs = 15000) {
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-    function check() {
-      if (typeof window.show_11203298 === "function") {
-        resolve();
-      } else if (Date.now() - start > timeoutMs) {
-        reject(new Error("Ad SDK did not load in time"));
-      } else {
-        setTimeout(check, 300);
-      }
-    }
-    check();
-  });
-}
+const adHandler = createAdHandler(11203298);
 
 export async function watchAdAndReward() {
   const tg = window.Telegram?.WebApp;
@@ -30,10 +10,8 @@ export async function watchAdAndReward() {
     throw new Error("Not running inside Telegram");
   }
 
-  await waitForAdSdk();
-
   try {
-    await window.show_11203298();
+    await adHandler();
   } catch (adErr) {
     throw new Error("Ad SDK error: " + (adErr?.message || adErr?.toString() || JSON.stringify(adErr)));
   }

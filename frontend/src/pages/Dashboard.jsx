@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { loginWithTelegram } from "../telegramAuth";
-import { watchAdAndReward, checkAdSdkStatus } from "../rewardAds";
+import { watchAdAndReward } from "../rewardAds";
 import BalanceCard from "../components/BalanceCard";
 import "./Dashboard.css";
 
@@ -10,7 +10,6 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [adLoading, setAdLoading] = useState(false);
   const [adMessage, setAdMessage] = useState(null);
-  const [sdkStatus, setSdkStatus] = useState(null);
 
   useEffect(() => {
     loginWithTelegram()
@@ -26,11 +25,6 @@ export default function Dashboard() {
         setError("Something went wrong loading your profile.");
       })
       .finally(() => setLoading(false));
-
-    const interval = setInterval(() => {
-      setSdkStatus(checkAdSdkStatus());
-    }, 1000);
-    return () => clearInterval(interval);
   }, []);
 
   async function handleWatchAd() {
@@ -52,45 +46,55 @@ export default function Dashboard() {
     return <div style={{ padding: 16 }}>Loading...</div>;
   }
 
+  if (error) {
+    return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
+  }
+
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ background: "#1e293b", padding: 10, borderRadius: 8, marginBottom: 12, fontSize: 12 }}>
-        <strong>SDK Debug:</strong> {sdkStatus ? JSON.stringify(sdkStatus) : "checking..."}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        {user?.photo_url && (
+          <img
+            src={user.photo_url}
+            alt="avatar"
+            style={{ width: 48, height: 48, borderRadius: "50%" }}
+          />
+        )}
+        <div>
+          <div style={{ fontWeight: "bold" }}>
+            {user?.first_name} {user?.last_name}
+          </div>
+          <div style={{ fontSize: 13, color: "#94a3b8" }}>
+            @{user?.username || "no_username"}
+          </div>
+        </div>
       </div>
 
-      {error && <div style={{ color: "#f87171", marginBottom: 12 }}>{error}</div>}
+      <BalanceCard balance={user?.balance ?? 0} />
 
-      {user && (
-        <>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            {user?.photo_url && (
-              <img src={user.photo_url} alt="avatar" style={{ width: 48, height: 48, borderRadius: "50%" }} />
-            )}
-            <div>
-              <div style={{ fontWeight: "bold" }}>{user?.first_name} {user?.last_name}</div>
-              <div style={{ fontSize: 13, color: "#94a3b8" }}>@{user?.username || "no_username"}</div>
-            </div>
-          </div>
-          <BalanceCard balance={user?.balance ?? 0} />
-          <div className="stats-row">
-            <div className="stat-card">
-              <p>Ads Watched</p>
-              <h3>{user?.ads_watched_today ?? 0} / 20</h3>
-            </div>
-            <div className="stat-card">
-              <p>Total Earned</p>
-              <h3>${user?.total_earned ?? "0.00"}</h3>
-            </div>
-          </div>
-        </>
-      )}
+      <div className="stats-row">
+        <div className="stat-card">
+          <p>Ads Watched</p>
+          <h3>{user?.ads_watched_today ?? 0} / 20</h3>
+        </div>
+        <div className="stat-card">
+          <p>Total Earned</p>
+          <h3>${user?.total_earned ?? "0.00"}</h3>
+        </div>
+      </div>
 
-      <button className="watch-ads-btn" onClick={handleWatchAd} disabled={adLoading}>
+      <button
+        className="watch-ads-btn"
+        onClick={handleWatchAd}
+        disabled={adLoading}
+      >
         {adLoading ? "Loading ad..." : "🎥 Watch Ads"}
       </button>
 
       {adMessage && (
-        <div style={{ marginTop: 12, textAlign: "center", color: "#94a3b8" }}>{adMessage}</div>
+        <div style={{ marginTop: 12, textAlign: "center", color: "#94a3b8" }}>
+          {adMessage}
+        </div>
       )}
     </div>
   );
