@@ -1,7 +1,8 @@
 export function checkAdSdkStatus() {
   return {
     exists: typeof window.show_11203298 === "function",
-    windowKeys: Object.keys(window).filter(k => k.includes("show_") || k.includes("11203298")),
+    loaded: window.__adSdkLoaded === true,
+    scriptError: window.__adSdkError === true,
   };
 }
 
