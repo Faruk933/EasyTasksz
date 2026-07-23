@@ -1,3 +1,19 @@
+function waitForAdSdk(timeoutMs = 5000) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    function check() {
+      if (typeof window.show_11203298 === "function") {
+        resolve();
+      } else if (Date.now() - start > timeoutMs) {
+        reject(new Error("Ad SDK did not load in time"));
+      } else {
+        setTimeout(check, 200);
+      }
+    }
+    check();
+  });
+}
+
 export async function watchAdAndReward() {
   const tg = window.Telegram?.WebApp;
   const initData = tg?.initData;
@@ -6,9 +22,7 @@ export async function watchAdAndReward() {
     throw new Error("Not running inside Telegram");
   }
 
-  if (typeof window.show_11203298 !== "function") {
-    throw new Error("Ad SDK function not found on window");
-  }
+  await waitForAdSdk();
 
   try {
     await window.show_11203298();
