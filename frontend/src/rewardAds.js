@@ -1,4 +1,11 @@
-function waitForAdSdk(timeoutMs = 5000) {
+export function checkAdSdkStatus() {
+  return {
+    exists: typeof window.show_11203298 === "function",
+    windowKeys: Object.keys(window).filter(k => k.includes("show_") || k.includes("11203298")),
+  };
+}
+
+function waitForAdSdk(timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     const start = Date.now();
     function check() {
@@ -7,7 +14,7 @@ function waitForAdSdk(timeoutMs = 5000) {
       } else if (Date.now() - start > timeoutMs) {
         reject(new Error("Ad SDK did not load in time"));
       } else {
-        setTimeout(check, 200);
+        setTimeout(check, 300);
       }
     }
     check();
