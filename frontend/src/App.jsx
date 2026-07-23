@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
 import WatchAds from "./pages/WatchAds";
@@ -11,31 +11,16 @@ import BottomNav from "./components/BottomNav";
 
 export default function App() {
   return (
-      <BrowserRouter>
-
-            <div className="pb-20">
-
-                    <Routes>
-
-                              <Route path="/" element={<Dashboard />} />
-
-                                        <Route path="/watch-ads" element={<WatchAds />} />
-
-                                                  <Route path="/referrals" element={<Referrals />} />
-
-                                                            <Route path="/wallet" element={<Wallet />} />
-
-                                                                      <Route path="/history" element={<History />} />
-
-                                                                                <Route path="/profile" element={<Profile />} />
-
-                                                                                        </Routes>
-
-                                                                                              </div>
-
-
-                                                                                                    <BottomNav />
-
-                                                                                                        </BrowserRouter>
-                                                                                                          );
-                                                                                                          }
+    <div style={{ paddingBottom: 70 }}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/ads" element={<WatchAds />} />
+        <Route path="/referrals" element={<Referrals />} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/profile" element={<Profile />} />
+      </Routes>
+      <BottomNav />
+    </div>
+  );
+}
