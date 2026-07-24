@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
     const { data: withdrawal, error: insertError } = await supabase
       .from("withdrawals")
       .insert({
-        telegram_id: tgUser.id,
+        user_id: tgUser.id,
         wallet_address: walletAddress,
         amount: numAmount,
         status: "pending",
