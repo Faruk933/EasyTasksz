@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { loginWithTelegram } from "../telegramAuth";
+import { requestWithdrawal } from "../withdraw";
 import "./Wallet.css";
 
 export default function Wallet() {
@@ -9,6 +10,7 @@ export default function Wallet() {
   const [walletAddress, setWalletAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [submitMessage, setSubmitMessage] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loginWithTelegram()
@@ -23,7 +25,7 @@ export default function Wallet() {
       .finally(() => setLoading(false));
   }, []);
 
-  function handleWithdraw() {
+  async function handleWithdraw() {
     setSubmitMessage(null);
 
     if (!walletAddress) {
@@ -41,7 +43,18 @@ export default function Wallet() {
       return;
     }
 
-    setSubmitMessage("Withdrawal request submitted (backend coming next)");
+    setSubmitting(true);
+    try {
+      const result = await requestWithdrawal(walletAddress, Number(amount));
+      setUser((prev) => ({ ...prev, balance: result.newBalance }));
+      setSubmitMessage("✅ Withdrawal request submitted!");
+      setWalletAddress("");
+      setAmount("");
+    } catch (err) {
+      setSubmitMessage(err.message || "Withdrawal failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (loading) {
@@ -85,8 +98,8 @@ export default function Wallet() {
           className="wallet-input"
         />
 
-        <button className="wallet-btn" onClick={handleWithdraw}>
-          Withdraw
+        <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>
+          {submitting ? "Submitting..." : "Withdraw"}
         </button>
 
         <p className="wallet-note">
