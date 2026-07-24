@@ -33,8 +33,8 @@ export default function Wallet() {
       return;
     }
 
-    if (!amount || Number(amount) < 20) {
-      setSubmitMessage("Minimum withdrawal is $20 USDT");
+    if (!amount || Number(amount) < 0.10) {
+      setSubmitMessage("Minimum withdrawal is $0.10 USDT (testing)");
       return;
     }
 
@@ -103,7 +103,7 @@ export default function Wallet() {
         </button>
 
         <p className="wallet-note">
-          Minimum withdrawal: $20 USDT (BEP20)
+          Minimum withdrawal: $0.10 USDT (testing)
         </p>
 
         {submitMessage && (
