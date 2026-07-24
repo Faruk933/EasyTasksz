@@ -50,7 +50,7 @@ async function verifyTelegramData(initData: string, botToken: string): Promise<a
   return JSON.parse(userStr);
 }
 
-const MIN_WITHDRAWAL = 0.10;
+const MIN_WITHDRAWAL = 10;
 
 Deno.serve(async (req) => {
   const corsHeaders = {
