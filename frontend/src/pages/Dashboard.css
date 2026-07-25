@@ -33,3 +33,44 @@
   font-size: 18px;
   font-weight: bold;
 }
+
+.balance-card {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.balance-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.balance-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.balance-badge {
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.balance-amount {
+  font-size: 34px;
+  font-weight: bold;
+  color: white;
+  margin: 4px 0;
+}
+
+.balance-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
