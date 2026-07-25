@@ -75,12 +75,17 @@ export default function Dashboard() {
 
       <div className="stats-row">
         <div className="stat-card">
-          <p>Ads Watched</p>
-          <h3>{user?.ads_watched_today ?? 0} / 20</h3>
+          <div className="stat-icon stat-icon-blue">🎯</div>
+          <p>Ads Today</p>
+          <h3>{user?.ads_watched_today ?? 0}/20</h3>
+          <div className="stat-progress">
+            <div className="stat-progress-fill" style={{ width: ((user?.ads_watched_today ?? 0) / 20 * 100) + "%" }}></div>
+          </div>
         </div>
         <div className="stat-card">
+          <div className="stat-icon stat-icon-orange">💰</div>
           <p>Total Earned</p>
-          <h3>${user?.total_earned ?? "0.00"}</h3>
+          <h3 className="stat-earned">+${user?.total_earned ?? "0.00"}</h3>
         </div>
       </div>
 
