@@ -94,7 +94,11 @@ export default function Dashboard() {
         onClick={handleWatchAd}
         disabled={adLoading}
       >
-        {adLoading ? "Loading ad..." : "🎥 Watch Ads"}
+        <div className="watch-ads-icon">▶</div>
+        <div className="watch-ads-text">
+          <span className="watch-ads-title">{adLoading ? "Loading ad..." : "WATCH & EARN"}</span>
+          <span className="watch-ads-subtitle">Watch ads for instant points</span>
+        </div>
       </button>
 
       {adMessage && (
