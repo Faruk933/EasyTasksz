@@ -6,6 +6,7 @@ import Referrals from "./pages/Referrals";
 import Wallet from "./pages/Wallet";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
+import Offerwall from "./pages/Offerwall";
 
 import BottomNav from "./components/BottomNav";
 
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/offerwall" element={<Offerwall />} />
       </Routes>
       <BottomNav />
     </div>
