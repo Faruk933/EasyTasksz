@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
 import { requestWithdrawal } from "../withdraw";
 import "./Wallet.css";
@@ -113,10 +114,12 @@ export default function Wallet() {
         )}
       </div>
 
-      <div className="wallet-card">
-        <h2>Withdrawal History</h2>
-        <p className="wallet-empty">No withdrawals yet</p>
-      </div>
+      <Link to="/history" style={{ textDecoration: "none" }}>
+        <div className="wallet-card">
+          <h2>Withdrawal History</h2>
+          <p className="wallet-empty">View all your withdrawals →</p>
+        </div>
+      </Link>
     </div>
   );
 }
