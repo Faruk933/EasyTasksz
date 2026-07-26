@@ -4,12 +4,52 @@
   align-items: center;
   padding: 16px;
 }
-.header h1 {
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #14b8a6, #8b5cf6, #f97316);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-title {
   font-size: 20px;
   margin: 0;
+  color: white;
 }
+
+.header-title-accent {
+  color: #22c55e;
+}
+
 .header p {
   font-size: 13px;
   color: #94a3b8;
   margin: 0;
+}
+
+.header-bell {
+  position: relative;
+  color: white;
+}
+
+.header-bell-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #0f172a;
 }

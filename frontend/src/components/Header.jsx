@@ -1,14 +1,23 @@
-import { Bell } from "lucide-react";
+import { Bell, Check } from "lucide-react";
 import "./Header.css";
 
 export default function Header() {
   return (
     <div className="header">
-      <div>
-        <h1>EasyTasksz</h1>
-        <p>Welcome back 👋</p>
+      <div className="header-left">
+        <div className="header-logo">
+          <Check size={16} color="white" strokeWidth={3} />
+        </div>
+        <div>
+          <h1 className="header-title">
+            Easy<span className="header-title-accent">Tasksz</span>
+          </h1>
+          <p>Welcome back 👋</p>
+        </div>
       </div>
-      <Bell size={24} />
+      <div className="header-bell">
+        <Bell size={22} />
+      </div>
     </div>
   );
 }
