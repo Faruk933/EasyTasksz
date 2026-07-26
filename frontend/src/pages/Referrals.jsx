@@ -22,7 +22,7 @@ export default function Referrals() {
   }, []);
 
   const referralLink = user
-    ? `https://t.me/Easytasksz_bot?start=${user.referral_code}`
+    ? `https://t.me/Easytasksz_bot?startapp=${user.referral_code}`
     : "";
 
   function handleCopy() {
