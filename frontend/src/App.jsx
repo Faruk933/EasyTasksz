@@ -7,6 +7,7 @@ import Wallet from "./pages/Wallet";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Offerwall from "./pages/Offerwall";
+import Admin from "./pages/Admin";
 
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/offerwall" element={<Offerwall />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
       <BottomNav />
     </div>

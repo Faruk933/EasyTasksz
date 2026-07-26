@@ -1,0 +1,67 @@
+.admin-header {
+  margin-bottom: 20px;
+}
+
+.admin-header h1 {
+  font-size: 22px;
+  margin: 0 0 4px 0;
+}
+
+.admin-item {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.admin-item-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.admin-username {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.admin-amount {
+  font-weight: bold;
+  color: #22c55e;
+}
+
+.admin-address {
+  font-size: 12px;
+  color: #94a3b8;
+  word-break: break-all;
+  margin-bottom: 10px;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 13px;
+  color: white;
+}
+
+.admin-btn-approve {
+  background: #16a34a;
+}
+
+.admin-btn-reject {
+  background: #dc2626;
+}
+
+.admin-denied {
+  padding: 40px 16px;
+  text-align: center;
+  color: #f87171;
+}

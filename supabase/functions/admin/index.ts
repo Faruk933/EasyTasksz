@@ -1,46 +1,144 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Setup type definitions for built-in Supabase Runtime APIs
-import "@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "@supabase/server";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-console.log("Hello from Functions!");
+async function verifyTelegramData(initData: string, botToken: string): Promise<any | null> {
+  const params = new URLSearchParams(initData);
+  const hash = params.get("hash");
+  if (!hash) return null;
+  params.delete("hash");
 
-// This endpoint uses 'publishable' | 'secret' access, apiKey is required.
-// Use publishable for Client-facing, key-validated endpoints
-// Use secret for Server-to-server, internal calls
-export default {
-  fetch: withSupabase({ auth: ["publishable", "secret"] }, async (req, ctx) => {
-    // Called by another service with a secret key
-    // ctx.supabaseAdmin bypasses RLS — use for privileged operations
-    /*
-    if (ctx.authMode === "secret") {
-      const { user_id } = await req.json();
-      const { data } = await ctx.supabaseAdmin.auth.admin.getUserById(user_id);
+  const pairs: string[] = [];
+  params.forEach((value, key) => pairs.push(`${key}=${value}`));
+  pairs.sort();
+  const dataCheckString = pairs.join("\n");
 
-      return Response.json({
-        email: data?.user?.email,
+  const encoder = new TextEncoder();
+  const secretKey = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode("WebAppData"),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const secretKeySigned = await crypto.subtle.sign(
+    "HMAC",
+    secretKey,
+    encoder.encode(botToken)
+  );
+  const finalKey = await crypto.subtle.importKey(
+    "raw",
+    secretKeySigned,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    finalKey,
+    encoder.encode(dataCheckString)
+  );
+  const computedHash = Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  if (computedHash !== hash) return null;
+
+  const userStr = params.get("user");
+  if (!userStr) return null;
+  return JSON.parse(userStr);
+}
+
+Deno.serve(async (req) => {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
+    const { initData, action, withdrawalId, status } = await req.json();
+
+    if (!initData) {
+      return new Response(JSON.stringify({ error: "Missing initData" }), {
+        status: 400,
+        headers: corsHeaders,
       });
     }
-    */
 
-    const { name } = await req.json();
+    const tgUser = await verifyTelegramData(initData, BOT_TOKEN);
+    if (!tgUser) {
+      return new Response(JSON.stringify({ error: "Invalid Telegram data" }), {
+        status: 401,
+        headers: corsHeaders,
+      });
+    }
 
-    return Response.json({
-      message: `Hello ${name}!`,
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    const { data: adminCheck, error: adminError } = await supabase
+      .from("users")
+      .select("is_admin")
+      .eq("telegram_id", tgUser.id)
+      .single();
+
+    if (adminError || !adminCheck || !adminCheck.is_admin) {
+      return new Response(JSON.stringify({ error: "Access denied" }), {
+        status: 403,
+        headers: corsHeaders,
+      });
+    }
+
+    if (action === "list") {
+      const { data: withdrawals, error } = await supabase
+        .from("withdrawals")
+        .select("*, users!withdrawals_user_id_fkey(username, telegram_id)")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ withdrawals }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "update-status") {
+      if (!withdrawalId || !status) {
+        return new Response(JSON.stringify({ error: "Missing withdrawalId or status" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
+      }
+
+      const { data: updated, error } = await supabase
+        .from("withdrawals")
+        .update({ status, processed_at: new Date().toISOString() })
+        .eq("id", withdrawalId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ withdrawal: updated }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Unknown action" }), {
+      status: 400,
+      headers: corsHeaders,
     });
-  }),
-};
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/admin' \
-    --header 'apiKey: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' \
-    --data '{"name":"Functions"}'
-
-*/
+  } catch (err) {
+    return new Response(JSON.stringify({ error: String(err) }), {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
+});
