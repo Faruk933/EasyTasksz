@@ -8,11 +8,13 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Offerwall from "./pages/Offerwall";
 
+import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 
 export default function App() {
   return (
     <div style={{ paddingBottom: 70 }}>
+      <Header />
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/ads" element={<WatchAds />} />
