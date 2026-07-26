@@ -48,7 +48,9 @@ async function verifyTelegramData(initData: string): Promise<any | null> {
 
   const userStr = params.get("user");
   if (!userStr) return null;
-  return JSON.parse(userStr);
+  const user = JSON.parse(userStr);
+  const startParam = params.get("start_param");
+  return { ...user, __start_param: startParam };
 }
 
 Deno.serve(async (req) => {
@@ -103,6 +105,19 @@ Deno.serve(async (req) => {
       userRow = data;
     } else {
       const referralCode = "EZ" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    let referredByTelegramId = null;
+    const startParam = tgUser.__start_param;
+    if (startParam) {
+      const { data: referrer } = await supabase
+        .from("users")
+        .select("telegram_id")
+        .eq("referral_code", startParam)
+        .maybeSingle();
+      if (referrer && referrer.telegram_id !== tgUser.id) {
+        referredByTelegramId = referrer.telegram_id;
+      }
+    }
       const { data, error } = await supabase
         .from("users")
         .insert({
@@ -113,11 +128,15 @@ Deno.serve(async (req) => {
           photo_url: tgUser.photo_url ?? null,
           balance: 0,
           referral_code: referralCode,
+      referred_by: referredByTelegramId,
           total_earned: 0,
           ads_watched: 0,
         })
         .select()
         .single();
+    if (referredByTelegramId) {
+      await supabase.rpc("increment_referral_count", { ref_telegram_id: referredByTelegramId });
+    }
       if (error) throw error;
       userRow = data;
     }

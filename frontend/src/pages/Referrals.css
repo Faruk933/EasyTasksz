@@ -1,0 +1,66 @@
+.referral-card {
+  background: #1e293b;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.referral-card h2 {
+  font-size: 15px;
+  margin: 0 0 10px 0;
+  color: #94a3b8;
+}
+
+.referral-link-box {
+  display: flex;
+  align-items: center;
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.referral-link-text {
+  flex: 1;
+  font-size: 13px;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.referral-copy-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  color: white;
+  font-weight: bold;
+  font-size: 13px;
+  width: 100%;
+}
+
+.referral-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.referral-stat {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+}
+
+.referral-stat p {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0 0 6px 0;
+}
+
+.referral-stat h3 {
+  font-size: 22px;
+  margin: 0;
+  color: #22c55e;
+}

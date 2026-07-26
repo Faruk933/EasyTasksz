@@ -127,6 +127,15 @@ Deno.serve(async (req) => {
 
     if (updateError) throw updateError;
 
+
+  if (user.referred_by) {
+    const commission = REWARD_PER_AD * 0.03;
+    await supabase.rpc("add_referral_commission", {
+      ref_telegram_id: user.referred_by,
+      commission_amount: commission,
+    });
+  }
+
     return new Response(JSON.stringify({ user: updated }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
