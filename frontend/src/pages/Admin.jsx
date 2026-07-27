@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listWithdrawals, updateWithdrawalStatus } from "../admin";
+import { listWithdrawals, updateWithdrawalStatus, getStats } from "../admin";
 import "./Admin.css";
 
 export default function Admin() {
@@ -8,12 +8,14 @@ export default function Admin() {
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
 
+  const [stats, setStats] = useState(null);
   useEffect(() => {
     loadData();
   }, []);
 
   function loadData() {
     setLoading(true);
+    getStats().then(setStats).catch(() => {});
     listWithdrawals()
       .then(setWithdrawals)
       .catch((err) => setError(err.message || "Failed to load"))
@@ -51,6 +53,27 @@ export default function Admin() {
         <h1>🛠️ Admin Panel</h1>
         <p style={{ color: "#94a3b8" }}>Manage withdrawal requests</p>
       </div>
+
+      {stats && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 14 }}>
+            <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 4px 0" }}>Total Users</p>
+            <p style={{ fontSize: 20, fontWeight: "bold", margin: 0 }}>{stats.totalUsers}</p>
+          </div>
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 14 }}>
+            <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 4px 0" }}>Ads Today</p>
+            <p style={{ fontSize: 20, fontWeight: "bold", margin: 0 }}>{stats.adsToday}</p>
+          </div>
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 14 }}>
+            <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 4px 0" }}>Total Balance Owed</p>
+            <p style={{ fontSize: 18, fontWeight: "bold", margin: 0, color: "#facc15" }}>${Number(stats.totalBalanceOwed).toFixed(2)}</p>
+          </div>
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 14 }}>
+            <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 4px 0" }}>Total Withdrawn</p>
+            <p style={{ fontSize: 18, fontWeight: "bold", margin: 0, color: "#22c55e" }}>${Number(stats.totalWithdrawn).toFixed(2)}</p>
+          </div>
+        </div>
+      )}
 
       {withdrawals.length === 0 ? (
         <p style={{ color: "#94a3b8", textAlign: "center" }}>No withdrawal requests</p>

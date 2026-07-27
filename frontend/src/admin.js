@@ -31,3 +31,7 @@ export function listWithdrawals() {
 export function updateWithdrawalStatus(withdrawalId, status) {
   return callAdmin({ action: "update-status", withdrawalId, status });
 }
+
+export function getStats() {
+  return callAdmin({ action: "stats" });
+}
