@@ -4,7 +4,6 @@ import {
   updateWithdrawalStatus,
   getStats,
   listUsers,
-  updateUserBalance,
   toggleUserBan,
 } from "../admin";
 import "./Admin.css";
@@ -18,8 +17,6 @@ export default function Admin() {
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
   const [stats, setStats] = useState(null);
-  const [editingUser, setEditingUser] = useState(null);
-  const [editBalanceValue, setEditBalanceValue] = useState("");
 
   useEffect(() => {
     loadData();
@@ -51,21 +48,6 @@ export default function Admin() {
     }
   }
 
-  function startEditBalance(user) {
-    setEditingUser(user.telegram_id);
-    setEditBalanceValue(String(user.balance));
-  }
-
-  async function saveBalance(telegramId) {
-    try {
-      await updateUserBalance(telegramId, Number(editBalanceValue));
-      setEditingUser(null);
-      listUsers(searchTerm).then(setUsers);
-    } catch (err) {
-      alert(err.message || "Failed to update balance");
-    }
-  }
-
   async function handleToggleBan(telegramId) {
     try {
       await toggleUserBan(telegramId);
@@ -82,7 +64,7 @@ export default function Admin() {
   if (error) {
     return (
       <div className="admin-denied">
-        <h2>🚫 Access Denied</h2>
+        <h2>Access Denied</h2>
         <p>{error}</p>
       </div>
     );
@@ -91,7 +73,7 @@ export default function Admin() {
   return (
     <div style={{ padding: 16 }}>
       <div className="admin-header">
-        <h1>🔐 Admin Panel</h1>
+        <h1>Admin Panel</h1>
         <p style={{ color: "#94a3b8" }}>Manage your platform</p>
       </div>
 
@@ -148,7 +130,7 @@ export default function Admin() {
       </div>
 
       {tab === "withdrawals" && (
-        <>
+        <div>
           {withdrawals.length === 0 ? (
             <p style={{ color: "#94a3b8", textAlign: "center" }}>No withdrawal requests</p>
           ) : (
@@ -185,7 +167,7 @@ export default function Admin() {
               </div>
             ))
           )}
-        </>
+        </div>
       )}
 
       {tab === "users" && (
@@ -236,51 +218,14 @@ export default function Admin() {
                 <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10 }}>
                   Earned: ${Number(u.total_earned).toFixed(2)} - Ads: {u.ads_watched} - Referrals: {u.referral_count}
                 </div>
-
-                {editingUser === u.telegram_id ? (
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input
-                      type="number"
-                      value={editBalanceValue}
-                      onChange={(e) => setEditBalanceValue(e.target.value)}
-                      style={{
-                        flex: 1,
-                        padding: 8,
-                        borderRadius: 8,
-                        border: "1px solid #334155",
-                        background: "#0f172a",
-                        color: "white",
-                      }}
-                    />
-                    <button
-                      className="admin-btn admin-btn-approve"
-                      onClick={() => saveBalance(u.telegram_id)}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="admin-btn admin-btn-reject"
-                      onClick={() => setEditingUser(null)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="admin-actions">
-                    <button
-                      className="admin-btn admin-btn-approve"
-                      onClick={() => startEditBalance(u)}
-                    >
-                      Edit Balance
-                    </button>
-                    <button
-                      className="admin-btn admin-btn-reject"
-                      onClick={() => handleToggleBan(u.telegram_id)}
-                    >
-                      {u.is_banned ? "Unban" : "Ban"}
-                    </button>
-                  </div>
-                )}
+                <div className="admin-actions">
+                  <button
+                    className="admin-btn admin-btn-reject"
+                    onClick={() => handleToggleBan(u.telegram_id)}
+                  >
+                    {u.is_banned ? "Unban" : "Ban"}
+                  </button>
+                </div>
               </div>
             ))
           )}
