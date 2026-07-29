@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
   try {
     const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-    const { initData, action, withdrawalId, status } = await req.json();
+    const { initData, action, withdrawalId, status, search, targetTelegramId, newBalance } = await req.json();
 
     if (!initData) {
       return new Response(JSON.stringify({ error: "Missing initData" }), {
@@ -93,7 +93,6 @@ Deno.serve(async (req) => {
         headers: corsHeaders,
       });
     }
-
 
     if (action === "stats") {
       const { count: totalUsers } = await supabase
@@ -132,6 +131,71 @@ Deno.serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    if (action === "list-users") {
+      const searchTerm = (search || "").trim();
+      let query = supabase
+        .from("users")
+        .select("id, telegram_id, username, first_name, balance, total_earned, ads_watched, referral_count, is_admin, is_banned")
+        .order("id", { ascending: false })
+        .limit(50);
+      if (searchTerm) {
+        query = query.or(`username.ilike.%${searchTerm}%,telegram_id.eq.${searchTerm}`);
+      }
+      const { data: users, error } = await query;
+      if (error) throw error;
+      return new Response(JSON.stringify({ users }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "update-balance") {
+      if (!targetTelegramId || newBalance === undefined) {
+        return new Response(JSON.stringify({ error: "Missing targetTelegramId or newBalance" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
+      }
+      const { data: updatedUser, error } = await supabase
+        .from("users")
+        .update({ balance: Number(newBalance) })
+        .eq("telegram_id", targetTelegramId)
+        .select()
+        .single();
+      if (error) throw error;
+      return new Response(JSON.stringify({ user: updatedUser }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "toggle-ban") {
+      if (!targetTelegramId) {
+        return new Response(JSON.stringify({ error: "Missing targetTelegramId" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
+      }
+      const { data: targetUser } = await supabase
+        .from("users")
+        .select("is_banned")
+        .eq("telegram_id", targetTelegramId)
+        .single();
+      const currentlyBanned = targetUser && targetUser.is_banned;
+      const { data: updatedUser, error } = await supabase
+        .from("users")
+        .update({ is_banned: !currentlyBanned })
+        .eq("telegram_id", targetTelegramId)
+        .select()
+        .single();
+      if (error) throw error;
+      return new Response(JSON.stringify({ user: updatedUser }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "list") {
       const { data: withdrawals, error } = await supabase
         .from("withdrawals")

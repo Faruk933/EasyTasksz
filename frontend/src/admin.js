@@ -35,3 +35,15 @@ export function updateWithdrawalStatus(withdrawalId, status) {
 export function getStats() {
   return callAdmin({ action: "stats" });
 }
+
+export function listUsers(search) {
+  return callAdmin({ action: "list-users", search }).then((r) => r.users);
+}
+
+export function updateUserBalance(targetTelegramId, newBalance) {
+  return callAdmin({ action: "update-balance", targetTelegramId, newBalance });
+}
+
+export function toggleUserBan(targetTelegramId) {
+  return callAdmin({ action: "toggle-ban", targetTelegramId });
+}
