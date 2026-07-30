@@ -47,3 +47,11 @@ export function updateUserBalance(targetTelegramId, newBalance) {
 export function toggleUserBan(targetTelegramId) {
   return callAdmin({ action: "toggle-ban", targetTelegramId });
 }
+
+export function getSettings() {
+  return callAdmin({ action: "get-settings" }).then((r) => r.settings);
+}
+
+export function updateSettings(settingsUpdates) {
+  return callAdmin({ action: "update-settings", settingsUpdates });
+}

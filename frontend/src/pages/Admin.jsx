@@ -5,6 +5,8 @@ import {
   getStats,
   listUsers,
   toggleUserBan,
+  getSettings,
+  updateSettings,
 } from "../admin";
 import "./Admin.css";
 
@@ -17,6 +19,8 @@ export default function Admin() {
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
   const [stats, setStats] = useState(null);
+  const [settings, setSettings] = useState(null);
+  const [settingsForm, setSettingsForm] = useState({});
 
   useEffect(() => {
     loadData();
@@ -30,6 +34,10 @@ export default function Admin() {
       .catch((err) => setError(err.message || "Failed to load"))
       .finally(() => setLoading(false));
     listUsers("").then(setUsers).catch(() => {});
+    getSettings().then((s) => {
+      setSettings(s);
+      setSettingsForm(s);
+    }).catch(() => {});
   }
 
   function handleSearch() {
@@ -55,6 +63,23 @@ export default function Admin() {
     } catch (err) {
       alert(err.message || "Failed to update ban status");
     }
+  }
+
+  async function handleSaveSettings() {
+    try {
+      await updateSettings(settingsForm);
+      alert("Settings updated!");
+      getSettings().then((s) => {
+        setSettings(s);
+        setSettingsForm(s);
+      });
+    } catch (err) {
+      alert(err.message || "Failed to update settings");
+    }
+  }
+
+  function handleSettingChange(key, value) {
+    setSettingsForm((prev) => ({ ...prev, [key]: value }));
   }
 
   if (loading) {
@@ -127,6 +152,20 @@ export default function Admin() {
         >
           Users
         </button>
+          <button
+            onClick={() => setTab("settings")}
+            style={{
+              flex: 1,
+              padding: 10,
+              borderRadius: 10,
+              border: "none",
+              fontWeight: "bold",
+              background: tab === "settings" ? "#3b82f6" : "#1e293b",
+              color: "white",
+            }}
+          >
+            Settings
+          </button>
       </div>
 
       {tab === "withdrawals" && (
@@ -229,6 +268,79 @@ export default function Admin() {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {tab === "settings" && settings && (
+        <div>
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 16, marginBottom: 12 }}>
+            <label style={{ fontSize: 13, color: "#94a3b8" }}>Reward Per Ad ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={settingsForm.reward_per_ad || ""}
+              onChange={(e) => handleSettingChange("reward_per_ad", e.target.value)}
+              style={{ width: "100%", padding: 10, marginTop: 6, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "white" }}
+            />
+          </div>
+
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 16, marginBottom: 12 }}>
+            <label style={{ fontSize: 13, color: "#94a3b8" }}>Daily Ad Limit</label>
+            <input
+              type="number"
+              value={settingsForm.daily_ad_limit || ""}
+              onChange={(e) => handleSettingChange("daily_ad_limit", e.target.value)}
+              style={{ width: "100%", padding: 10, marginTop: 6, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "white" }}
+            />
+          </div>
+
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 16, marginBottom: 12 }}>
+            <label style={{ fontSize: 13, color: "#94a3b8" }}>Minimum Withdrawal ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={settingsForm.minimum_withdrawal || ""}
+              onChange={(e) => handleSettingChange("minimum_withdrawal", e.target.value)}
+              style={{ width: "100%", padding: 10, marginTop: 6, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "white" }}
+            />
+          </div>
+
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 16, marginBottom: 12 }}>
+            <label style={{ fontSize: 13, color: "#94a3b8" }}>Withdrawal Fee (%)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={settingsForm.withdrawal_fee_percent || ""}
+              onChange={(e) => handleSettingChange("withdrawal_fee_percent", e.target.value)}
+              style={{ width: "100%", padding: 10, marginTop: 6, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "white" }}
+            />
+          </div>
+
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: 16, marginBottom: 12 }}>
+            <label style={{ fontSize: 13, color: "#94a3b8" }}>Referral Commission (%)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={settingsForm.referral_commission_percent || ""}
+              onChange={(e) => handleSettingChange("referral_commission_percent", e.target.value)}
+              style={{ width: "100%", padding: 10, marginTop: 6, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "white" }}
+            />
+          </div>
+
+          <button
+            onClick={handleSaveSettings}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 12,
+              border: "none",
+              background: "#16a34a",
+              color: "white",
+              fontWeight: "bold",
+            }}
+          >
+            Save Settings
+          </button>
         </div>
       )}
     </div>
