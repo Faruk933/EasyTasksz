@@ -37,7 +37,9 @@ export default function Admin() {
     getSettings().then((s) => {
       setSettings(s);
       setSettingsForm(s);
-    }).catch(() => {});
+    }).catch((err) => {
+      alert("Settings load error: " + (err.message || String(err)));
+    });
   }
 
   function handleSearch() {
