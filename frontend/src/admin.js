@@ -18,7 +18,7 @@ async function callAdmin(payload) {
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.error || "Admin request failed");
+    throw new Error("Action sent: " + payload.action + " | Response: " + JSON.stringify(result));
   }
 
   return result;
