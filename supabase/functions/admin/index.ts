@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
   try {
     const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
   const { initData, action, withdrawalId, status, search, targetTelegramId, newBalance, settingsUpdates } = await req.json();
+  console.log("Received action:", JSON.stringify(action));
 
     if (!initData) {
       return new Response(JSON.stringify({ error: "Missing initData" }), {
