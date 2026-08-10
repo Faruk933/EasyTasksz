@@ -154,20 +154,6 @@ export default function Admin() {
         >
           Users
         </button>
-          <button
-            onClick={() => setTab("settings")}
-            style={{
-              flex: 1,
-              padding: 10,
-              borderRadius: 10,
-              border: "none",
-              fontWeight: "bold",
-              background: tab === "settings" ? "#3b82f6" : "#1e293b",
-              color: "white",
-            }}
-          >
-            Settings
-          </button>
       </div>
 
       {tab === "withdrawals" && (
