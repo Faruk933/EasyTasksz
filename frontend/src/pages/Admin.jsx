@@ -34,12 +34,6 @@ export default function Admin() {
       .catch((err) => setError(err.message || "Failed to load"))
       .finally(() => setLoading(false));
     listUsers("").then(setUsers).catch(() => {});
-    getSettings().then((s) => {
-      setSettings(s);
-      setSettingsForm(s);
-    }).catch((err) => {
-      alert("Settings load error: " + (err.message || String(err)));
-    });
   }
 
   function handleSearch() {
