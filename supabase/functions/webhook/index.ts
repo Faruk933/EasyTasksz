@@ -1,46 +1,48 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
+const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
 
-// Setup type definitions for built-in Supabase Runtime APIs
-import "@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "@supabase/server";
+Deno.serve(async (req) => {
+  try {
+    const update = await req.json();
+    const message = update.message;
 
-console.log("Hello from Functions!");
+    if (!message || !message.text) {
+      return new Response("ok");
+    }
 
-// This endpoint uses 'publishable' | 'secret' access, apiKey is required.
-// Use publishable for Client-facing, key-validated endpoints
-// Use secret for Server-to-server, internal calls
-export default {
-  fetch: withSupabase({ auth: ["publishable", "secret"] }, async (req, ctx) => {
-    // Called by another service with a secret key
-    // ctx.supabaseAdmin bypasses RLS — use for privileged operations
-    /*
-    if (ctx.authMode === "secret") {
-      const { user_id } = await req.json();
-      const { data } = await ctx.supabaseAdmin.auth.admin.getUserById(user_id);
+    const chatId = message.chat.id;
+    const text = message.text.trim();
 
-      return Response.json({
-        email: data?.user?.email,
+    if (text.startsWith("/start")) {
+      const parts = text.split(" ");
+      const referralCode = parts.length > 1 ? parts[1] : "";
+
+      const webAppUrl = referralCode
+        ? `https://easytasksz.netlify.app?startapp=${referralCode}`
+        : `https://easytasksz.netlify.app`;
+
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: "👋 Welcome to EasyTasksz!\n\nTap below to start earning.",
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "🚀 Open EasyTasksz",
+                  web_app: { url: webAppUrl },
+                },
+              ],
+            ],
+          },
+        }),
       });
     }
-    */
 
-    const { name } = await req.json();
-
-    return Response.json({
-      message: `Hello ${name}!`,
-    });
-  }),
-};
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/webhook' \
-    --header 'apiKey: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' \
-    --data '{"name":"Functions"}'
-
-*/
+    return new Response("ok");
+  } catch (err) {
+    console.error(err);
+    return new Response("ok");
+  }
+});

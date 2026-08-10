@@ -139,6 +139,37 @@ Deno.serve(async (req) => {
     }
       if (error) throw error;
       userRow = data;
+
+      // Welcome message for new user
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: tgUser.id,
+          text: "🎉 Welcome to EasyTasksz! Start watching ads, completing tasks, and inviting friends to earn.",
+        }),
+      }).catch(() => {});
+
+      // Notify referrer
+      if (referredByTelegramId) {
+        const { data: commissionSetting } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("key", "referral_commission_percent")
+          .maybeSingle();
+        const commissionPct = commissionSetting?.value ?? "3";
+        const newUserName = tgUser.first_name ?? "A new user";
+        const newUserUsername = tgUser.username ? "@" + tgUser.username : "N/A";
+        const notifyText = "👥 Invite Success!\n\n🎊 Your friend " + newUserName + " has registered\n🔗 Friend: " + newUserUsername + "\n💰 You'll earn " + commissionPct + "% commission when they watch ads or complete tasks.\n\nKeep inviting friends to earn more!";
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: referredByTelegramId,
+            text: notifyText,
+          }),
+        }).catch(() => {});
+      }
     }
 
     return new Response(JSON.stringify({ user: userRow }), {
