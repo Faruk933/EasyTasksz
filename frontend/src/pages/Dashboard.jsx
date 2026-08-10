@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
 import { watchAdAndReward } from "../rewardAds";
 import BalanceCard from "../components/BalanceCard";
+import { getPublicSettings } from "../publicSettings";
 import "./Dashboard.css";
 
 export default function Dashboard() {
@@ -11,8 +12,10 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [adLoading, setAdLoading] = useState(false);
   const [adMessage, setAdMessage] = useState(null);
+  const [settings, setSettings] = useState({});
 
   useEffect(() => {
+    getPublicSettings().then(setSettings).catch(() => {});
     loginWithTelegram()
       .then((u) => {
         if (u) {
@@ -77,9 +80,9 @@ export default function Dashboard() {
         <div className="stat-card">
           <div className="stat-icon stat-icon-blue">🎯</div>
           <p>Ads Today</p>
-          <h3>{user?.ads_watched_today ?? 0}/20</h3>
+          <h3>{user?.ads_watched_today ?? 0}/{settings.daily_ad_limit ?? 20}</h3>
           <div className="stat-progress">
-            <div className="stat-progress-fill" style={{ width: ((user?.ads_watched_today ?? 0) / 20 * 100) + "%" }}></div>
+            <div className="stat-progress-fill" style={{ width: ((user?.ads_watched_today ?? 0) / (settings.daily_ad_limit ?? 20) * 100) + "%" }}></div>
           </div>
         </div>
         <div className="stat-card">

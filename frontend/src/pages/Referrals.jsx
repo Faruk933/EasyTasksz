@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { loginWithTelegram } from "../telegramAuth";
+import { getPublicSettings } from "../publicSettings";
 import "./Referrals.css";
 
 export default function Referrals() {
@@ -7,8 +8,10 @@ export default function Referrals() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [settings, setSettings] = useState({});
 
   useEffect(() => {
+    getPublicSettings().then(setSettings).catch(() => {});
     loginWithTelegram()
       .then((u) => {
         if (u) {
@@ -43,7 +46,7 @@ export default function Referrals() {
     <div style={{ padding: 16 }}>
       <h1 style={{ fontSize: 22, marginBottom: 4 }}>👥 Referrals</h1>
       <p style={{ color: "#94a3b8", marginBottom: 16 }}>
-        Invite friends and earn 3% of their earnings
+        Invite friends and earn {settings.referral_commission_percent ?? 3}% of their earnings
       </p>
 
       <div className="referral-card">

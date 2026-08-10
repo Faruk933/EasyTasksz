@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
 import { requestWithdrawal } from "../withdraw";
+import { getPublicSettings } from "../publicSettings";
 import "./Wallet.css";
 
 export default function Wallet() {
@@ -12,8 +13,10 @@ export default function Wallet() {
   const [amount, setAmount] = useState("");
   const [submitMessage, setSubmitMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [settings, setSettings] = useState({});
 
   useEffect(() => {
+    getPublicSettings().then(setSettings).catch(() => {});
     loginWithTelegram()
       .then((u) => {
         if (u) {
@@ -34,8 +37,9 @@ export default function Wallet() {
       return;
     }
 
-    if (!amount || Number(amount) < 10) {
-      setSubmitMessage("Minimum withdrawal is $10 USDT");
+    const minWithdrawal = Number(settings.minimum_withdrawal ?? 10);
+    if (!amount || Number(amount) < minWithdrawal) {
+      setSubmitMessage(`Minimum withdrawal is $${minWithdrawal} USDT`);
       return;
     }
 
@@ -104,8 +108,13 @@ export default function Wallet() {
         </button>
 
         <p className="wallet-note">
-          Minimum withdrawal: $10 USDT (BEP20)
-        </p>
+          Minimum withdrawal: ${settings.minimum_withdrawal ?? 10} USDT (BEP20)
+          </p>
+          {settings.withdrawal_fee_percent && Number(settings.withdrawal_fee_percent) > 0 && (
+            <p className="wallet-note">
+              A {settings.withdrawal_fee_percent}% withdrawal fee applies. You will receive approximately ${(Number(amount || 0) * (1 - Number(settings.withdrawal_fee_percent) / 100)).toFixed(2)} USDT.
+            </p>
+          )}
 
         {submitMessage && (
           <p className="wallet-note" style={{ color: "#facc15" }}>
