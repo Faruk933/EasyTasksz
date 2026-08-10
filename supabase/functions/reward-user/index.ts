@@ -82,6 +82,13 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+    const { data: settingsRows } = await supabase.from("settings").select("key, value");
+    const settingsMap = {};
+    (settingsRows || []).forEach((r) => { settingsMap[r.key] = r.value; });
+    const rewardPerAd = Number(settingsMap.reward_per_ad ?? REWARD_PER_AD);
+    const commissionPercent = Number(settingsMap.referral_commission_percent ?? 3);
+    const dailyLimit = Number(settingsMap.daily_ad_limit ?? DAILY_LIMIT);
+
 
     const { data: user, error: fetchError } = await supabase
       .from("users")
@@ -100,15 +107,15 @@ Deno.serve(async (req) => {
     const lastAdDate = user.last_ad_date ?? null;
     const adsToday = lastAdDate === today ? (user.ads_watched_today ?? 0) : 0;
 
-    if (adsToday >= DAILY_LIMIT) {
+    if (adsToday >= dailyLimit) {
       return new Response(JSON.stringify({ error: "Daily ad limit reached" }), {
         status: 429,
         headers: corsHeaders,
       });
     }
 
-    const newBalance = Number(user.balance ?? 0) + REWARD_PER_AD;
-    const newTotalEarned = Number(user.total_earned ?? 0) + REWARD_PER_AD;
+    const newBalance = Number(user.balance ?? 0) + rewardPerAd;
+    const newTotalEarned = Number(user.total_earned ?? 0) + rewardPerAd;
     const newAdsWatchedToday = adsToday + 1;
     const newAdsWatchedTotal = Number(user.ads_watched ?? 0) + 1;
 
@@ -129,7 +136,7 @@ Deno.serve(async (req) => {
 
 
   if (user.referred_by) {
-    const commission = REWARD_PER_AD * 0.03;
+    const commission = rewardPerAd * (commissionPercent / 100);
     await supabase.rpc("add_referral_commission", {
       ref_telegram_id: user.referred_by,
       commission_amount: commission,

@@ -73,9 +73,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+    const { data: settingsRows } = await supabase.from("settings").select("key, value");
+    const settingsMap = {};
+    (settingsRows || []).forEach((r) => { settingsMap[r.key] = r.value; });
+    const minWithdrawal = Number(settingsMap.minimum_withdrawal ?? MIN_WITHDRAWAL);
+    const feePercent = Number(settingsMap.withdrawal_fee_percent ?? 0);
+
     const numAmount = Number(amount);
-    if (isNaN(numAmount) || numAmount < MIN_WITHDRAWAL) {
-      return new Response(JSON.stringify({ error: "Minimum withdrawal is $" + MIN_WITHDRAWAL }), {
+    if (isNaN(numAmount) || numAmount < minWithdrawal) {
+      return new Response(JSON.stringify({ error: "Minimum withdrawal is $" + minWithdrawal }), {
         status: 400,
         headers: corsHeaders,
       });
@@ -88,8 +95,6 @@ Deno.serve(async (req) => {
         headers: corsHeaders,
       });
     }
-
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     const { data: user, error: fetchError } = await supabase
       .from("users")
@@ -120,12 +125,17 @@ Deno.serve(async (req) => {
 
     if (updateError) throw updateError;
 
+    const feeAmount = numAmount * (feePercent / 100);
+    const payoutAmount = numAmount - feeAmount;
+
     const { data: withdrawal, error: insertError } = await supabase
       .from("withdrawals")
       .insert({
         user_id: user.id,
         wallet_address: walletAddress,
         amount: numAmount,
+        fee_amount: feeAmount,
+        payout_amount: payoutAmount,
         status: "pending",
       })
       .select()
