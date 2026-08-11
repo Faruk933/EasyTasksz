@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import {
   listWithdrawals,
   updateWithdrawalStatus,
+  processWithdrawal,
   getStats,
   listUsers,
   toggleUserBan,
@@ -44,7 +45,10 @@ export default function Admin() {
   async function handleAction(id, status) {
     setProcessingId(id);
     try {
-      await updateWithdrawalStatus(id, status);
+      const result = await processWithdrawal(id, status, null);
+      if (status === "approved") {
+        alert("Payout sent! Track ID: " + (result.trackId || "N/A"));
+      }
       loadData();
     } catch (err) {
       alert(err.message || "Action failed");
