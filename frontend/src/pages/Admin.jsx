@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   listWithdrawals,
   updateWithdrawalStatus,
@@ -96,6 +97,19 @@ export default function Admin() {
       <div className="admin-header">
         <h1>Admin Panel</h1>
         <p style={{ color: "#94a3b8" }}>Manage your platform</p>
+
+      <div style={{ display: "flex", gap: 8, marginTop: 12, marginBottom: 12 }}>
+        <Link to="/admin/tasks" style={{ flex: 1, textDecoration: "none" }}>
+          <div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>
+            Manage Tasks
+          </div>
+        </Link>
+        <Link to="/admin/submissions" style={{ flex: 1, textDecoration: "none" }}>
+          <div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>
+            Review Submissions
+          </div>
+        </Link>
+      </div>
       </div>
 
       {stats && (

@@ -10,6 +10,8 @@ import Offerwall from "./pages/Offerwall";
 import Admin from "./pages/Admin";
 import Tasks from "./pages/Tasks";
 import TaskDetail from "./pages/TaskDetail";
+import AdminTasks from "./pages/AdminTasks";
+import AdminSubmissions from "./pages/AdminSubmissions";
 
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
@@ -29,6 +31,8 @@ export default function App() {
         <Route path="/admin" element={<Admin />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/tasks/:id" element={<TaskDetail />} />
+          <Route path="/admin/tasks" element={<AdminTasks />} />
+          <Route path="/admin/submissions" element={<AdminSubmissions />} />
       </Routes>
       <BottomNav />
     </div>
