@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: tgUser.id,
-          text: "🎉 Welcome to EasyTasksz! Start watching ads, completing tasks, and inviting friends to earn.",
+          text: "🎉 Welcome to EasyTasksz!\n\nHello, " + (tgUser.first_name ?? "there") + "!\n\n💰 Complete tasks and offers to earn USDT\n📅 Watch Ads daily to earn USDT\n👥 Invite friends for up to 10% commission\n\n🚀 Invite friends to earn $50-100 USDT monthly\n\n👇 Join all our community below to be updated for new tasks\n━━━━━━━━━━━━━━━\n📢 Announcements  ➜  @EasyTaskszUpdates\n👥 Community  ➜  @EasyTaskszSupportGroup\n━━━━━━━━━━━━━━━\n⚡ Stay updated and don't miss new tasks!",
         }),
       }).catch(() => {});
 
