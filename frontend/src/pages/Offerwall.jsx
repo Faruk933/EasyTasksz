@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import "./Offerwall.css";
 
 const providers = [
@@ -33,11 +34,27 @@ const providers = [
     url: null,
     active: false,
   },
+  {
+    name: "PixyLabs",
+    desc: "Offers, surveys & more",
+    color: "#16a34a",
+    initial: "P",
+    type: "iframe",
+    route: "/offerwall/pixylabs",
+    active: true,
+  },
 ];
 
 export default function Offerwall() {
+  const navigate = useNavigate();
+
   function handleOpen(provider) {
-    if (!provider.active || !provider.url) return;
+    if (!provider.active) return;
+    if (provider.type === "iframe") {
+      navigate(provider.route);
+      return;
+    }
+    if (!provider.url) return;
     window.open(provider.url, "_blank");
   }
 
