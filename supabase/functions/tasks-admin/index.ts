@@ -127,6 +127,15 @@ Deno.serve(async (req) => {
         .single();
 
       if (error) throw error;
+
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: "@EasyTaskszUpdates",
+        text: "🆕 New Task Available!\n\n📌 " + title + "\n💰 Reward: $" + Number(rewardAmount).toFixed(2) + " USDT\n\n👉 Open EasyTasksz to complete it now!",
+      }),
+    }).catch(() => {});
       return new Response(JSON.stringify({ task }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
