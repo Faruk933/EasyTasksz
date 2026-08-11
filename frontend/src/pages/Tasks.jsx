@@ -28,11 +28,11 @@ export default function Tasks() {
     return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
   }
 
-  const pendingTaskIds = submissions
-    .filter((s) => s.status === "pending")
+  const unavailableTaskIds = submissions
+    .filter((s) => s.status === "pending" || s.status === "approved")
     .map((s) => s.task_id);
 
-  const availableTasks = tasks.filter((t) => !pendingTaskIds.includes(t.id));
+  const availableTasks = tasks.filter((t) => !unavailableTaskIds.includes(t.id));
   const pendingSubmissions = submissions.filter((s) => s.status === "pending");
   const processedSubmissions = submissions.filter((s) => s.status !== "pending");
 
