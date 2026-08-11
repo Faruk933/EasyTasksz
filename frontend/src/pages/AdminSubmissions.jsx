@@ -79,17 +79,26 @@ export default function AdminSubmissions() {
             <p style={{ color: "#4ade80", fontWeight: "bold" }}>
               ${Number(sub.tasks?.reward_amount ?? 0).toFixed(2)}
             </p>
-            <div style={{ background: "#0f172a", borderRadius: 10, padding: 12, marginTop: 8, marginBottom: 12 }}>
-              <p style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>Proof link (tap to open):</p>
-              <a
-                href={sub.proof_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ wordBreak: "break-all", fontSize: 15, color: "#60a5fa", fontWeight: "bold", textDecoration: "underline" }}
-              >
-                {sub.proof_link}
-              </a>
-            </div>
+            <a
+              href={sub.proof_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: "none" }}
+            >
+              <div style={{
+                background: "#2563eb",
+                color: "white",
+                borderRadius: 10,
+                padding: "12px 16px",
+                marginTop: 8,
+                marginBottom: 12,
+                textAlign: "center",
+                fontWeight: "bold",
+                fontSize: 15,
+              }}>
+                🔗 View Proof Link
+              </div>
+            </a>
 
             {rejectingId === sub.id ? (
               <div>
