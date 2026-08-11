@@ -8,6 +8,7 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Offerwall from "./pages/Offerwall";
 import PixyLabsOfferwall from "./pages/PixyLabsOfferwall";
+import CPAleadOfferwall from "./pages/CPAleadOfferwall";
 import Admin from "./pages/Admin";
 import Tasks from "./pages/Tasks";
 import TaskDetail from "./pages/TaskDetail";
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/offerwall" element={<Offerwall />} />
         <Route path="/offerwall/pixylabs" element={<PixyLabsOfferwall />} />
+        <Route path="/offerwall/cpalead" element={<CPAleadOfferwall />} />
         <Route path="/admin" element={<Admin />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/tasks/:id" element={<TaskDetail />} />

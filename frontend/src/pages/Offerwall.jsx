@@ -7,7 +7,8 @@ const providers = [
     desc: "Complete offers & surveys",
     color: "#3b82f6",
     initial: "C",
-    url: "https://cpalead.com",
+    type: "iframe",
+    route: "/offerwall/cpalead",
     active: true,
   },
   {
