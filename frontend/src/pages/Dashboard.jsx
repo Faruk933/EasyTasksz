@@ -126,6 +126,19 @@ export default function Dashboard() {
           <div style={{ background: "#16a34a", color: "white", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: "bold" }}>Open</div>
         </div>
       </Link>
+
+        <Link to="/tasks" style={{ textDecoration: "none" }}>
+          <div style={{ background: "#1e293b", borderRadius: 16, padding: 16, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📝</div>
+              <div>
+                <p style={{ fontWeight: "bold", fontSize: 14, margin: 0, color: "white" }}>Complete Task</p>
+                <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Finish simple tasks for rewards</p>
+              </div>
+            </div>
+            <div style={{ background: "#16a34a", color: "white", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: "bold" }}>Open</div>
+          </div>
+        </Link>
     </div>
   );
 }

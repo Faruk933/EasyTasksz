@@ -8,6 +8,8 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Offerwall from "./pages/Offerwall";
 import Admin from "./pages/Admin";
+import Tasks from "./pages/Tasks";
+import TaskDetail from "./pages/TaskDetail";
 
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
@@ -25,6 +27,8 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/offerwall" element={<Offerwall />} />
         <Route path="/admin" element={<Admin />} />
+          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/tasks/:id" element={<TaskDetail />} />
       </Routes>
       <BottomNav />
     </div>
