@@ -1,8 +1,1 @@
-export default function WatchAds() {
-  return (
-    <div style={{ padding: 16 }}>
-      <h2>Watch Ads</h2>
-      <p>Earn money by watching ads.</p>
-    </div>
-  );
-}
+export default function WatchAds(){return <div style={{padding:16,maxWidth:720,margin:"0 auto"}}><div style={{background:"linear-gradient(135deg,#2563eb,#8b5cf6)",borderRadius:22,padding:22,boxShadow:"0 12px 30px rgba(59,130,246,.22)",marginBottom:16}}><div style={{fontSize:12,color:"rgba(255,255,255,.72)",fontWeight:700,letterSpacing:.5}}>REWARD ADS</div><h1 style={{fontSize:25,margin:"6px 0",fontWeight:850}}>📺 Watch & Earn</h1><p style={{fontSize:13,color:"rgba(255,255,255,.8)"}}>Watch available ads and earn rewards directly to your EasyTasksz balance.</p></div><div style={{background:"#172235",border:"1px solid rgba(148,163,184,.1)",borderRadius:18,padding:20,boxShadow:"0 8px 24px rgba(0,0,0,.12)"}}><div style={{fontSize:36,marginBottom:10}}>▶️</div><h2 style={{fontSize:17,marginBottom:6}}>Ready to earn?</h2><p style={{fontSize:13,lineHeight:1.6,color:"#94a3b8"}}>Use the Watch & Earn button on your dashboard to start an eligible rewarded ad session.</p></div></div>}
