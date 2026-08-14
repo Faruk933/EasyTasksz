@@ -41,6 +41,46 @@
   font-weight: bold;
 }
 
+.wallet-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wallet-fee-breakdown {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 2px 0 14px;
+}
+
+.wallet-fee-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.wallet-fee-breakdown strong {
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.wallet-payout-row {
+  border-top: 1px solid #334155;
+  margin-top: 4px;
+  padding-top: 11px !important;
+  font-size: 14px !important;
+}
+
+.wallet-payout-row span,
+.wallet-payout-row strong {
+  color: #22c55e;
+  font-weight: 700;
+}
+
 .wallet-note {
   font-size: 13px;
   color: #94a3b8;
