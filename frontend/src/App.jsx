@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import Offerwall from "./pages/Offerwall";
 import PixyLabsOfferwall from "./pages/PixyLabsOfferwall";
 import CPAleadOfferwall from "./pages/CPAleadOfferwall";
+import BitLabsOfferwall from "./pages/BitLabsOfferwall";
 import Admin from "./pages/Admin";
 import Tasks from "./pages/Tasks";
 import TaskDetail from "./pages/TaskDetail";
@@ -22,7 +23,8 @@ export default function App() {
   const location = useLocation();
   const isImmersiveOfferwall =
     location.pathname === "/offerwall/pixylabs" ||
-    location.pathname === "/offerwall/cpalead";
+    location.pathname === "/offerwall/cpalead" ||
+    location.pathname === "/offerwall/bitlabs";
 
   return (
     <div style={{ paddingBottom: isImmersiveOfferwall ? 0 : 70 }}>
@@ -37,6 +39,7 @@ export default function App() {
         <Route path="/offerwall" element={<Offerwall />} />
         <Route path="/offerwall/pixylabs" element={<PixyLabsOfferwall />} />
         <Route path="/offerwall/cpalead" element={<CPAleadOfferwall />} />
+        <Route path="/offerwall/bitlabs" element={<BitLabsOfferwall />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/tasks/:id" element={<TaskDetail />} />
