@@ -2,71 +2,21 @@ import { useNavigate } from "react-router-dom";
 import "./Offerwall.css";
 
 const providers = [
-  {
-    name: "CPAlead",
-    desc: "Complete offers & surveys",
-    color: "#3b82f6",
-    initial: "C",
-    type: "iframe",
-    route: "/offerwall/cpalead",
-    active: true,
-  },
-  {
-    name: "BitLabs",
-    desc: "Surveys, apps & tasks",
-    color: "#8b5cf6",
-    initial: "B",
-    type: "iframe",
-    route: "/offerwall/bitlabs",
-    active: true,
-  },
-  {
-    name: "PixyLabs",
-    desc: "Offers, surveys & more",
-    color: "#16a34a",
-    initial: "P",
-    type: "iframe",
-    route: "/offerwall/pixylabs",
-    active: true,
-  },
+  { name: "CPAlead", desc: "Complete offers & surveys", logo: "https://www.cpalead.com/favicon.ico", type: "iframe", route: "/offerwall/cpalead", active: true },
+  { name: "BitLabs", desc: "Surveys, apps & tasks", logo: "https://dashboard.bitlabs.ai/favicon.ico", type: "iframe", route: "/offerwall/bitlabs", active: true },
+  { name: "PixyLabs", desc: "Offers, surveys & more", logo: "https://www.pixylabs.co/favicon.ico", type: "iframe", route: "/offerwall/pixylabs", active: true },
 ];
 
 export default function Offerwall() {
   const navigate = useNavigate();
-
-  function handleOpen(provider) {
-    if (!provider.active) return;
-    if (provider.type === "iframe") {
-      navigate(provider.route);
-      return;
-    }
-    if (!provider.url) return;
-    window.open(provider.url, "_blank");
-  }
-
-  return (
-    <div style={{ padding: 16 }}>
-      <div className="offerwall-header">
-        <h1>🎁 Offerwall</h1>
-        <p>Complete offers and surveys to earn more</p>
+  return <div style={{ padding: 16 }}>
+    <div className="offerwall-header"><h1>🎁 Offerwall</h1><p>Complete offers and surveys to earn more</p></div>
+    {providers.map((provider) => <div className="provider-card" key={provider.name}>
+      <div className="provider-info">
+        <div className="provider-icon provider-logo"><img src={provider.logo} alt={`${provider.name} logo`} onError={(e)=>{e.currentTarget.style.display="none"}} /></div>
+        <div><p className="provider-name">{provider.name}</p><p className="provider-desc">{provider.desc}</p></div>
       </div>
-
-      {providers.map((provider) => (
-        <div className="provider-card" key={provider.name}>
-          <div className="provider-info">
-            <div className="provider-icon" style={{ background: provider.color }}>
-              {provider.initial}
-            </div>
-            <div>
-              <p className="provider-name">{provider.name}</p>
-              <p className="provider-desc">{provider.desc}</p>
-            </div>
-          </div>
-          <button className="provider-btn" onClick={() => handleOpen(provider)}>
-            Open
-          </button>
-        </div>
-      ))}
-    </div>
-  );
+      <button className="provider-btn" onClick={()=>navigate(provider.route)}>Open</button>
+    </div>)}
+  </div>;
 }
