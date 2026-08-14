@@ -16,8 +16,9 @@ const providers = [
     desc: "Surveys, apps & tasks",
     color: "#8b5cf6",
     initial: "B",
-    url: null,
-    active: false,
+    type: "iframe",
+    route: "/offerwall/bitlabs",
+    active: true,
   },
   {
     name: "Lootably",
