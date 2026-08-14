@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithTelegram } from "../lib/telegramAuth";
+import { loginWithTelegram } from "../telegramAuth";
 
 const BITLABS_TOKEN = "6e482357-b8ef-4e9c-8c7f-4f00aba6ce95";
 
