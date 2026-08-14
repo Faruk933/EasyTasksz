@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
 import WatchAds from "./pages/WatchAds";
@@ -19,8 +19,13 @@ import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 
 export default function App() {
+  const location = useLocation();
+  const isImmersiveOfferwall =
+    location.pathname === "/offerwall/pixylabs" ||
+    location.pathname === "/offerwall/cpalead";
+
   return (
-    <div style={{ paddingBottom: 70 }}>
+    <div style={{ paddingBottom: isImmersiveOfferwall ? 0 : 70 }}>
       <Header />
       <Routes>
         <Route path="/" element={<Dashboard />} />
@@ -33,12 +38,12 @@ export default function App() {
         <Route path="/offerwall/pixylabs" element={<PixyLabsOfferwall />} />
         <Route path="/offerwall/cpalead" element={<CPAleadOfferwall />} />
         <Route path="/admin" element={<Admin />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/tasks/:id" element={<TaskDetail />} />
-          <Route path="/admin/tasks" element={<AdminTasks />} />
-          <Route path="/admin/submissions" element={<AdminSubmissions />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/tasks/:id" element={<TaskDetail />} />
+        <Route path="/admin/tasks" element={<AdminTasks />} />
+        <Route path="/admin/submissions" element={<AdminSubmissions />} />
       </Routes>
-      <BottomNav />
+      {!isImmersiveOfferwall && <BottomNav />}
     </div>
   );
 }
