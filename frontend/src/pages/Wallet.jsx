@@ -5,6 +5,8 @@ import { requestWithdrawal } from "../withdraw";
 import { getPublicSettings } from "../publicSettings";
 import "./Wallet.css";
 
+const OXAPAY_NETWORK_FEE = 0.25;
+
 export default function Wallet() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,6 +64,11 @@ export default function Wallet() {
     }
   }
 
+  const selectedAmount = Number(amount || 0);
+  const feePercent = Number(settings.withdrawal_fee_percent ?? 0);
+  const platformFee = selectedAmount * (feePercent / 100);
+  const estimatedPayout = Math.max(0, selectedAmount - platformFee - OXAPAY_NETWORK_FEE);
+
   if (loading) {
     return <div style={{ padding: 16 }}>Loading...</div>;
   }
@@ -109,12 +116,11 @@ export default function Wallet() {
 
         <p className="wallet-note">
           Minimum withdrawal: ${settings.minimum_withdrawal ?? 10} USDT (BEP20)
-          </p>
-          {settings.withdrawal_fee_percent && Number(settings.withdrawal_fee_percent) > 0 && (
-            <p className="wallet-note">
-              A {settings.withdrawal_fee_percent}% withdrawal fee applies. You will receive approximately ${(Number(amount || 0) * (1 - Number(settings.withdrawal_fee_percent) / 100)).toFixed(2)} USDT.
-            </p>
-          )}
+        </p>
+
+        <p className="wallet-note">
+          A {feePercent}% platform withdrawal fee applies, plus a flat $0.25 USDT BEP20 network fee. You will receive approximately ${estimatedPayout.toFixed(2)} USDT.
+        </p>
 
         {submitMessage && (
           <p className="wallet-note" style={{ color: "#facc15" }}>
