@@ -12,12 +12,12 @@ const providers = [
     active: true,
   },
   {
-    name: "AdGate (BitLabs)",
+    name: "BitLabs",
     desc: "Surveys, apps & tasks",
     color: "#8b5cf6",
-    initial: "A",
-    url: "https://adgatemedia.com",
-    active: true,
+    initial: "B",
+    url: null,
+    active: false,
   },
   {
     name: "Lootably",
