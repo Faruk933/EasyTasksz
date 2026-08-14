@@ -40,19 +40,21 @@ export default function Wallet() {
     }
 
     const minWithdrawal = Number(settings.minimum_withdrawal ?? 10);
-    if (!amount || Number(amount) < minWithdrawal) {
+    const withdrawalAmount = Number(amount);
+
+    if (!Number.isFinite(withdrawalAmount) || withdrawalAmount < minWithdrawal) {
       setSubmitMessage(`Minimum withdrawal is $${minWithdrawal} USDT`);
       return;
     }
 
-    if (Number(amount) > Number(user?.balance ?? 0)) {
+    if (withdrawalAmount > Number(user?.balance ?? 0)) {
       setSubmitMessage("Withdrawal amount exceeds your balance");
       return;
     }
 
     setSubmitting(true);
     try {
-      const result = await requestWithdrawal(walletAddress, Number(amount));
+      const result = await requestWithdrawal(walletAddress, withdrawalAmount);
       setUser((prev) => ({ ...prev, balance: result.newBalance }));
       setSubmitMessage("✅ Withdrawal request submitted!");
       setWalletAddress("");
@@ -67,7 +69,9 @@ export default function Wallet() {
   const selectedAmount = Number(amount || 0);
   const feePercent = Number(settings.withdrawal_fee_percent ?? 0);
   const platformFee = selectedAmount * (feePercent / 100);
-  const estimatedPayout = Math.max(0, selectedAmount - platformFee - OXAPAY_NETWORK_FEE);
+  const networkFee = selectedAmount > 0 ? OXAPAY_NETWORK_FEE : 0;
+  const totalFees = platformFee + networkFee;
+  const estimatedPayout = Math.max(0, selectedAmount - totalFees);
 
   if (loading) {
     return <div style={{ padding: 16 }}>Loading...</div>;
@@ -104,11 +108,34 @@ export default function Wallet() {
 
         <input
           type="number"
+          min="0"
+          step="0.01"
           placeholder="Amount (USDT)"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           className="wallet-input"
         />
+
+        {selectedAmount > 0 && (
+          <div className="wallet-fee-breakdown">
+            <div>
+              <span>Platform fee ({feePercent}%)</span>
+              <strong>${platformFee.toFixed(2)} USDT</strong>
+            </div>
+            <div>
+              <span>OxaPay network fee</span>
+              <strong>${networkFee.toFixed(2)} USDT</strong>
+            </div>
+            <div>
+              <span>Total fees</span>
+              <strong>${totalFees.toFixed(2)} USDT</strong>
+            </div>
+            <div className="wallet-payout-row">
+              <span>You receive</span>
+              <strong>${estimatedPayout.toFixed(2)} USDT</strong>
+            </div>
+          </div>
+        )}
 
         <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>
           {submitting ? "Submitting..." : "Withdraw"}
@@ -119,7 +146,7 @@ export default function Wallet() {
         </p>
 
         <p className="wallet-note">
-          A {feePercent}% platform withdrawal fee applies, plus a flat $0.25 USDT BEP20 network fee. You will receive approximately ${estimatedPayout.toFixed(2)} USDT.
+          Your withdrawal amount is deducted from your balance. The platform fee and fixed $0.25 USDT OxaPay BEP20 network fee are deducted from the payout.
         </p>
 
         {submitMessage && (
