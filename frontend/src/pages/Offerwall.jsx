@@ -21,22 +21,6 @@ const providers = [
     active: true,
   },
   {
-    name: "Lootably",
-    desc: "Coming soon",
-    color: "#64748b",
-    initial: "L",
-    url: null,
-    active: false,
-  },
-  {
-    name: "Ayet Studios",
-    desc: "Coming soon",
-    color: "#64748b",
-    initial: "A",
-    url: null,
-    active: false,
-  },
-  {
     name: "PixyLabs",
     desc: "Offers, surveys & more",
     color: "#16a34a",
@@ -78,12 +62,8 @@ export default function Offerwall() {
               <p className="provider-desc">{provider.desc}</p>
             </div>
           </div>
-          <button
-            className={`provider-btn ${provider.active ? "" : "disabled"}`}
-            onClick={() => handleOpen(provider)}
-            disabled={!provider.active}
-          >
-            {provider.active ? "Open" : "Soon"}
+          <button className="provider-btn" onClick={() => handleOpen(provider)}>
+            Open
           </button>
         </div>
       ))}
