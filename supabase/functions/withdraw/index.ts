@@ -51,6 +51,7 @@ async function verifyTelegramData(initData: string, botToken: string): Promise<a
 }
 
 const MIN_WITHDRAWAL = 10;
+const OXAPAY_NETWORK_FEE = 0.25;
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -116,6 +117,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    const feeAmount = numAmount * (feePercent / 100);
+    const payoutBeforeNetworkFee = numAmount - feeAmount;
+    const payoutAmount = Math.max(0, Number((payoutBeforeNetworkFee - OXAPAY_NETWORK_FEE).toFixed(2)));
+
+    if (payoutAmount <= 0) {
+      return new Response(JSON.stringify({ error: "Withdrawal amount is too small after fees" }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
     const newBalance = Number(user.balance) - numAmount;
 
     const { error: updateError } = await supabase
@@ -124,9 +136,6 @@ Deno.serve(async (req) => {
       .eq("telegram_id", tgUser.id);
 
     if (updateError) throw updateError;
-
-    const feeAmount = numAmount * (feePercent / 100);
-    const payoutAmount = numAmount - feeAmount;
 
     const { data: withdrawal, error: insertError } = await supabase
       .from("withdrawals")
