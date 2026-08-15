@@ -66,8 +66,21 @@ Deno.serve(async (req) => {
 
     if (action === "delete-task") {
       if (!taskId) return new Response(JSON.stringify({ error: "Missing taskId" }), { status: 400, headers: corsHeaders });
-      const { error } = await supabase.from("tasks").delete().eq("id", taskId);
-      if (error) throw error;
+
+      // Remove dependent submissions first. This prevents foreign-key errors when a
+      // task has already been completed/submitted by users.
+      const { error: submissionsError } = await supabase
+        .from("task_submissions")
+        .delete()
+        .eq("task_id", taskId);
+      if (submissionsError) throw submissionsError;
+
+      const { error: taskError } = await supabase
+        .from("tasks")
+        .delete()
+        .eq("id", taskId);
+      if (taskError) throw taskError;
+
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
