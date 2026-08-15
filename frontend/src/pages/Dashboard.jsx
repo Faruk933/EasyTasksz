@@ -69,8 +69,6 @@ export default function Dashboard() {
         <div className="dash-balance-card dash-orange"><strong>{adsWatched}</strong><span>Ads Done</span></div>
       </section>
 
-      <Link to="/tasks" className="dash-guide"><div><span>📖</span><section><b>Official Guide</b><small>Learn how to earn more rewards</small></section></div><strong>›</strong></Link>
-
       <section className="dash-checkin">
         <div><b>Daily Earning</b><small>Watch ads every day to build your earnings</small></div>
         <div className="dash-checkin-progress"><span>{adsWatched}/{adLimit}</span><i><b style={{ width: `${progress}%` }} /></i></div>
