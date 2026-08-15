@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
 import { watchAdAndReward } from "../rewardAds";
-import BalanceCard from "../components/BalanceCard";
 import { getPublicSettings } from "../publicSettings";
 import "./Dashboard.css";
 
@@ -16,19 +15,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     getPublicSettings().then(setSettings).catch(() => {});
-    loginWithTelegram()
-      .then((u) => {
-        if (u) {
-          setUser(u);
-        } else {
-          setError("Could not load Telegram user. Open this app from your Telegram bot.");
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Something went wrong loading your profile.");
-      })
-      .finally(() => setLoading(false));
+    loginWithTelegram().then((u) => {
+      if (u) setUser(u);
+      else setError("Could not load Telegram user. Open this app from your Telegram bot.");
+    }).catch((err) => {
+      console.error(err);
+      setError("Something went wrong loading your profile.");
+    }).finally(() => setLoading(false));
   }, []);
 
   async function handleWatchAd() {
@@ -39,106 +32,59 @@ export default function Dashboard() {
       setUser(updatedUser);
       setAdMessage("🎉 Reward added!");
     } catch (err) {
-      console.error(err);
       setAdMessage(err.message || "Could not complete ad.");
     } finally {
       setAdLoading(false);
     }
   }
 
-  if (loading) {
-    return <div style={{ padding: 16 }}>Loading...</div>;
-  }
+  if (loading) return <div className="dashboard-loading">Loading...</div>;
+  if (error) return <div className="dashboard-error">{error}</div>;
 
-  if (error) {
-    return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
-  }
+  const adsWatched = user?.ads_watched_today ?? 0;
+  const adLimit = Number(settings.daily_ad_limit ?? 20);
+  const progress = Math.min(100, adLimit ? (adsWatched / adLimit) * 100 : 0);
+  const earned = Number(user?.total_earned ?? 0);
+  const level = earned >= 100 ? 3 : earned >= 25 ? 2 : 1;
+  const levelName = level === 3 ? "Expert" : level === 2 ? "Rising" : "Newbie";
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        {user?.photo_url && (
-          <img
-            src={user.photo_url}
-            alt="avatar"
-            style={{ width: 48, height: 48, borderRadius: "50%" }}
-          />
-        )}
-        <div>
-          <div style={{ fontWeight: "bold" }}>
-            {user?.first_name} {user?.last_name}
-          </div>
-          <div style={{ fontSize: 13, color: "#94a3b8" }}>
-            @{user?.username || "no_username"}
-          </div>
+    <div className="dashboard-modern">
+      <div className="dash-grid-glow" />
+      <header className="dash-profile">
+        <div className="dash-avatar-wrap">
+          {user?.photo_url ? <img src={user.photo_url} alt="avatar" className="dash-avatar" /> : <div className="dash-avatar dash-avatar-fallback">✓</div>}
+          <span className="dash-level-dot" />
         </div>
-      </div>
+        <div className="dash-profile-info">
+          <h2>{user?.first_name || "Welcome"}</h2>
+          <div className="dash-level-row"><span>LV.{level}</span><i><b style={{ width: `${Math.min(100, earned * 2)}%` }} /></i><strong>{levelName}</strong></div>
+        </div>
+        <div className="dash-globe">◎</div>
+      </header>
 
-      <BalanceCard balance={user?.balance ?? 0} />
+      <section className="dash-balance-grid">
+        <div className="dash-balance-card dash-green"><strong>${Number(user?.balance ?? 0).toFixed(2)}</strong><span>USDT</span></div>
+        <div className="dash-balance-card dash-gold"><strong>{earned.toFixed(2)}</strong><span>Total Earned</span></div>
+        <div className="dash-balance-card dash-orange"><strong>{adsWatched}</strong><span>Ads Done</span></div>
+      </section>
 
-      <div className="stats-row">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-blue">🎯</div>
-          <p>Ads Today</p>
-          <h3>{user?.ads_watched_today ?? 0}/{settings.daily_ad_limit ?? 20}</h3>
-          <div className="stat-progress">
-            <div className="stat-progress-fill" style={{ width: ((user?.ads_watched_today ?? 0) / (settings.daily_ad_limit ?? 20) * 100) + "%" }}></div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-orange">💰</div>
-          <p>Total Earned</p>
-          <h3 className="stat-earned">+${user?.total_earned ?? "0.00"}</h3>
-        </div>
-      </div>
+      <Link to="/tasks" className="dash-guide"><div><span>📖</span><section><b>Official Guide</b><small>Learn how to earn more rewards</small></section></div><strong>›</strong></Link>
 
-      <button
-        className="watch-ads-btn"
-        onClick={handleWatchAd}
-        disabled={adLoading}
-      >
-        <div className="watch-ads-icon">▶</div>
-        <div className="watch-ads-text">
-          <span className="watch-ads-title">{adLoading ? "Loading ad..." : "WATCH & EARN"}</span>
-          <span className="watch-ads-subtitle">Watch ads for instant points</span>
-        </div>
+      <section className="dash-checkin">
+        <div><b>Daily Earning</b><small>Watch ads every day to build your earnings</small></div>
+        <div className="dash-checkin-progress"><span>{adsWatched}/{adLimit}</span><i><b style={{ width: `${progress}%` }} /></i></div>
+      </section>
+
+      <button className="dash-watch" onClick={handleWatchAd} disabled={adLoading}>
+        <span className="dash-watch-icon">▶</span><span><b>{adLoading ? "LOADING AD..." : "WATCH & EARN"}</b><small>Watch ads for instant USDT rewards</small></span><strong>›</strong>
       </button>
+      {adMessage && <div className="dash-message">{adMessage}</div>}
 
-      {adMessage && (
-        <div style={{ marginTop: 12, textAlign: "center", color: "#94a3b8" }}>
-          {adMessage}
-        </div>
-      )}
-
-      <div style={{ textAlign: "center", margin: "24px 0 12px 0", color: "#94a3b8", fontSize: 13 }}>
-        ⚡ More Ways to Earn ⚡
-      </div>
-
-      <Link to="/offerwall" style={{ textDecoration: "none" }}>
-        <div style={{ background: "#1e293b", borderRadius: 16, padding: 16, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📋</div>
-            <div>
-              <p style={{ fontWeight: "bold", fontSize: 14, margin: 0, color: "white" }}>Offerwall Tasks</p>
-              <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Complete surveys, apps for rewards</p>
-            </div>
-          </div>
-          <div style={{ background: "#16a34a", color: "white", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: "bold" }}>Open</div>
-        </div>
-      </Link>
-
-        <Link to="/tasks" style={{ textDecoration: "none" }}>
-          <div style={{ background: "#1e293b", borderRadius: 16, padding: 16, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📝</div>
-              <div>
-                <p style={{ fontWeight: "bold", fontSize: 14, margin: 0, color: "white" }}>Complete Task</p>
-                <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Finish simple tasks for rewards</p>
-              </div>
-            </div>
-            <div style={{ background: "#16a34a", color: "white", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: "bold" }}>Open</div>
-          </div>
-        </Link>
+      <div className="dash-section-title"><span>🔥</span> HOT TASKS <Link to="/tasks">View All →</Link></div>
+      <Link to="/tasks" className="dash-task-card"><div className="dash-task-icon task-blue">✓</div><div className="dash-task-info"><b>Complete Tasks</b><small>Finish simple tasks for USDT rewards</small><span>💰 Earn rewards</span></div><button>START</button></Link>
+      <Link to="/offerwall" className="dash-task-card"><div className="dash-task-icon task-orange">⚡</div><div className="dash-task-info"><b>Offerwall</b><small>Surveys, apps & offers</small><span>💰 More ways to earn</span></div><button>START</button></Link>
+      <Link to="/tasks" className="dash-all-tasks">View All Tasks →</Link>
     </div>
   );
 }
