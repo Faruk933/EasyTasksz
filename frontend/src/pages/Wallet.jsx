@@ -123,7 +123,7 @@ export default function Wallet() {
               <strong>${platformFee.toFixed(2)} USDT</strong>
             </div>
             <div>
-              <span>OxaPay network fee</span>
+              <span>Network Fee</span>
               <strong>${networkFee.toFixed(2)} USDT</strong>
             </div>
             <div>
@@ -146,7 +146,7 @@ export default function Wallet() {
         </p>
 
         <p className="wallet-note">
-          Your withdrawal amount is deducted from your balance. The platform fee and fixed $0.25 USDT OxaPay BEP20 network fee are deducted from the payout.
+          Your withdrawal amount is deducted from your balance. The platform fee and fixed $0.25 USDT BEP20 network fee are deducted from the payout.
         </p>
 
         {submitMessage && (
