@@ -79,10 +79,9 @@ export default function Dashboard() {
       </button>
       {adMessage && <div className="dash-message">{adMessage}</div>}
 
-      <div className="dash-section-title"><span>🔥</span> HOT TASKS <Link to="/tasks">View All →</Link></div>
+      <div className="dash-section-title"><span>🔥</span> MORE WAYS TO EARN</div>
       <Link to="/tasks" className="dash-task-card"><div className="dash-task-icon task-blue">✓</div><div className="dash-task-info"><b>Complete Tasks</b><small>Finish simple tasks for USDT rewards</small><span>💰 Earn rewards</span></div><button>START</button></Link>
       <Link to="/offerwall" className="dash-task-card"><div className="dash-task-icon task-orange">⚡</div><div className="dash-task-info"><b>Offerwall</b><small>Surveys, apps & offers</small><span>💰 More ways to earn</span></div><button>START</button></Link>
-      <Link to="/tasks" className="dash-all-tasks">View All Tasks →</Link>
     </div>
   );
 }
