@@ -62,8 +62,8 @@ Deno.serve(async (req) => {
 
   try {
     const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-  const { initData, action, withdrawalId, status, search, targetTelegramId, newBalance, settingsUpdates } = await req.json();
-  console.log("Received action:", JSON.stringify(action));
+    const { initData, action, withdrawalId, status, search, targetTelegramId, newBalance, settingsUpdates } = await req.json();
+    console.log("Received action:", JSON.stringify(action));
 
     if (!initData) {
       return new Response(JSON.stringify({ error: "Missing initData" }), {
@@ -149,41 +149,42 @@ Deno.serve(async (req) => {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-
-  if (action === "get-settings") {
-    const { data: settingsRows, error } = await supabase
-      .from("settings")
-      .select("key, value");
-    if (error) throw error;
-    const settingsObj = {};
-    for (const row of settingsRows || []) {
-      settingsObj[row.key] = row.value;
     }
-    return new Response(JSON.stringify({ settings: settingsObj }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
 
-  if (action === "update-settings") {
-    if (!settingsUpdates || typeof settingsUpdates !== "object") {
-      return new Response(JSON.stringify({ error: "Missing settingsUpdates" }), {
-        status: 400,
-        headers: corsHeaders,
+    if (action === "get-settings") {
+      const { data: settingsRows, error } = await supabase
+        .from("settings")
+        .select("key, value");
+      if (error) throw error;
+      const settingsObj: Record<string, string> = {};
+      for (const row of settingsRows || []) {
+        settingsObj[row.key] = row.value;
+      }
+      return new Response(JSON.stringify({ settings: settingsObj }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const keys = Object.keys(settingsUpdates);
-    for (const k of keys) {
-      await supabase
-        .from("settings")
-        .update({ value: String(settingsUpdates[k]), updated_at: new Date().toISOString() })
-        .eq("key", k);
-    }
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+
+    if (action === "update-settings") {
+      if (!settingsUpdates || typeof settingsUpdates !== "object") {
+        return new Response(JSON.stringify({ error: "Missing settingsUpdates" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
+      }
+      const keys = Object.keys(settingsUpdates);
+      for (const k of keys) {
+        const { error } = await supabase
+          .from("settings")
+          .update({ value: String(settingsUpdates[k]), updated_at: new Date().toISOString() })
+          .eq("key", k);
+        if (error) throw error;
+      }
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (action === "update-balance") {
