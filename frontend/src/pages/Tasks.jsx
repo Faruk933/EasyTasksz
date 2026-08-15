@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listTasks, mySubmissions } from "../tasks";
-import "./Wallet.css";
+import "./Tasks.css";
 
 export default function Tasks() {
   const [tab, setTab] = useState("available");
@@ -12,129 +12,64 @@ export default function Tasks() {
 
   useEffect(() => {
     Promise.all([listTasks(), mySubmissions()])
-      .then(([t, s]) => {
-        setTasks(t);
-        setSubmissions(s);
-      })
+      .then(([t, s]) => { setTasks(t); setSubmissions(s); })
       .catch(() => setError("Something went wrong loading tasks."))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return <div style={{ padding: 16 }}>Loading...</div>;
-  }
+  if (loading) return <div className="tasks-loading">Loading tasks...</div>;
+  if (error) return <div className="tasks-error">{error}</div>;
 
-  if (error) {
-    return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
-  }
-
-  const unavailableTaskIds = submissions
-    .filter((s) => s.status === "pending" || s.status === "approved")
-    .map((s) => s.task_id);
-
+  const unavailableTaskIds = submissions.filter((s) => s.status === "pending" || s.status === "approved").map((s) => s.task_id);
   const availableTasks = tasks.filter((t) => !unavailableTaskIds.includes(t.id));
   const pendingSubmissions = submissions.filter((s) => s.status === "pending");
   const processedSubmissions = submissions.filter((s) => s.status !== "pending");
 
   return (
-    <div style={{ padding: 16 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 4 }}>📝 Complete Tasks</h1>
-      <p style={{ color: "#94a3b8", marginBottom: 16 }}>
-        Earn rewards by completing simple tasks
-      </p>
+    <div className="tasks-page">
+      <header className="tasks-head">
+        <h1>📝 Complete Tasks</h1>
+        <p>Earn rewards by completing simple tasks</p>
+      </header>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <button
-          onClick={() => setTab("available")}
-          style={{
-            flex: 1,
-            padding: 10,
-            borderRadius: 10,
-            border: "none",
-            fontWeight: "bold",
-            background: tab === "available" ? "#3b82f6" : "#1e293b",
-            color: "white",
-          }}
-        >
-          Available
-        </button>
-        <button
-          onClick={() => setTab("pending")}
-          style={{
-            flex: 1,
-            padding: 10,
-            borderRadius: 10,
-            border: "none",
-            fontWeight: "bold",
-            background: tab === "pending" ? "#3b82f6" : "#1e293b",
-            color: "white",
-          }}
-        >
-          Pending
-        </button>
-        <button
-          onClick={() => setTab("history")}
-          style={{
-            flex: 1,
-            padding: 10,
-            borderRadius: 10,
-            border: "none",
-            fontWeight: "bold",
-            background: tab === "history" ? "#3b82f6" : "#1e293b",
-            color: "white",
-          }}
-        >
-          History
-        </button>
+      <div className="tasks-tabs">
+        {[['available','Available'],['pending','Pending'],['history','History']].map(([value,label]) => (
+          <button key={value} className={`tasks-tab ${tab === value ? "active" : ""}`} onClick={() => setTab(value)}>{label}</button>
+        ))}
       </div>
 
       {tab === "available" && (
-        availableTasks.length === 0 ? (
-          <p style={{ color: "#94a3b8", textAlign: "center" }}>No tasks available right now</p>
-        ) : (
-          availableTasks.map((task) => (
-            <Link
-              key={task.id}
-              to={`/tasks/${task.id}`}
-              className="wallet-card"
-              style={{ display: "block", marginBottom: 12, textDecoration: "none", color: "white" }}
-            >
-              <h2>{task.title}</h2>
-              <p style={{ color: "#4ade80", fontWeight: "bold" }}>${Number(task.reward_amount).toFixed(2)}</p>
-            </Link>
-          ))
-        )
+        availableTasks.length === 0 ? <div className="tasks-empty">No tasks available right now</div> :
+        availableTasks.map((task) => (
+          <Link key={task.id} to={`/tasks/${task.id}`} className="task-list-card">
+            <div className="task-list-card-top">
+              <div className="task-list-icon">✓</div>
+              <div className="task-list-info"><h2>{task.title}</h2><p>Complete task and earn your reward</p></div>
+              <div className="task-reward">${Number(task.reward_amount).toFixed(2)}</div>
+            </div>
+          </Link>
+        ))
       )}
 
       {tab === "pending" && (
-        pendingSubmissions.length === 0 ? (
-          <p style={{ color: "#94a3b8", textAlign: "center" }}>No pending submissions</p>
-        ) : (
-          pendingSubmissions.map((sub) => (
-            <div key={sub.id} className="wallet-card" style={{ marginBottom: 12 }}>
-              <h2>{sub.tasks?.title}</h2>
-              <p style={{ color: "#facc15" }}>⏳ Pending review</p>
-            </div>
-          ))
-        )
+        pendingSubmissions.length === 0 ? <div className="tasks-empty">No pending submissions</div> :
+        pendingSubmissions.map((sub) => (
+          <div key={sub.id} className="task-list-card">
+            <div className="task-list-card-top"><div className="task-list-icon">⏳</div><div className="task-list-info"><h2>{sub.tasks?.title || "Task"}</h2><p>Submission is waiting for review</p></div></div>
+            <div className="task-status pending">⏳ Pending review</div>
+          </div>
+        ))
       )}
 
       {tab === "history" && (
-        processedSubmissions.length === 0 ? (
-          <p style={{ color: "#94a3b8", textAlign: "center" }}>No history yet</p>
-        ) : (
-          processedSubmissions.map((sub) => (
-            <div key={sub.id} className="wallet-card" style={{ marginBottom: 12 }}>
-              <h2>{sub.tasks?.title}</h2>
-              <p style={{ color: sub.status === "approved" ? "#4ade80" : "#f87171" }}>
-                {sub.status === "approved" ? "✅ Approved" : "❌ Rejected"}
-              </p>
-              {sub.admin_comment && (
-                <p style={{ color: "#94a3b8", fontSize: 13 }}>{sub.admin_comment}</p>
-              )}
-            </div>
-          ))
-        )
+        processedSubmissions.length === 0 ? <div className="tasks-empty">No history yet</div> :
+        processedSubmissions.map((sub) => (
+          <div key={sub.id} className="task-list-card">
+            <div className="task-list-card-top"><div className="task-list-icon">{sub.status === "approved" ? "✓" : "×"}</div><div className="task-list-info"><h2>{sub.tasks?.title || "Task"}</h2><p>Task submission</p></div></div>
+            <div className={`task-status ${sub.status === "approved" ? "approved" : "rejected"}`}>{sub.status === "approved" ? "✅ Approved" : "❌ Rejected"}</div>
+            {sub.admin_comment && <p className="task-comment">{sub.admin_comment}</p>}
+          </div>
+        ))
       )}
     </div>
   );
