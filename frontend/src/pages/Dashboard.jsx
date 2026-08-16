@@ -45,6 +45,8 @@ export default function Dashboard() {
   const adLimit = Number(settings.daily_ad_limit ?? 20);
   const progress = Math.min(100, adLimit ? (adsWatched / adLimit) * 100 : 0);
   const earned = Number(user?.total_earned ?? 0);
+  const displayBalance = Number(user?.balance ?? 0).toString();
+  const displayEarned = earned.toString();
   const level = earned >= 100 ? 3 : earned >= 25 ? 2 : 1;
   const levelName = level === 3 ? "Expert" : level === 2 ? "Rising" : "Newbie";
 
@@ -64,8 +66,8 @@ export default function Dashboard() {
       </header>
 
       <section className="dash-balance-grid">
-        <div className="dash-balance-card dash-green"><strong>${Number(user?.balance ?? 0).toFixed(2)}</strong><span>Current Balance</span></div>
-        <div className="dash-balance-card dash-gold"><strong>{earned.toFixed(2)}</strong><span>Total Earned</span></div>
+        <div className="dash-balance-card dash-green"><strong>${displayBalance}</strong><span>Current Balance</span></div>
+        <div className="dash-balance-card dash-gold"><strong>{displayEarned}</strong><span>Total Earned</span></div>
         <div className="dash-balance-card dash-orange"><strong>{adsWatched}</strong><span>Ads Done</span></div>
       </section>
 
