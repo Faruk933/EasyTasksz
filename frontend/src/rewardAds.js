@@ -2,6 +2,28 @@ import createAdHandler from "monetag-tg-sdk";
 
 const adHandler = createAdHandler(11203298);
 
+export function startLaunchAd() {
+  try {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData) return;
+
+    adHandler({
+      type: "inApp",
+      inAppSettings: {
+        frequency: 1,
+        capping: 1,
+        interval: 1800,
+        timeout: 3,
+        everyPage: false,
+      },
+    }).catch((err) => {
+      console.warn("Launch ad unavailable:", err);
+    });
+  } catch (err) {
+    console.warn("Launch ad setup failed:", err);
+  }
+}
+
 export async function watchAdAndReward() {
   const tg = window.Telegram?.WebApp;
   const initData = tg?.initData;
