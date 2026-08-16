@@ -86,7 +86,7 @@ export default function Wallet() {
 
       <div className="wallet-card">
         <h2>Available Balance</h2>
-        <p className="wallet-balance">${Number(user?.balance ?? 0).toFixed(2)} USD</p>
+        <p className="wallet-balance">${Number(user?.balance ?? 0).toFixed(2)}</p>
       </div>
 
       <div className="wallet-card">
