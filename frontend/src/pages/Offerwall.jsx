@@ -5,6 +5,7 @@ const providers = [
   { name: "CPAlead", desc: "Complete offers & surveys", logo: "https://www.cpalead.com/favicon.ico", route: "/offerwall/cpalead" },
   { name: "BitLabs", desc: "Surveys, apps & tasks", logo: "https://asset.brandfetch.io/idi22fXdIo/idCFcmsQ1X.jpeg?updated=1702319304608", route: "/offerwall/bitlabs", crop: true },
   { name: "PixyLabs", desc: "Offers, surveys & more", logo: "https://www.pixylabs.co/favicon.ico", route: "/offerwall/pixylabs" },
+  { name: "TimeWall", desc: "Microtasks, surveys & offers", logo: "https://timewall.io/favicon.ico", route: "/offerwall/timewall" },
 ];
 
 export default function Offerwall() {
