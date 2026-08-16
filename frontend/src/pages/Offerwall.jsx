@@ -19,15 +19,29 @@ export default function Offerwall() {
             src={provider.logo}
             alt={`${provider.name} logo`}
             onError={(e) => {
-              const img = e.currentTarget;
               if (provider.name === "PixyLabs") {
-                img.onerror = null;
-                img.style.display = "none";
-                img.parentElement.classList.add("pixylabs-logo-fallback");
-                img.parentElement.setAttribute("data-logo", "PL");
+                e.currentTarget.style.display = "none";
+                const fallback = e.currentTarget.nextElementSibling;
+                if (fallback) fallback.style.display = "grid";
               }
             }}
           />
+          {provider.name === "PixyLabs" && (
+            <span
+              aria-hidden="true"
+              style={{
+                display: "none",
+                width: "100%",
+                height: "100%",
+                placeItems: "center",
+                borderRadius: "inherit",
+                background: "linear-gradient(135deg,#7c3aed,#ec4899)",
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: 14,
+              }}
+            >PL</span>
+          )}
         </div>
         <div><p className="provider-name">{provider.name}</p><p className="provider-desc">{provider.desc}</p></div>
       </div>
