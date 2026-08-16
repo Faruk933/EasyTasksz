@@ -64,7 +64,7 @@ export default function Dashboard() {
       </header>
 
       <section className="dash-balance-grid">
-        <div className="dash-balance-card dash-green"><strong>${Number(user?.balance ?? 0).toFixed(2)}</strong><span>USDT</span></div>
+        <div className="dash-balance-card dash-green"><strong>${Number(user?.balance ?? 0).toFixed(2)}</strong><span>Current Balance</span></div>
         <div className="dash-balance-card dash-gold"><strong>{earned.toFixed(2)}</strong><span>Total Earned</span></div>
         <div className="dash-balance-card dash-orange"><strong>{adsWatched}</strong><span>Ads Done</span></div>
       </section>
@@ -75,12 +75,12 @@ export default function Dashboard() {
       </section>
 
       <button className="dash-watch" onClick={handleWatchAd} disabled={adLoading}>
-        <span className="dash-watch-icon">▶</span><span><b>{adLoading ? "LOADING AD..." : "WATCH & EARN"}</b><small>Watch ads for instant USDT rewards</small></span><strong>›</strong>
+        <span className="dash-watch-icon">▶</span><span><b>{adLoading ? "LOADING AD..." : "WATCH & EARN"}</b><small>Watch ads for instant rewards</small></span><strong>›</strong>
       </button>
       {adMessage && <div className="dash-message">{adMessage}</div>}
 
       <div className="dash-section-title"><span>🔥</span> MORE WAYS TO EARN</div>
-      <Link to="/tasks" className="dash-task-card"><div className="dash-task-icon task-blue">✓</div><div className="dash-task-info"><b>Complete Tasks</b><small>Finish simple tasks for USDT rewards</small><span>💰 Earn rewards</span></div><button>START</button></Link>
+      <Link to="/tasks" className="dash-task-card"><div className="dash-task-icon task-blue">✓</div><div className="dash-task-info"><b>Complete Tasks</b><small>Finish simple tasks for rewards</small><span>💰 Earn rewards</span></div><button>START</button></Link>
       <Link to="/offerwall" className="dash-task-card"><div className="dash-task-icon task-orange">⚡</div><div className="dash-task-info"><b>Offerwall</b><small>Surveys, apps & offers</small><span>💰 More ways to earn</span></div><button>START</button></Link>
     </div>
   );
