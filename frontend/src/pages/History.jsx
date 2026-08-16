@@ -14,18 +14,12 @@ export default function History() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return <div style={{ padding: 16 }}>Loading...</div>;
-  }
-
-  if (error) {
-    return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
-  }
+  if (loading) return <div style={{ padding: 16 }}>Loading...</div>;
+  if (error) return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
 
   return (
     <div style={{ padding: 16 }}>
       <h1 style={{ fontSize: 22, marginBottom: 16 }}>📜 History</h1>
-
       {withdrawals.length === 0 ? (
         <p className="history-empty">No withdrawals yet</p>
       ) : (
@@ -36,7 +30,7 @@ export default function History() {
               <span>{new Date(w.created_at).toLocaleDateString()}</span>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div className="history-amount">${Number(w.amount).toFixed(2)}</div>
+              <div className="history-amount">${Number(w.amount).toString()}</div>
               <div className={`history-status status-${w.status}`}>{w.status}</div>
             </div>
           </div>
