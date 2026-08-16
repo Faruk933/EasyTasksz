@@ -46,7 +46,7 @@ export default function Wallet() {
     const minWithdrawal = Number(settings.minimum_withdrawal ?? 10);
     const withdrawalAmount = Number(amount);
     if (!Number.isFinite(withdrawalAmount) || withdrawalAmount < minWithdrawal) {
-      setSubmitMessage(`Minimum withdrawal is $${minWithdrawal} USDT`);
+      setSubmitMessage(`Minimum withdrawal is $${minWithdrawal}`);
       return;
     }
     if (withdrawalAmount > Number(user?.balance ?? 0)) {
@@ -86,7 +86,7 @@ export default function Wallet() {
 
       <div className="wallet-card">
         <h2>Available Balance</h2>
-        <p className="wallet-balance">${Number(user?.balance ?? 0).toFixed(2)} USDT</p>
+        <p className="wallet-balance">${Number(user?.balance ?? 0).toFixed(2)} USD</p>
       </div>
 
       <div className="wallet-card">
@@ -104,7 +104,7 @@ export default function Wallet() {
           type="number"
           min="0"
           step="0.01"
-          placeholder="Amount (USDT)"
+          placeholder="Amount (USD)"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           className="wallet-input"
@@ -112,9 +112,9 @@ export default function Wallet() {
 
         {selectedAmount > 0 && (
           <div className="wallet-fee-breakdown">
-            <div><span>Platform fee ({feePercent}%)</span><strong>${platformFee.toFixed(2)} USDT</strong></div>
-            <div><span>OxaPay network fee</span><strong>{SOL_NETWORK_FEE} SOL{networkFeeUsd !== null ? ` (~$${networkFeeUsd.toFixed(4)})` : ""}</strong></div>
-            <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(2)} USDT</strong></div>
+            <div><span>Platform fee ({feePercent}%)</span><strong>${platformFee.toFixed(2)} USD</strong></div>
+            <div><span>Network fee</span><strong>{SOL_NETWORK_FEE} SOL{networkFeeUsd !== null ? ` (~$${networkFeeUsd.toFixed(4)})` : ""}</strong></div>
+            <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(2)} USD</strong></div>
             <div className="wallet-payout-row"><span>You receive</span><strong>{estimatedSol !== null ? `${estimatedSol.toFixed(8)} SOL` : "Calculating…"}</strong></div>
             {solPrice && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
           </div>
@@ -124,8 +124,8 @@ export default function Wallet() {
           {submitting ? "Submitting..." : "Withdraw"}
         </button>
 
-        <p className="wallet-note">Minimum withdrawal: ${settings.minimum_withdrawal ?? 10} USDT</p>
-        <p className="wallet-note">Withdrawals are paid in native SOL on the Solana network. Your USD/USDT wallet balance is converted to SOL using the live SOL/USDT rate when the request is submitted.</p>
+        <p className="wallet-note">Minimum withdrawal: ${settings.minimum_withdrawal ?? 10} USD</p>
+        <p className="wallet-note">Withdrawals are paid in native SOL on the Solana network. Your USD wallet balance is converted to SOL using the live SOL/USDT rate when the request is submitted.</p>
 
         {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
       </div>
