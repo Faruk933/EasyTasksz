@@ -17,23 +17,32 @@ export default function TaskDetail() {
     listTasks()
       .then((tasks) => {
         const found = tasks.find((t) => String(t.id) === String(id));
-        if (!found) {
-          setError("Task not found");
-        } else {
-          setTask(found);
-        }
+        if (!found) setError("Task not found");
+        else setTask(found);
       })
       .catch(() => setError("Something went wrong loading this task."))
       .finally(() => setLoading(false));
   }, [id]);
 
   function handleStartTask() {
-    const tg = window.Telegram?.WebApp;
-    if (tg?.openLink) {
-      tg.openLink(task.task_url);
-    } else {
-      window.open(task.task_url, "_blank");
+    if (!task?.task_url) {
+      setSubmitMessage("This task does not have a valid task URL.");
+      return;
     }
+
+    // Always use the URL saved with this specific task. Telegram's
+    // openLink is used only as the browser-opening mechanism.
+    const targetUrl = String(task.task_url).trim();
+    try {
+      new URL(targetUrl);
+    } catch {
+      setSubmitMessage("This task has an invalid task URL.");
+      return;
+    }
+
+    const tg = window.Telegram?.WebApp;
+    if (tg?.openLink) tg.openLink(targetUrl);
+    else window.open(targetUrl, "_blank", "noopener,noreferrer");
   }
 
   async function handleSubmit() {
@@ -54,13 +63,8 @@ export default function TaskDetail() {
     }
   }
 
-  if (loading) {
-    return <div style={{ padding: 16 }}>Loading...</div>;
-  }
-
-  if (error) {
-    return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
-  }
+  if (loading) return <div style={{ padding: 16 }}>Loading...</div>;
+  if (error) return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
 
   return (
     <div style={{ padding: 16 }}>
@@ -93,11 +97,7 @@ export default function TaskDetail() {
         <button className="wallet-btn" onClick={handleSubmit} disabled={submitting} style={{ marginTop: 12 }}>
           {submitting ? "Submitting..." : "Submit"}
         </button>
-        {submitMessage && (
-          <p className="wallet-note" style={{ color: "#facc15" }}>
-            {submitMessage}
-          </p>
-        )}
+        {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
       </div>
     </div>
   );
