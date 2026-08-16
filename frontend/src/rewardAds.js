@@ -16,8 +16,6 @@ export function startLaunchAd() {
         timeout: 3,
         everyPage: false,
       },
-    }).catch((err) => {
-      console.warn("Launch ad unavailable:", err);
     });
   } catch (err) {
     console.warn("Launch ad setup failed:", err);
