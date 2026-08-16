@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
 
-const TIMEWALL_OID = import.meta.env.VITE_TIMEWALL_OID;
+// TimeWall Placement ID is public integration configuration, not a secret.
+// Keep the approved OID as a fallback so the offerwall still works if Netlify
+// does not inject VITE_TIMEWALL_OID into a particular build context.
+const TIMEWALL_OID = import.meta.env.VITE_TIMEWALL_OID || "b46823581c84758a";
 
 export default function TimeWallOfferwall() {
   const navigate = useNavigate();
@@ -31,7 +34,7 @@ export default function TimeWallOfferwall() {
     };
   }, []);
 
-  const iframeUrl = userId && TIMEWALL_OID
+  const iframeUrl = userId
     ? `https://timewall.io/users/login?oid=${encodeURIComponent(TIMEWALL_OID)}&uid=${encodeURIComponent(userId)}`
     : null;
 
@@ -64,10 +67,6 @@ export default function TimeWallOfferwall() {
         <div style={{ color: "#f87171", display: "grid", placeItems: "center", height: "100%", padding: 24, textAlign: "center" }}>
           {error}
         </div>
-      ) : !TIMEWALL_OID ? (
-        <div style={{ color: "#fff", display: "grid", placeItems: "center", height: "100%", padding: 24, textAlign: "center" }}>
-          TimeWall placement is pending approval. The offerwall will be available here once the TimeWall placement ID is configured.
-        </div>
       ) : !iframeUrl ? (
         <div style={{ color: "#fff", display: "grid", placeItems: "center", height: "100%" }}>
           Loading TimeWall…
@@ -83,4 +82,3 @@ export default function TimeWallOfferwall() {
     </div>
   );
 }
-
