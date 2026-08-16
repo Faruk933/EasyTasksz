@@ -75,6 +75,7 @@ export default function Wallet() {
   const totalFeesUsd = platformFee + (networkFeeUsd ?? 0);
   const estimatedPayoutUsd = Math.max(0, selectedAmount - totalFeesUsd);
   const estimatedSol = solPrice && estimatedPayoutUsd > 0 ? Math.max(0, estimatedPayoutUsd / solPrice - SOL_NETWORK_FEE) : null;
+  const displayBalance = Number(user?.balance ?? 0).toString();
 
   if (loading) return <div style={{ padding: 16 }}>Loading...</div>;
   if (error) return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
@@ -86,7 +87,7 @@ export default function Wallet() {
 
       <div className="wallet-card">
         <h2>Available Balance</h2>
-        <p className="wallet-balance">${Number(user?.balance ?? 0).toFixed(2)}</p>
+        <p className="wallet-balance">${displayBalance}</p>
       </div>
 
       <div className="wallet-card">
