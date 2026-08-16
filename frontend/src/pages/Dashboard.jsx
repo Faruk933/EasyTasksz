@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
-import { watchAdAndReward } from "../rewardAds";
+import { startLaunchAd, watchAdAndReward } from "../rewardAds";
 import { getPublicSettings } from "../publicSettings";
 import { mySubmissions } from "../tasks";
 import "./Dashboard.css";
@@ -37,6 +37,7 @@ export default function Dashboard() {
       }
       setUser(u);
       await loadPendingAmount();
+      startLaunchAd();
     }).catch((err) => {
       console.error(err);
       setError("Something went wrong loading your profile.");
