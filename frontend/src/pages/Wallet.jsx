@@ -91,9 +91,9 @@ export default function Wallet() {
     : DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const platformFee = selectedAmount * (feePercent / 100);
   const networkFeeUsd = solPrice ? SOL_NETWORK_FEE * solPrice : null;
-  const totalFeesUsd = platformFee + (networkFeeUsd ?? 0);
+  const totalFeesUsd = networkFeeUsd !== null ? platformFee + networkFeeUsd : platformFee;
   const payoutAfterPlatformFeeUsd = Math.max(0, selectedAmount - platformFee);
-  const estimatedPayoutUsd = solPrice
+  const estimatedPayoutUsd = networkFeeUsd !== null
     ? Math.max(0, payoutAfterPlatformFeeUsd - networkFeeUsd)
     : payoutAfterPlatformFeeUsd;
   const estimatedSol = solPrice && estimatedPayoutUsd >= 0
@@ -123,8 +123,8 @@ export default function Wallet() {
         {selectedAmount > 0 && (
           <div className="wallet-fee-breakdown">
             <div><span>Platform fee ({feePercent}%)</span><strong>${platformFee.toFixed(2)} USD</strong></div>
-            <div><span>Network fee</span><strong>{SOL_NETWORK_FEE} SOL{networkFeeUsd !== null ? ` (~$${networkFeeUsd.toFixed(4)})` : ""}</strong></div>
-            <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(2)} USD</strong></div>
+            <div><span>Network fee</span><strong>{SOL_NETWORK_FEE} SOL{networkFeeUsd !== null ? ` (~$${networkFeeUsd.toFixed(4)})` : " (USD value unavailable)"}</strong></div>
+            <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(4)} USD</strong></div>
             <div className="wallet-payout-row">
               <span>You receive</span>
               <strong>{estimatedSol !== null ? `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(2)})` : `$${estimatedPayoutUsd.toFixed(2)} USD (SOL rate unavailable)`}</strong>
