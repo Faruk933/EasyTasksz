@@ -72,6 +72,8 @@ export default function Dashboard() {
   const displayBalance = Number(user?.balance ?? 0).toString();
   const displayEarned = earned.toString();
   const displayPending = pendingAmount.toString();
+  const rewardPerAd = Number(settings.reward_per_ad ?? 0.01);
+  const displayAdReward = rewardPerAd.toFixed(2);
   const level = earned >= 100 ? 3 : earned >= 25 ? 2 : 1;
   const levelName = level === 3 ? "Expert" : level === 2 ? "Rising" : "Newbie";
 
@@ -102,7 +104,7 @@ export default function Dashboard() {
       </section>
 
       <button className="dash-watch" onClick={handleWatchAd} disabled={adLoading}>
-        <span className="dash-watch-icon">▶</span><span><b>{adLoading ? "LOADING AD..." : "WATCH & EARN"}</b><small>Watch ads for instant rewards</small></span><strong>›</strong>
+        <span className="dash-watch-icon">▶</span><span><b>{adLoading ? "LOADING AD..." : `WATCH & EARN — $${displayAdReward}`}</b><small>Watch one ad and earn ${displayAdReward}</small></span><strong>›</strong>
       </button>
       {adMessage && <div className="dash-message">{adMessage}</div>}
 
