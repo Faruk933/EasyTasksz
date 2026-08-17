@@ -25,7 +25,7 @@ export default function OfferwallMeOfferwall() {
   }, []);
 
   if (error) {
-    return <div style={{minHeight:"100vh",background:"#0b0f14",color:"#fff",display:"grid",placeItems:"center",padding:24,textAlign:"center"}}><div><p style={{color:"#f87171",marginBottom:18}}>{error}</p><button type="button" onClick={() => navigate("/offerwall")} style={{border:0,borderRadius:12,padding:"12px 18px",fontWeight:700}}>Back to Offerwalls</button></div></div>;
+    return <div style={{minHeight:"100vh",background:"#0b0f14",color:"#fff",display:"grid",placeItems:"center",padding:24,textAlign:"center"}}><div><p style={{color:"#f87171",marginBottom:18}}>{error}</p><button type="button" onClick={() => navigate("/offerwall")} aria-label="Back to Offerwalls" style={{border:"1px solid rgba(255,255,255,0.25)",borderRadius:12,padding:"9px 14px",background:"rgba(11,15,20,0.95)",color:"#fff",fontWeight:700,fontSize:14,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"}}>← Back</button></div></div>;
   }
 
   if (!url) {
