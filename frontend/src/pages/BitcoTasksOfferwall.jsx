@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
 
-const IFRAME_KEY = import.meta.env.VITE_BITCOTASKS_IFRAME_KEY || "";
+const IFRAME_KEY = "9bzv8diekywjbik14erih9csixzxqg";
 
 export default function BitcoTasksOfferwall() {
   const navigate = useNavigate();
@@ -11,16 +11,12 @@ export default function BitcoTasksOfferwall() {
 
   useEffect(() => {
     let mounted = true;
-    if (!IFRAME_KEY) {
-      setError("BitcoTasks is not configured yet.");
-      return () => { mounted = false; };
-    }
 
     loginWithTelegram()
       .then((user) => {
         const telegramId = user?.telegram_id ?? user?.id;
         if (!telegramId) throw new Error("Could not load Telegram user.");
-        const offerwallUrl = `https://bitcotasks.com/offerwall/${encodeURIComponent(IFRAME_KEY)}/${encodeURIComponent(String(telegramId))}`;
+        const offerwallUrl = `https://bitcotasks.com/offerwall/${IFRAME_KEY}/${encodeURIComponent(String(telegramId))}`;
         if (mounted) setUrl(offerwallUrl);
       })
       .catch((err) => {
