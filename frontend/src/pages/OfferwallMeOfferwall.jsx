@@ -32,8 +32,8 @@ export default function OfferwallMeOfferwall() {
     return <div style={{minHeight:"100vh",background:"#0b0f14",color:"#fff",display:"grid",placeItems:"center",textAlign:"center"}}><div><div style={{fontSize:38,marginBottom:12}}>🎁</div><p style={{margin:0,fontWeight:700}}>Loading Offerwall.me…</p><p style={{marginTop:8,color:"#9ca3af",fontSize:13}}>Preparing your personalized offerwall.</p></div></div>;
   }
 
-  return <div style={{width:"100%",minHeight:"100vh",background:"#0b0f14",position:"relative"}}>
-    <button type="button" onClick={() => navigate("/offerwall")} aria-label="Back to Offerwalls" style={{position:"fixed",top:12,left:12,zIndex:1000,border:"1px solid rgba(255,255,255,0.18)",borderRadius:12,padding:"9px 14px",background:"rgba(11,15,20,0.92)",color:"#fff",fontWeight:700,fontSize:14,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"}}>← Back</button>
-    <iframe title="Offerwall.me" src={url} scrolling="yes" frameBorder="0" style={{display:"block",width:"100%",height:"100vh",minHeight:800,border:0}} allow="clipboard-write; fullscreen" />
+  return <div style={{width:"100%",height:"100vh",background:"#0b0f14",position:"fixed",inset:0,zIndex:1000}}>
+    <button type="button" onClick={() => navigate("/offerwall")} aria-label="Back to Offerwalls" style={{position:"fixed",top:12,left:12,zIndex:1002,border:"1px solid rgba(255,255,255,0.25)",borderRadius:12,padding:"9px 14px",background:"rgba(11,15,20,0.95)",color:"#fff",fontWeight:700,fontSize:14,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"}}>← Back</button>
+    <iframe title="Offerwall.me" src={url} scrolling="yes" frameBorder="0" style={{display:"block",width:"100%",height:"100%",border:0}} allow="clipboard-write; fullscreen" />
   </div>;
 }
