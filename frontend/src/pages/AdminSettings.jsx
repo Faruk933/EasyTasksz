@@ -30,11 +30,29 @@ export default function AdminSettings() {
     ["referral_commission_percent", "Referral Commission (%)", "0.1"],
   ];
 
+  const launchAdEnabled = String(settings.launch_ad_enabled).toLowerCase() === "true";
+
   return (
     <div style={{ padding: 16 }}>
       <Link to="/admin" style={{ display: "inline-block", color: "#60a5fa", textDecoration: "none", marginBottom: 16, fontWeight: "bold" }}>← Back to Admin Panel</Link>
       <h1>Platform Settings</h1>
       <p style={{ color: "#94a3b8" }}>Control platform earning and withdrawal settings.</p>
+
+      <div style={{ background: "#1e293b", borderRadius: 14, padding: 16, marginBottom: 12 }}>
+        <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, cursor: "pointer" }}>
+          <span>
+            <strong style={{ display: "block", color: "white" }}>Launch Monetag Ad</strong>
+            <small style={{ display: "block", color: "#94a3b8", marginTop: 4 }}>Show the Monetag in-app ad automatically when the dashboard opens.</small>
+          </span>
+          <input
+            type="checkbox"
+            checked={launchAdEnabled}
+            onChange={(e) => change("launch_ad_enabled", e.target.checked ? "true" : "false")}
+            style={{ width: 22, height: 22, flexShrink: 0 }}
+          />
+        </label>
+      </div>
+
       {fields.map(([key, label, step]) => (
         <div key={key} style={{ background: "#1e293b", borderRadius: 14, padding: 16, marginBottom: 12 }}>
           <label style={{ fontSize: 13, color: "#94a3b8" }}>{label}</label>
