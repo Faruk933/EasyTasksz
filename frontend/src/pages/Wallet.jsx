@@ -18,17 +18,20 @@ export default function Wallet() {
   const [submitting, setSubmitting] = useState(false);
   const [settings, setSettings] = useState({});
   const [solPrice, setSolPrice] = useState(null);
+  const [solPriceLoading, setSolPriceLoading] = useState(true);
 
   useEffect(() => {
     getPublicSettings().then(setSettings).catch(() => {});
 
     const loadSolPrice = async () => {
+      setSolPriceLoading(true);
       try {
         const response = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT");
         const data = await response.json();
         const price = Number(data?.price);
         if (Number.isFinite(price) && price > 0) {
           setSolPrice(price);
+          setSolPriceLoading(false);
           return;
         }
       } catch (_) {}
@@ -39,6 +42,7 @@ export default function Wallet() {
         const price = Number(data?.solana?.usd);
         if (Number.isFinite(price) && price > 0) setSolPrice(price);
       } catch (_) {}
+      setSolPriceLoading(false);
     };
 
     loadSolPrice();
@@ -90,13 +94,15 @@ export default function Wallet() {
     ? rawFeePercent
     : DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const platformFee = selectedAmount * (feePercent / 100);
-  const networkFeeUsd = solPrice ? SOL_NETWORK_FEE * solPrice : null;
-  const totalFeesUsd = networkFeeUsd !== null ? platformFee + networkFeeUsd : platformFee;
+  const calculating = selectedAmount > 0 && solPriceLoading;
+  const calculated = selectedAmount > 0 && !solPriceLoading && Number.isFinite(solPrice) && solPrice > 0;
+  const networkFeeUsd = calculated ? SOL_NETWORK_FEE * solPrice : null;
+  const totalFeesUsd = calculated ? platformFee + networkFeeUsd : null;
   // All fees are deducted from the amount entered by the user.
-  const estimatedPayoutUsd = networkFeeUsd !== null
+  const estimatedPayoutUsd = calculated
     ? Math.max(0, selectedAmount - platformFee - networkFeeUsd)
-    : Math.max(0, selectedAmount - platformFee);
-  const estimatedSol = solPrice && estimatedPayoutUsd >= 0
+    : null;
+  const estimatedSol = calculated
     ? Math.max(0, estimatedPayoutUsd / solPrice)
     : null;
   const displayBalance = Number(user?.balance ?? 0).toString();
@@ -123,17 +129,19 @@ export default function Wallet() {
         {selectedAmount > 0 && (
           <div className="wallet-fee-breakdown">
             <div><span>Platform fee ({feePercent}%)</span><strong>${platformFee.toFixed(2)} USD</strong></div>
-            <div><span>Network fee</span><strong>{SOL_NETWORK_FEE} SOL{networkFeeUsd !== null ? ` (~$${networkFeeUsd.toFixed(4)})` : " (USD value unavailable)"}</strong></div>
-            <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(4)} USD</strong></div>
+            <div><span>Network fee</span><strong>{calculating ? "CALCULATING" : calculated ? `${SOL_NETWORK_FEE} SOL (~$${networkFeeUsd.toFixed(4)})` : "CALCULATING"}</strong></div>
+            <div><span>Total fees</span><strong>{calculating || !calculated ? "CALCULATING" : `$${totalFeesUsd.toFixed(4)} USD`}</strong></div>
             <div className="wallet-payout-row">
               <span>You receive</span>
-              <strong>{estimatedSol !== null ? `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(4)})` : `$${estimatedPayoutUsd.toFixed(4)} USD (SOL rate unavailable)`}</strong>
+              <strong>{calculating || !calculated ? "CALCULATING" : `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(4)})`}</strong>
             </div>
-            {solPrice && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
+            {calculated && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
           </div>
         )}
 
-        <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>{submitting ? "Submitting..." : "Withdraw"}</button>
+        {selectedAmount > 0 && calculated && (
+          <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>{submitting ? "Submitting..." : "Withdraw"}</button>
+        )}
         <p className="wallet-note">Minimum withdrawal: ${settings.minimum_withdrawal ?? 10} USD</p>
         <p className="wallet-note">Withdrawals are paid in native SOL on the Solana network. Your USD wallet balance is converted to SOL using the live SOL/USDT rate when the request is submitted.</p>
         {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
