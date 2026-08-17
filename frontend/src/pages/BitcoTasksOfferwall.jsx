@@ -43,10 +43,11 @@ export default function BitcoTasksOfferwall() {
 
         <button
           type="button"
-          onClick={() => navigate("/offerwall", { replace: true })}
-          style={{ marginTop: 12, width: "100%", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "12px 18px", background: "transparent", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
+          onClick={() => navigate("/offerwall")}
+          aria-label="Back to Offerwalls"
+          style={{position:"fixed",top:12,left:12,zIndex:1002,border:"1px solid rgba(255,255,255,0.25)",borderRadius:12,padding:"9px 14px",background:"rgba(11,15,20,0.95)",color:"#fff",fontWeight:700,fontSize:14,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"}}
         >
-          ← Back to Offerwalls
+          ← Back
         </button>
       </div>
     </div>
