@@ -54,6 +54,7 @@ export default function Wallet() {
         } catch (_) { return null; }
       };
 
+      // Query both providers simultaneously; the first valid response wins.
       const sources = [
         fetchPrice("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT", (data) => data?.price),
         fetchPrice("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd", (data) => data?.solana?.usd),
@@ -64,7 +65,7 @@ export default function Wallet() {
         setSolPrice(price);
         cacheSolPrice(price);
       } catch (_) {
-        // No usable live price; keep CALCULATING and keep withdrawal hidden.
+        // Keep the UI calculating when no valid live price is available.
       } finally {
         setSolPriceLoading(false);
       }
