@@ -7,6 +7,8 @@ import { loginWithTelegram } from "../telegramAuth";
 // does not inject VITE_TIMEWALL_OID into a particular build context.
 const TIMEWALL_OID = import.meta.env.VITE_TIMEWALL_OID || "b46823581c84758a";
 
+const backButtonStyle = {position:"fixed",bottom:18,left:18,zIndex:1002,border:"1px solid rgba(255,255,255,0.25)",borderRadius:14,padding:"12px 18px",background:"rgba(11,15,20,0.95)",color:"#fff",fontWeight:700,fontSize:16,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"};
+
 export default function TimeWallOfferwall() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
@@ -44,7 +46,7 @@ export default function TimeWallOfferwall() {
         type="button"
         onClick={() => navigate("/offerwall")}
         aria-label="Back to Offerwalls"
-        style={{position:"fixed",top:12,left:12,zIndex:1002,border:"1px solid rgba(255,255,255,0.25)",borderRadius:12,padding:"9px 14px",background:"rgba(11,15,20,0.95)",color:"#fff",fontWeight:700,fontSize:14,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"}}
+        style={backButtonStyle}
       >
         ← Back
       </button>
