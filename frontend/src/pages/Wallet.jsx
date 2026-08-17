@@ -92,10 +92,10 @@ export default function Wallet() {
   const platformFee = selectedAmount * (feePercent / 100);
   const networkFeeUsd = solPrice ? SOL_NETWORK_FEE * solPrice : null;
   const totalFeesUsd = networkFeeUsd !== null ? platformFee + networkFeeUsd : platformFee;
-  const payoutAfterPlatformFeeUsd = Math.max(0, selectedAmount - platformFee);
+  // All fees are deducted from the amount entered by the user.
   const estimatedPayoutUsd = networkFeeUsd !== null
-    ? Math.max(0, payoutAfterPlatformFeeUsd - networkFeeUsd)
-    : payoutAfterPlatformFeeUsd;
+    ? Math.max(0, selectedAmount - platformFee - networkFeeUsd)
+    : Math.max(0, selectedAmount - platformFee);
   const estimatedSol = solPrice && estimatedPayoutUsd >= 0
     ? Math.max(0, estimatedPayoutUsd / solPrice)
     : null;
@@ -127,7 +127,7 @@ export default function Wallet() {
             <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(4)} USD</strong></div>
             <div className="wallet-payout-row">
               <span>You receive</span>
-              <strong>{estimatedSol !== null ? `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(2)})` : `$${estimatedPayoutUsd.toFixed(2)} USD (SOL rate unavailable)`}</strong>
+              <strong>{estimatedSol !== null ? `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(4)})` : `$${estimatedPayoutUsd.toFixed(4)} USD (SOL rate unavailable)`}</strong>
             </div>
             {solPrice && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
           </div>
