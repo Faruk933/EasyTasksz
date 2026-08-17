@@ -11,7 +11,6 @@ export default function BitcoTasksOfferwall() {
 
   useEffect(() => {
     let mounted = true;
-
     loginWithTelegram()
       .then((user) => {
         const telegramId = user?.telegram_id ?? user?.id;
@@ -22,7 +21,6 @@ export default function BitcoTasksOfferwall() {
       .catch((err) => {
         if (mounted) setError(err?.message || "Could not load BitcoTasks.");
       });
-
     return () => { mounted = false; };
   }, []);
 
@@ -46,10 +44,13 @@ export default function BitcoTasksOfferwall() {
     );
   }
 
+  const openDirect = () => window.location.assign(url);
+
   return (
     <div style={{ width: "100%", height: "100vh", background: "#0b0f14", position: "fixed", inset: 0, zIndex: 1000 }}>
       <button type="button" onClick={() => navigate("/offerwall")} aria-label="Back to Offerwalls" style={{ position: "fixed", top: 12, left: 12, zIndex: 1002, border: "1px solid rgba(255,255,255,0.25)", borderRadius: 12, padding: "9px 14px", background: "rgba(11,15,20,0.95)", color: "#fff", fontWeight: 700, fontSize: 14, boxShadow: "0 4px 16px rgba(0,0,0,0.3)", cursor: "pointer" }}>← Back</button>
-      <iframe title="BitcoTasks" src={url} scrolling="yes" frameBorder="0" style={{ display: "block", width: "100%", height: "100%", border: 0 }} allow="clipboard-write; fullscreen" />
+      <iframe title="BitcoTasks" src={url} scrolling="yes" frameBorder="0" style={{ display: "block", width: "100%", height: "100%", border: 0 }} allow="clipboard-write; fullscreen; storage-access" referrerPolicy="strict-origin-when-cross-origin" />
+      <button type="button" onClick={openDirect} style={{ position: "fixed", right: 12, top: 12, zIndex: 1003, border: "1px solid rgba(255,255,255,0.25)", borderRadius: 12, padding: "9px 14px", background: "rgba(11,15,20,0.95)", color: "#fff", fontWeight: 700, fontSize: 13, boxShadow: "0 4px 16px rgba(0,0,0,0.3)", cursor: "pointer" }}>Open directly</button>
     </div>
   );
 }
