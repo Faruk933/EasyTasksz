@@ -23,6 +23,7 @@ function cacheSolPrice(price) {
 }
 
 export default function Wallet() {
+  const initialCachedPrice = readCachedSolPrice();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,8 +32,8 @@ export default function Wallet() {
   const [submitMessage, setSubmitMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [settings, setSettings] = useState({});
-  const [solPrice, setSolPrice] = useState(() => readCachedSolPrice());
-  const [solPriceLoading, setSolPriceLoading] = useState(() => !readCachedSolPrice());
+  const [solPrice, setSolPrice] = useState(initialCachedPrice);
+  const [solPriceLoading, setSolPriceLoading] = useState(!initialCachedPrice);
 
   useEffect(() => {
     getPublicSettings().then(setSettings).catch(() => {});
@@ -42,7 +43,9 @@ export default function Wallet() {
       if (cached) {
         setSolPrice(cached);
         setSolPriceLoading(false);
-      } else setSolPriceLoading(true);
+      } else {
+        setSolPriceLoading(true);
+      }
 
       const fetchPrice = async (url, parser) => {
         try {
@@ -51,24 +54,38 @@ export default function Wallet() {
           const data = await response.json();
           const price = Number(parser(data));
           return Number.isFinite(price) && price > 0 ? price : null;
-        } catch (_) { return null; }
+        } catch (_) {
+          return null;
+        }
       };
 
-      // Query both providers simultaneously; the first valid response wins.
-      const sources = [
+      // Query both providers simultaneously. Resolve only when the first
+      // provider returns a valid price; null responses do not end the race.
+      const requests = [
         fetchPrice("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT", (data) => data?.price),
         fetchPrice("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd", (data) => data?.solana?.usd),
       ];
 
-      try {
-        const price = await Promise.any(sources);
+      const price = await new Promise((resolve) => {
+        let completed = 0;
+        let settled = false;
+        requests.forEach((request) => request.then((value) => {
+          completed += 1;
+          if (!settled && value) {
+            settled = true;
+            resolve(value);
+          } else if (completed === requests.length && !settled) {
+            settled = true;
+            resolve(null);
+          }
+        }));
+      });
+
+      if (price) {
         setSolPrice(price);
         cacheSolPrice(price);
-      } catch (_) {
-        // Keep the UI calculating when no valid live price is available.
-      } finally {
-        setSolPriceLoading(false);
       }
+      setSolPriceLoading(false);
     };
 
     loadSolPrice();
