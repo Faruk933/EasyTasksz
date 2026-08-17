@@ -94,17 +94,12 @@ export default function Wallet() {
     ? rawFeePercent
     : DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const platformFee = selectedAmount * (feePercent / 100);
-  const calculating = selectedAmount > 0 && solPriceLoading;
-  const calculated = selectedAmount > 0 && !solPriceLoading && Number.isFinite(solPrice) && solPrice > 0;
+  const calculating = selectedAmount > 0 && (solPriceLoading || !Number.isFinite(solPrice) || solPrice <= 0);
+  const calculated = selectedAmount > 0 && !calculating;
   const networkFeeUsd = calculated ? SOL_NETWORK_FEE * solPrice : null;
   const totalFeesUsd = calculated ? platformFee + networkFeeUsd : null;
-  // All fees are deducted from the amount entered by the user.
-  const estimatedPayoutUsd = calculated
-    ? Math.max(0, selectedAmount - platformFee - networkFeeUsd)
-    : null;
-  const estimatedSol = calculated
-    ? Math.max(0, estimatedPayoutUsd / solPrice)
-    : null;
+  const estimatedPayoutUsd = calculated ? Math.max(0, selectedAmount - platformFee - networkFeeUsd) : null;
+  const estimatedSol = calculated ? Math.max(0, estimatedPayoutUsd / solPrice) : null;
   const displayBalance = Number(user?.balance ?? 0).toString();
 
   if (loading) return <div style={{ padding: 16 }}>Loading...</div>;
@@ -129,13 +124,13 @@ export default function Wallet() {
         {selectedAmount > 0 && (
           <div className="wallet-fee-breakdown">
             <div><span>Platform fee ({feePercent}%)</span><strong>${platformFee.toFixed(2)} USD</strong></div>
-            <div><span>Network fee</span><strong>{calculating ? "CALCULATING" : calculated ? `${SOL_NETWORK_FEE} SOL (~$${networkFeeUsd.toFixed(4)})` : "CALCULATING"}</strong></div>
-            <div><span>Total fees</span><strong>{calculating || !calculated ? "CALCULATING" : `$${totalFeesUsd.toFixed(4)} USD`}</strong></div>
+            <div><span>Network fee</span><strong>{calculating ? "CALCULATING" : `${SOL_NETWORK_FEE} SOL (~$${networkFeeUsd.toFixed(4)})`}</strong></div>
+            <div><span>Total fees</span><strong>{calculating ? "CALCULATING" : `$${totalFeesUsd.toFixed(4)} USD`}</strong></div>
             <div className="wallet-payout-row">
               <span>You receive</span>
-              <strong>{calculating || !calculated ? "CALCULATING" : `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(4)})`}</strong>
+              <strong>{calculating ? "CALCULATING" : `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(4)})`}</strong>
             </div>
-            {calculated && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
+            {!calculating && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
           </div>
         )}
 
