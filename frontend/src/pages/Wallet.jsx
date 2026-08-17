@@ -13,17 +13,13 @@ const SOL_PRICE_CACHE_TTL = 60 * 1000;
 function readCachedSolPrice() {
   try {
     const cached = JSON.parse(localStorage.getItem(SOL_PRICE_CACHE_KEY) || "null");
-    if (cached && Number.isFinite(Number(cached.price)) && Number(cached.price) > 0 && Date.now() - Number(cached.timestamp) < SOL_PRICE_CACHE_TTL) {
-      return Number(cached.price);
-    }
+    if (cached && Number.isFinite(Number(cached.price)) && Number(cached.price) > 0 && Date.now() - Number(cached.timestamp) < SOL_PRICE_CACHE_TTL) return Number(cached.price);
   } catch (_) {}
   return null;
 }
 
 function cacheSolPrice(price) {
-  try {
-    localStorage.setItem(SOL_PRICE_CACHE_KEY, JSON.stringify({ price, timestamp: Date.now() }));
-  } catch (_) {}
+  try { localStorage.setItem(SOL_PRICE_CACHE_KEY, JSON.stringify({ price, timestamp: Date.now() })); } catch (_) {}
 }
 
 export default function Wallet() {
@@ -46,9 +42,7 @@ export default function Wallet() {
       if (cached) {
         setSolPrice(cached);
         setSolPriceLoading(false);
-      } else {
-        setSolPriceLoading(true);
-      }
+      } else setSolPriceLoading(true);
 
       const fetchPrice = async (url, parser) => {
         try {
@@ -57,12 +51,9 @@ export default function Wallet() {
           const data = await response.json();
           const price = Number(parser(data));
           return Number.isFinite(price) && price > 0 ? price : null;
-        } catch (_) {
-          return null;
-        }
+        } catch (_) { return null; }
       };
 
-      // Fetch both sources simultaneously; use whichever valid source responds first.
       const sources = [
         fetchPrice("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT", (data) => data?.price),
         fetchPrice("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd", (data) => data?.solana?.usd),
@@ -73,7 +64,7 @@ export default function Wallet() {
         setSolPrice(price);
         cacheSolPrice(price);
       } catch (_) {
-        // Keep a valid cached price if one exists; otherwise remain calculating.
+        // No usable live price; keep CALCULATING and keep withdrawal hidden.
       } finally {
         setSolPriceLoading(false);
       }
@@ -92,21 +83,11 @@ export default function Wallet() {
 
   async function handleWithdraw() {
     setSubmitMessage(null);
-    if (!walletAddress) {
-      setSubmitMessage("Please enter your Solana wallet address");
-      return;
-    }
-
+    if (!walletAddress) { setSubmitMessage("Please enter your Solana wallet address"); return; }
     const minWithdrawal = Number(settings.minimum_withdrawal ?? 10);
     const withdrawalAmount = Number(amount);
-    if (!Number.isFinite(withdrawalAmount) || withdrawalAmount < minWithdrawal) {
-      setSubmitMessage(`Minimum withdrawal is $${minWithdrawal}`);
-      return;
-    }
-    if (withdrawalAmount > Number(user?.balance ?? 0)) {
-      setSubmitMessage("Withdrawal amount exceeds your balance");
-      return;
-    }
+    if (!Number.isFinite(withdrawalAmount) || withdrawalAmount < minWithdrawal) { setSubmitMessage(`Minimum withdrawal is $${minWithdrawal}`); return; }
+    if (withdrawalAmount > Number(user?.balance ?? 0)) { setSubmitMessage("Withdrawal amount exceeds your balance"); return; }
 
     setSubmitting(true);
     try {
@@ -117,16 +98,12 @@ export default function Wallet() {
       setAmount("");
     } catch (err) {
       setSubmitMessage(err.message || "Withdrawal failed");
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   }
 
   const selectedAmount = Number(amount || 0);
   const rawFeePercent = Number(settings.withdrawal_fee_percent);
-  const feePercent = Number.isFinite(rawFeePercent) && rawFeePercent >= 0
-    ? rawFeePercent
-    : DEFAULT_WITHDRAWAL_FEE_PERCENT;
+  const feePercent = Number.isFinite(rawFeePercent) && rawFeePercent >= 0 ? rawFeePercent : DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const platformFee = selectedAmount * (feePercent / 100);
   const calculating = selectedAmount > 0 && (solPriceLoading || !Number.isFinite(solPrice) || solPrice <= 0);
   const calculated = selectedAmount > 0 && !calculating;
@@ -151,26 +128,20 @@ export default function Wallet() {
 
       <div className="wallet-card">
         <h2>Request Withdrawal</h2>
-
         <input type="text" placeholder="Solana Wallet Address" value={walletAddress} onChange={(e) => setWalletAddress(e.target.value)} className="wallet-input" />
         <input type="number" min="0" step="0.01" placeholder="Amount (USD)" value={amount} onChange={(e) => setAmount(e.target.value)} className="wallet-input" />
 
         {selectedAmount > 0 && (
           <div className="wallet-fee-breakdown">
-            <div><span>Platform fee ({feePercent}%)</span><strong>${platformFee.toFixed(2)} USD</strong></div>
+            <div><span>Platform fee ({feePercent}%)</span><strong>{calculating ? "CALCULATING" : `$${platformFee.toFixed(2)} USD`}</strong></div>
             <div><span>Network fee</span><strong>{calculating ? "CALCULATING" : `${SOL_NETWORK_FEE} SOL (~$${networkFeeUsd.toFixed(4)})`}</strong></div>
             <div><span>Total fees</span><strong>{calculating ? "CALCULATING" : `$${totalFeesUsd.toFixed(4)} USD`}</strong></div>
-            <div className="wallet-payout-row">
-              <span>You receive</span>
-              <strong>{calculating ? "CALCULATING" : `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(4)})`}</strong>
-            </div>
+            <div className="wallet-payout-row"><span>You receive</span><strong>{calculating ? "CALCULATING" : `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(4)})`}</strong></div>
             {!calculating && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
           </div>
         )}
 
-        {selectedAmount > 0 && calculated && (
-          <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>{submitting ? "Submitting..." : "Withdraw"}</button>
-        )}
+        {selectedAmount > 0 && calculated && <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>{submitting ? "Submitting..." : "Withdraw"}</button>}
         <p className="wallet-note">Minimum withdrawal: ${settings.minimum_withdrawal ?? 10} USD</p>
         <p className="wallet-note">Withdrawals are paid in native SOL on the Solana network. Your USD wallet balance is converted to SOL using the live SOL/USDT rate when the request is submitted.</p>
         {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
