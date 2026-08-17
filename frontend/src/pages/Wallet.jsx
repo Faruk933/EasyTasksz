@@ -20,13 +20,29 @@ export default function Wallet() {
 
   useEffect(() => {
     getPublicSettings().then(setSettings).catch(() => {});
-    fetch("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT")
-      .then((r) => r.json())
-      .then((d) => {
-        const price = Number(d?.price);
+
+    const loadSolPrice = async () => {
+      try {
+        const response = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT");
+        const data = await response.json();
+        const price = Number(data?.price);
+        if (Number.isFinite(price) && price > 0) {
+          setSolPrice(price);
+          return;
+        }
+      } catch (_) {}
+
+      // Fallback price source if Binance is unavailable on the user's network.
+      try {
+        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+        const data = await response.json();
+        const price = Number(data?.solana?.usd);
         if (Number.isFinite(price) && price > 0) setSolPrice(price);
-      })
-      .catch(() => {});
+      } catch (_) {}
+    };
+
+    loadSolPrice();
+
     loginWithTelegram()
       .then((u) => {
         if (u) setUser(u);
@@ -73,8 +89,17 @@ export default function Wallet() {
   const platformFee = selectedAmount * (feePercent / 100);
   const networkFeeUsd = solPrice ? SOL_NETWORK_FEE * solPrice : null;
   const totalFeesUsd = platformFee + (networkFeeUsd ?? 0);
-  const estimatedPayoutUsd = Math.max(0, selectedAmount - totalFeesUsd);
-  const estimatedSol = solPrice && estimatedPayoutUsd > 0 ? Math.max(0, estimatedPayoutUsd / solPrice - SOL_NETWORK_FEE) : null;
+
+  // The backend subtracts the platform fee and then the SOL network fee.
+  // Keep the preview consistent with that calculation and do not subtract
+  // the network fee twice in the SOL estimate.
+  const payoutAfterPlatformFeeUsd = Math.max(0, selectedAmount - platformFee);
+  const estimatedPayoutUsd = solPrice
+    ? Math.max(0, payoutAfterPlatformFeeUsd - networkFeeUsd)
+    : payoutAfterPlatformFeeUsd;
+  const estimatedSol = solPrice && estimatedPayoutUsd >= 0
+    ? Math.max(0, estimatedPayoutUsd / solPrice)
+    : null;
   const displayBalance = Number(user?.balance ?? 0).toString();
 
   if (loading) return <div style={{ padding: 16 }}>Loading...</div>;
@@ -116,7 +141,14 @@ export default function Wallet() {
             <div><span>Platform fee ({feePercent}%)</span><strong>${platformFee.toFixed(2)} USD</strong></div>
             <div><span>Network fee</span><strong>{SOL_NETWORK_FEE} SOL{networkFeeUsd !== null ? ` (~$${networkFeeUsd.toFixed(4)})` : ""}</strong></div>
             <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(2)} USD</strong></div>
-            <div className="wallet-payout-row"><span>You receive</span><strong>{estimatedSol !== null ? `${estimatedSol.toFixed(8)} SOL` : "Calculating…"}</strong></div>
+            <div className="wallet-payout-row">
+              <span>You receive</span>
+              <strong>
+                {estimatedSol !== null
+                  ? `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(2)})`
+                  : `$${estimatedPayoutUsd.toFixed(2)} USD (SOL rate unavailable)`}
+              </strong>
+            </div>
             {solPrice && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
           </div>
         )}
