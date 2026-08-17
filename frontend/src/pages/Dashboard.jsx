@@ -73,7 +73,7 @@ export default function Dashboard() {
   const displayEarned = earned.toString();
   const displayPending = pendingAmount.toString();
   const rewardPerAd = Number(settings.reward_per_ad ?? 0.01);
-  const displayAdReward = rewardPerAd.toFixed(2);
+  const displayAdReward = rewardPerAd.toFixed(5);
   const level = earned >= 100 ? 3 : earned >= 25 ? 2 : 1;
   const levelName = level === 3 ? "Expert" : level === 2 ? "Rising" : "Newbie";
 
