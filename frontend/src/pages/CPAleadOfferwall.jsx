@@ -50,28 +50,10 @@ export default function CPAleadOfferwall() {
       <button
         type="button"
         onClick={() => navigate("/offerwall")}
-        aria-label="Close offerwall and return to EasyTasksz"
-        style={{
-          position: "fixed",
-          top: 12,
-          right: 12,
-          zIndex: 9999,
-          width: 42,
-          height: 42,
-          border: "1px solid rgba(255,255,255,0.2)",
-          borderRadius: "50%",
-          background: "rgba(15,23,42,0.92)",
-          color: "#fff",
-          fontSize: 24,
-          lineHeight: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
-        }}
+        aria-label="Back to Offerwalls"
+        style={{position:"fixed",top:12,left:12,zIndex:1002,border:"1px solid rgba(255,255,255,0.25)",borderRadius:12,padding:"9px 14px",background:"rgba(11,15,20,0.95)",color:"#fff",fontWeight:700,fontSize:14,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"}}
       >
-        ×
+        ← Back
       </button>
     </>
   );
