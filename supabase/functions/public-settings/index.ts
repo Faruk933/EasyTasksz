@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ALLOWED_KEYS = ["daily_ad_limit", "minimum_withdrawal", "referral_commission_percent", "reward_per_ad", "withdrawal_fee_percent"];
+const ALLOWED_KEYS = ["daily_ad_limit", "minimum_withdrawal", "referral_commission_percent", "reward_per_ad", "withdrawal_fee_percent", "launch_ad_enabled"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
