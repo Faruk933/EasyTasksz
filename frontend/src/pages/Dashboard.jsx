@@ -29,7 +29,6 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    getPublicSettings().then(setSettings).catch(() => {});
     loginWithTelegram().then(async (u) => {
       if (!u) {
         setError("Could not load Telegram user. Open this app from your Telegram bot.");
@@ -37,7 +36,12 @@ export default function Dashboard() {
       }
       setUser(u);
       await loadPendingAmount();
-      startLaunchAd();
+
+      const publicSettings = await getPublicSettings().catch(() => ({}));
+      setSettings(publicSettings || {});
+      if (String(publicSettings?.launch_ad_enabled).toLowerCase() === "true") {
+        startLaunchAd();
+      }
     }).catch((err) => {
       console.error(err);
       setError("Something went wrong loading your profile.");
