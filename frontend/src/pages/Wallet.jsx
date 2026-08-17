@@ -7,6 +7,24 @@ import "./Wallet.css";
 
 const SOL_NETWORK_FEE = 0.00005;
 const DEFAULT_WITHDRAWAL_FEE_PERCENT = 0.1;
+const SOL_PRICE_CACHE_KEY = "easytasksz_sol_usd_price";
+const SOL_PRICE_CACHE_TTL = 60 * 1000;
+
+function readCachedSolPrice() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(SOL_PRICE_CACHE_KEY) || "null");
+    if (cached && Number.isFinite(Number(cached.price)) && Number(cached.price) > 0 && Date.now() - Number(cached.timestamp) < SOL_PRICE_CACHE_TTL) {
+      return Number(cached.price);
+    }
+  } catch (_) {}
+  return null;
+}
+
+function cacheSolPrice(price) {
+  try {
+    localStorage.setItem(SOL_PRICE_CACHE_KEY, JSON.stringify({ price, timestamp: Date.now() }));
+  } catch (_) {}
+}
 
 export default function Wallet() {
   const [user, setUser] = useState(null);
@@ -17,32 +35,48 @@ export default function Wallet() {
   const [submitMessage, setSubmitMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [settings, setSettings] = useState({});
-  const [solPrice, setSolPrice] = useState(null);
-  const [solPriceLoading, setSolPriceLoading] = useState(true);
+  const [solPrice, setSolPrice] = useState(() => readCachedSolPrice());
+  const [solPriceLoading, setSolPriceLoading] = useState(() => !readCachedSolPrice());
 
   useEffect(() => {
     getPublicSettings().then(setSettings).catch(() => {});
 
     const loadSolPrice = async () => {
-      setSolPriceLoading(true);
-      try {
-        const response = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT");
-        const data = await response.json();
-        const price = Number(data?.price);
-        if (Number.isFinite(price) && price > 0) {
-          setSolPrice(price);
-          setSolPriceLoading(false);
-          return;
+      const cached = readCachedSolPrice();
+      if (cached) {
+        setSolPrice(cached);
+        setSolPriceLoading(false);
+      } else {
+        setSolPriceLoading(true);
+      }
+
+      const fetchPrice = async (url, parser) => {
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) return null;
+          const data = await response.json();
+          const price = Number(parser(data));
+          return Number.isFinite(price) && price > 0 ? price : null;
+        } catch (_) {
+          return null;
         }
-      } catch (_) {}
+      };
+
+      // Fetch both sources simultaneously; use whichever valid source responds first.
+      const sources = [
+        fetchPrice("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT", (data) => data?.price),
+        fetchPrice("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd", (data) => data?.solana?.usd),
+      ];
 
       try {
-        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
-        const data = await response.json();
-        const price = Number(data?.solana?.usd);
-        if (Number.isFinite(price) && price > 0) setSolPrice(price);
-      } catch (_) {}
-      setSolPriceLoading(false);
+        const price = await Promise.any(sources);
+        setSolPrice(price);
+        cacheSolPrice(price);
+      } catch (_) {
+        // Keep a valid cached price if one exists; otherwise remain calculating.
+      } finally {
+        setSolPriceLoading(false);
+      }
     };
 
     loadSolPrice();
