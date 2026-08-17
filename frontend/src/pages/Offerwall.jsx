@@ -1,54 +1,13 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./Offerwall.css";
-import { loginWithTelegram } from "../telegramAuth";
-
-const GG_SMARTLINK = "https://ratwn.bid/cl/0218833c57aca753";
+import { useNavigate } from "react-router-dom";
 
 const providers = [
-  { name: "GG.Agency", desc: "Offers, subscriptions & tasks", logo: "https://gg.agency/favicon.ico", route: "/offerwall/ggagency" },
+  { name: "Offerwall.me", desc: "Microtasks, offers, shortlinks & PTC", logo: "https://offerwall.me/favicon.ico", route: "/offerwall/offerwallme" },
   { name: "CPAlead", desc: "Complete offers & surveys", logo: "https://www.cpalead.com/favicon.ico", route: "/offerwall/cpalead" },
   { name: "BitLabs", desc: "Surveys, apps & tasks", logo: "https://www.google.com/s2/favicons?domain=bitlabs.ai&sz=128", route: "/offerwall/bitlabs" },
   { name: "PixyLabs", desc: "Offers, surveys & more", logo: "https://www.google.com/s2/favicons?domain=pixylabs.co&sz=128", route: "/offerwall/pixylabs" },
   { name: "TimeWall", desc: "Microtasks, surveys & offers", logo: "https://timewall.io/favicon.ico", route: "/offerwall/timewall" },
 ];
-
-function GGAAgencyButton({ navigate }) {
-  const [telegramId, setTelegramId] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    loginWithTelegram()
-      .then((user) => {
-        const id = user?.telegram_id ?? user?.id;
-        if (mounted && id) setTelegramId(String(id));
-      })
-      .catch(() => {});
-    return () => { mounted = false; };
-  }, []);
-
-  const openGG = () => {
-    if (!telegramId) return;
-    setLoading(true);
-    const url = `${GG_SMARTLINK}?p1=${encodeURIComponent(telegramId)}`;
-    window.location.href = url;
-  };
-
-  return (
-    <div className="provider-card">
-      <div className="provider-info">
-        <div className="provider-icon provider-logo">
-          <img src="https://gg.agency/favicon.ico" alt="GG.Agency logo" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-        </div>
-        <div><p className="provider-name">GG.Agency</p><p className="provider-desc">Offers, subscriptions & tasks</p></div>
-      </div>
-      <button className="provider-btn" onClick={openGG} disabled={!telegramId || loading}>
-        {loading ? "Loading..." : "Open"}
-      </button>
-    </div>
-  );
-}
 
 export default function Offerwall() {
   const navigate = useNavigate();
@@ -60,20 +19,43 @@ export default function Offerwall() {
     if (fallback) fallback.style.display = "grid";
   };
 
-  return <div className="offerwall-page">
-    <div className="offerwall-header"><h1>🎁 Offerwall</h1><p>Complete offers and surveys to earn more</p></div>
-    <GGAAgencyButton navigate={navigate} />
-    {providers.slice(1).map((provider) => <div className="provider-card" key={provider.name}>
-      <div className="provider-info">
-        <div className="provider-icon provider-logo">
-          <img src={provider.logo} alt={`${provider.name} logo`} onError={(e) => handleLogoError(e, provider.name)} />
-          <span aria-hidden="true" style={{ display: "none", width: "100%", height: "100%", placeItems: "center", borderRadius: "inherit", background: provider.name === "BitLabs" ? "#111827" : "linear-gradient(135deg,#7c3aed,#ec4899)", color: "#fff", fontWeight: 800, fontSize: 14 }}>
-            {provider.name === "BitLabs" ? "BL" : provider.name === "PixyLabs" ? "PL" : provider.name.slice(0, 2).toUpperCase()}
-          </span>
-        </div>
-        <div><p className="provider-name">{provider.name}</p><p className="provider-desc">{provider.desc}</p></div>
+  return (
+    <div className="offerwall-page">
+      <div className="offerwall-header">
+        <h1>🎁 Offerwall</h1>
+        <p>Complete offers and microtasks to earn more</p>
       </div>
-      <button className="provider-btn" onClick={() => navigate(provider.route)}>Open</button>
-    </div>)}
-  </div>;
+
+      {providers.map((provider) => (
+        <div className="provider-card" key={provider.name}>
+          <div className="provider-info">
+            <div className="provider-icon provider-logo">
+              <img src={provider.logo} alt={`${provider.name} logo`} onError={(e) => handleLogoError(e, provider.name)} />
+              <span
+                aria-hidden="true"
+                style={{
+                  display: "none",
+                  width: "100%",
+                  height: "100%",
+                  placeItems: "center",
+                  borderRadius: "inherit",
+                  background: provider.name === "BitLabs" ? "#111827" : "linear-gradient(135deg,#0ea5e9,#14b8a6)",
+                  color: "#fff",
+                  fontWeight: 800,
+                  fontSize: 14,
+                }}
+              >
+                {provider.name === "Offerwall.me" ? "OW" : provider.name === "BitLabs" ? "BL" : provider.name === "PixyLabs" ? "PL" : provider.name.slice(0, 2).toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <p className="provider-name">{provider.name}</p>
+              <p className="provider-desc">{provider.desc}</p>
+            </div>
+          </div>
+          <button className="provider-btn" onClick={() => navigate(provider.route)}>Open</button>
+        </div>
+      ))}
+    </div>
+  );
 }
