@@ -6,6 +6,7 @@ import { getPublicSettings } from "../publicSettings";
 import "./Wallet.css";
 
 const SOL_NETWORK_FEE = 0.00005;
+const DEFAULT_WITHDRAWAL_FEE_PERCENT = 0.1;
 
 export default function Wallet() {
   const [user, setUser] = useState(null);
@@ -32,7 +33,6 @@ export default function Wallet() {
         }
       } catch (_) {}
 
-      // Fallback price source if Binance is unavailable on the user's network.
       try {
         const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
         const data = await response.json();
@@ -85,14 +85,13 @@ export default function Wallet() {
   }
 
   const selectedAmount = Number(amount || 0);
-  const feePercent = Number(settings.withdrawal_fee_percent ?? 0);
+  const rawFeePercent = Number(settings.withdrawal_fee_percent);
+  const feePercent = Number.isFinite(rawFeePercent) && rawFeePercent >= 0
+    ? rawFeePercent
+    : DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const platformFee = selectedAmount * (feePercent / 100);
   const networkFeeUsd = solPrice ? SOL_NETWORK_FEE * solPrice : null;
   const totalFeesUsd = platformFee + (networkFeeUsd ?? 0);
-
-  // The backend subtracts the platform fee and then the SOL network fee.
-  // Keep the preview consistent with that calculation and do not subtract
-  // the network fee twice in the SOL estimate.
   const payoutAfterPlatformFeeUsd = Math.max(0, selectedAmount - platformFee);
   const estimatedPayoutUsd = solPrice
     ? Math.max(0, payoutAfterPlatformFeeUsd - networkFeeUsd)
@@ -118,23 +117,8 @@ export default function Wallet() {
       <div className="wallet-card">
         <h2>Request Withdrawal</h2>
 
-        <input
-          type="text"
-          placeholder="Solana Wallet Address"
-          value={walletAddress}
-          onChange={(e) => setWalletAddress(e.target.value)}
-          className="wallet-input"
-        />
-
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          placeholder="Amount (USD)"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="wallet-input"
-        />
+        <input type="text" placeholder="Solana Wallet Address" value={walletAddress} onChange={(e) => setWalletAddress(e.target.value)} className="wallet-input" />
+        <input type="number" min="0" step="0.01" placeholder="Amount (USD)" value={amount} onChange={(e) => setAmount(e.target.value)} className="wallet-input" />
 
         {selectedAmount > 0 && (
           <div className="wallet-fee-breakdown">
@@ -143,32 +127,19 @@ export default function Wallet() {
             <div><span>Total fees</span><strong>${totalFeesUsd.toFixed(2)} USD</strong></div>
             <div className="wallet-payout-row">
               <span>You receive</span>
-              <strong>
-                {estimatedSol !== null
-                  ? `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(2)})`
-                  : `$${estimatedPayoutUsd.toFixed(2)} USD (SOL rate unavailable)`}
-              </strong>
+              <strong>{estimatedSol !== null ? `${estimatedSol.toFixed(8)} SOL (~$${estimatedPayoutUsd.toFixed(2)})` : `$${estimatedPayoutUsd.toFixed(2)} USD (SOL rate unavailable)`}</strong>
             </div>
             {solPrice && <div><span>Current SOL rate</span><strong>${solPrice.toFixed(2)} / SOL</strong></div>}
           </div>
         )}
 
-        <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>
-          {submitting ? "Submitting..." : "Withdraw"}
-        </button>
-
+        <button className="wallet-btn" onClick={handleWithdraw} disabled={submitting}>{submitting ? "Submitting..." : "Withdraw"}</button>
         <p className="wallet-note">Minimum withdrawal: ${settings.minimum_withdrawal ?? 10} USD</p>
         <p className="wallet-note">Withdrawals are paid in native SOL on the Solana network. Your USD wallet balance is converted to SOL using the live SOL/USDT rate when the request is submitted.</p>
-
         {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
       </div>
 
-      <Link to="/history" style={{ textDecoration: "none" }}>
-        <div className="wallet-card">
-          <h2>Withdrawal History</h2>
-          <p className="wallet-empty">View all your withdrawals →</p>
-        </div>
-      </Link>
+      <Link to="/history" style={{ textDecoration: "none" }}><div className="wallet-card"><h2>Withdrawal History</h2><p className="wallet-empty">View all your withdrawals →</p></div></Link>
     </div>
   );
 }
