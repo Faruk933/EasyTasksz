@@ -131,7 +131,7 @@ jobs:
             execFileSync('git', ['push']);
           }
 
-          async function bufferGraphQL(query, variables = {}) {
+          async function bufferGraphQL(query, variables = {}, includeResponse = false) {
             const response = await fetch(BUFFER_ENDPOINT, {
               method: 'POST',
               headers: {
@@ -144,7 +144,9 @@ jobs:
             if (!response.ok || body.errors?.length) {
               throw new Error(`Buffer API error: ${JSON.stringify(body.errors || body)}`);
             }
-            return body.data;
+            return includeResponse
+              ? { data: body.data, httpStatus: response.status }
+              : body.data;
           }
 
           async function findXChannel() {
@@ -185,8 +187,8 @@ jobs:
           }
 
           async function createPost(channelId, text) {
-            const mutation = `mutation ($input: CreatePostInput!) { createPost(input: $input) { ... on PostActionSuccess { post { id } } ... on InvalidInputError { message } ... on UnauthorizedError { message } ... on LimitReachedError { message } ... on UnexpectedError { message } } }`;
-            const data = await bufferGraphQL(mutation, {
+            const mutation = `mutation ($input: CreatePostInput!) { createPost(input: $input) { __typename ... on PostActionSuccess { post { id status dueAt channelId text assets { id mimeType } } } ... on MutationError { message } } }`;
+            const response = await bufferGraphQL(mutation, {
               input: {
                 channelId,
                 text,
@@ -201,10 +203,38 @@ jobs:
                 schedulingType: 'automatic',
                 needsApproval: false
               }
-            });
-            const result = data.createPost;
-            if (!result?.post?.id) throw new Error(`Buffer createPost failed: ${JSON.stringify(result)}`);
-            return result.post.id;
+            }, true);
+
+            const result = response.data?.createPost;
+            console.log(`Buffer createPost HTTP status: ${response.httpStatus}`);
+            console.log(`Buffer createPost response: ${JSON.stringify(result)}`);
+
+            if (!result) {
+              throw new Error('Buffer createPost returned no result.');
+            }
+            if (result.__typename !== 'PostActionSuccess') {
+              throw new Error(`Buffer createPost was not successful: ${JSON.stringify(result)}`);
+            }
+
+            const post = result.post;
+            if (!post?.id) throw new Error(`Buffer createPost returned no post ID: ${JSON.stringify(result)}`);
+            if (post.status !== 'scheduled') {
+              throw new Error(`Buffer createPost returned post ${post.id} with unexpected status ${post.status || 'null'}; expected scheduled.`);
+            }
+            if (post.channelId !== channelId) {
+              throw new Error(`Buffer createPost returned post ${post.id} for unexpected channel ${post.channelId || 'null'}; expected ${channelId}.`);
+            }
+            if (post.text !== text) {
+              throw new Error(`Buffer createPost returned post ${post.id} with unexpected text.`);
+            }
+            if (!post.dueAt) {
+              throw new Error(`Buffer createPost returned scheduled post ${post.id} without a dueAt timestamp.`);
+            }
+            if (!Array.isArray(post.assets) || post.assets.length < 1) {
+              throw new Error(`Buffer createPost returned scheduled post ${post.id} without the expected image asset.`);
+            }
+
+            return post;
           }
 
           (async () => {
@@ -239,8 +269,8 @@ jobs:
               process.exit(0);
             }
 
-            const postId = await createPost(channel.id, post.text);
-            console.log(`Created Buffer post ${postId} for campaign day ${day}, slot ${slot}.`);
+            const createdPost = await createPost(channel.id, post.text);
+            console.log(`Created and queued Buffer post ${createdPost.id} for campaign day ${day}, slot ${slot}; status=${createdPost.status}; dueAt=${createdPost.dueAt}; assets=${createdPost.assets.length}.`);
           })().catch(error => {
             console.error(error);
             process.exitCode = 1;
