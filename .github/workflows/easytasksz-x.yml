@@ -47,256 +47,164 @@ jobs:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           MANUAL_START_DATE: ${{ inputs.campaign_start_date }}
           MANUAL_SLOT: ${{ inputs.slot }}
-        run: node <<'NODE'
-const fs = require('node:fs/promises');
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs/promises');
 
-const BUFFER_ENDPOINT = 'https://api.buffer.com/';
-const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
-const POSTS_FILE = 'automation/x-posts.json';
+          const BUFFER_ENDPOINT = 'https://api.buffer.com/';
+          const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
+          const POSTS_FILE = 'automation/x-posts.json';
 
-const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
-for (const name of requiredEnv) {
-  if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
-}
+          const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
+          for (const name of requiredEnv) {
+            if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
+          }
 
-function assertDate(value, label) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw new Error(`${label} must be YYYY-MM-DD`);
-  }
-  const d = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value) {
-    throw new Error(`${label} is not a valid calendar date`);
-  }
-  return value;
-}
+          function assertDate(value, label) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+              throw new Error(`${label} must be YYYY-MM-DD`);
+            }
+          }
 
-function watDate() {
-  const now = new Date(Date.now() + 60 * 60 * 1000);
-  return now.toISOString().slice(0, 10);
-}
+          function watDate() {
+            return new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Africa/Lagos',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            }).format(new Date());
+          }
 
-function calendarDay(startDate, currentDate) {
-  const start = Date.parse(`${startDate}T00:00:00Z`);
-  const current = Date.parse(`${currentDate}T00:00:00Z`);
-  return Math.floor((current - start) / 86400000) + 1;
-}
+          function dateDiffDays(start, end) {
+            const a = Date.parse(`${start}T00:00:00Z`);
+            const b = Date.parse(`${end}T00:00:00Z`);
+            return Math.floor((b - a) / 86400000);
+          }
 
-async function githubApi(path, options = {}) {
-  const response = await fetch(`https://api.github.com${path}`, {
-    ...options,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...(options.headers || {}),
-    },
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(`GitHub API ${response.status}: ${body.message || 'request failed'}`);
-  }
-  return body;
-}
+          async function readCampaignStart() {
+            if (process.env.EVENT_NAME !== 'workflow_dispatch') {
+              try {
+                const value = (await fs.readFile(CAMPAIGN_FILE, 'utf8')).trim();
+                if (value) {
+                  assertDate(value, CAMPAIGN_FILE);
+                  return value;
+                }
+              } catch (error) {
+                if (error.code !== 'ENOENT') throw error;
+              }
+            }
 
-async function bufferApi(query) {
-  const response = await fetch(BUFFER_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.BUFFER_API_KEY}`,
-    },
-    body: JSON.stringify({ query }),
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(`Buffer API HTTP ${response.status}`);
-  }
-  if (body.errors?.length) {
-    throw new Error(`Buffer API: ${body.errors.map(e => e.message).join('; ')}`);
-  }
-  return body.data;
-}
+            if (process.env.MANUAL_START_DATE) {
+              assertDate(process.env.MANUAL_START_DATE, 'campaign_start_date input');
+              return process.env.MANUAL_START_DATE;
+            }
 
-async function readPersistentStartDate() {
-  try {
-    const file = await githubApi(`/repos/${process.env.REPOSITORY}/contents/${CAMPAIGN_FILE}`);
-    const content = Buffer.from(file.content, 'base64').toString('utf8').trim();
-    return { date: assertDate(content, 'Persistent campaign start date'), sha: file.sha };
-  } catch (error) {
-    if (!String(error.message).includes('GitHub API 404')) throw error;
-    return null;
-  }
-}
+            if (process.env.CAMPAIGN_START_DATE_CONFIG) {
+              assertDate(process.env.CAMPAIGN_START_DATE_CONFIG, 'CAMPAIGN_START_DATE');
+              if (process.env.EVENT_NAME !== 'workflow_dispatch') {
+                await persistCampaignStart(process.env.CAMPAIGN_START_DATE_CONFIG);
+              }
+              return process.env.CAMPAIGN_START_DATE_CONFIG;
+            }
 
-async function persistStartDate(date, existingSha = null) {
-  const payload = {
-    message: `Initialize campaign start date: ${date}`,
-    content: Buffer.from(`${date}\n`, 'utf8').toString('base64'),
-    branch: process.env.GITHUB_REF_NAME,
-  };
-  if (existingSha) payload.sha = existingSha;
-  await githubApi(`/repos/${process.env.REPOSITORY}/contents/${CAMPAIGN_FILE}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
+            const today = watDate();
+            if (process.env.EVENT_NAME !== 'workflow_dispatch') {
+              await persistCampaignStart(today);
+            }
+            return today;
+          }
 
-function slotFromSchedule(schedule) {
-  if (schedule === '0 8 * * *') return '1';
-  if (schedule === '0 13 * * *') return '2';
-  if (schedule === '0 18 * * *') return '3';
-  throw new Error(`Unexpected scheduled cron: ${schedule}`);
-}
+          async function persistCampaignStart(value) {
+            const fsSync = require('node:fs');
+            const { execFileSync } = require('node:child_process');
+            fsSync.mkdirSync('automation', { recursive: true });
+            fsSync.writeFileSync(CAMPAIGN_FILE, `${value}\n`, 'utf8');
+            execFileSync('git', ['config', 'user.name', 'github-actions[bot]']);
+            execFileSync('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
+            execFileSync('git', ['add', CAMPAIGN_FILE]);
+            try {
+              execFileSync('git', ['diff', '--cached', '--quiet']);
+              return;
+            } catch {}
+            execFileSync('git', ['commit', '-m', 'Persist campaign start date']);
+            execFileSync('git', ['push']);
+          }
 
-const posts = JSON.parse(await fs.readFile(POSTS_FILE, 'utf8'));
-if (!Array.isArray(posts) || posts.length !== 90) {
-  throw new Error('automation/x-posts.json must contain exactly 90 posts');
-}
+          async function bufferGraphQL(query, variables = {}) {
+            const response = await fetch(BUFFER_ENDPOINT, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.BUFFER_API_KEY}`
+              },
+              body: JSON.stringify({ query, variables })
+            });
+            const body = await response.json();
+            if (!response.ok || body.errors?.length) {
+              throw new Error(`Buffer API error: ${JSON.stringify(body.errors || body)}`);
+            }
+            return body.data;
+          }
 
-const seen = new Set();
-for (const post of posts) {
-  if (!Number.isInteger(post.day) || !Number.isInteger(post.slot) ||
-      post.day < 1 || post.day > 30 || post.slot < 1 || post.slot > 3 ||
-      typeof post.text !== 'string' || !post.text) {
-    throw new Error('Invalid post dataset entry');
-  }
-  const key = `${post.day}:${post.slot}`;
-  if (seen.has(key)) throw new Error(`Duplicate dataset entry: ${key}`);
-  seen.add(key);
-}
-if (seen.size !== 90) throw new Error('Dataset must contain every day/slot pair exactly once');
+          async function findXChannel() {
+            const query = `query { channels { id name service } }`;
+            const data = await bufferGraphQL(query);
+            const channels = data.channels || [];
+            const channel = channels.find(c => /^(twitter|x)$/i.test(c.service) || /twitter|x/i.test(c.name));
+            if (!channel) throw new Error('No X/Twitter Buffer channel found');
+            return channel;
+          }
 
-const currentWatDate = watDate();
-const persistent = await readPersistentStartDate();
+          async function getQueuedPosts(channelId) {
+            const query = `query ($channelId: ID!) { posts(input: { channelId: $channelId, status: QUEUED, first: 100 }) { edges { node { text } } } }`;
+            const data = await bufferGraphQL(query, { channelId });
+            return data.posts?.edges?.map(edge => edge.node?.text).filter(Boolean) || [];
+          }
 
-let startDate;
-if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_START_DATE) {
-  startDate = assertDate(process.env.MANUAL_START_DATE, 'Manual campaign start date');
-} else if (persistent) {
-  startDate = persistent.date;
-} else if (process.env.CAMPAIGN_START_DATE_CONFIG) {
-  startDate = assertDate(process.env.CAMPAIGN_START_DATE_CONFIG, 'Configured campaign start date');
-  if (process.env.EVENT_NAME !== 'workflow_dispatch') {
-    await persistStartDate(startDate);
-  }
-} else {
-  startDate = currentWatDate;
-  if (process.env.EVENT_NAME !== 'workflow_dispatch') {
-    await persistStartDate(startDate);
-  }
-}
+          async function createPost(channelId, text) {
+            const mutation = `mutation ($input: CreatePostInput!) { createPost(input: $input) { ... on Post { id } ... on UserError { message } } }`;
+            const data = await bufferGraphQL(mutation, {
+              input: {
+                channelId,
+                text
+              }
+            });
+            const result = data.createPost;
+            if (!result?.id) throw new Error(`Buffer createPost failed: ${JSON.stringify(result)}`);
+            return result.id;
+          }
 
-let slot;
-if (process.env.EVENT_NAME === 'schedule') {
-  slot = slotFromSchedule(process.env.EVENT_SCHEDULE);
-} else {
-  slot = process.env.MANUAL_SLOT || '1';
-  if (!['1', '2', '3'].includes(slot)) throw new Error('Manual slot must be 1, 2, or 3');
-}
+          const posts = JSON.parse(await fs.readFile(POSTS_FILE, 'utf8'));
+          if (!Array.isArray(posts) || posts.length !== 90) throw new Error('Expected exactly 90 posts');
 
-const day = calendarDay(startDate, currentWatDate);
-if (day < 1 || day > 30) {
-  throw new Error(`Campaign day ${day} is outside the 1-30 campaign range`);
-}
+          const campaignStart = await readCampaignStart();
+          const today = watDate();
+          const day = dateDiffDays(campaignStart, today) + 1;
+          if (day < 1 || day > 30) throw new Error(`Campaign day ${day} is outside 1-30`);
 
-const post = posts.find(item => item.day === day && String(item.slot) === slot);
-if (!post) throw new Error(`No post found for day ${day}, slot ${slot}`);
+          let slot;
+          if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_SLOT) {
+            slot = Number(process.env.MANUAL_SLOT);
+          } else {
+            const scheduleToSlot = {
+              '0 8 * * *': 1,
+              '0 13 * * *': 2,
+              '0 18 * * *': 3
+            };
+            slot = scheduleToSlot[process.env.EVENT_SCHEDULE];
+          }
+          if (![1, 2, 3].includes(slot)) throw new Error(`Unable to determine slot from workflow event: ${process.env.EVENT_NAME}`);
 
-const organizations = await bufferApi(`
-  query GetOrganizations {
-    account {
-      organizations {
-        id
-        name
-      }
-    }
-  }
-`);
+          const post = posts.find(p => p.day === day && p.slot === slot);
+          if (!post || typeof post.text !== 'string') throw new Error(`No post found for day ${day}, slot ${slot}`);
 
-const organization = organizations.account.organizations[0];
-if (!organization) throw new Error('No Buffer organization found');
+          const channel = await findXChannel();
+          const queuedTexts = await getQueuedPosts(channel.id);
+          if (queuedTexts.includes(post.text)) {
+            console.log(`Identical post already queued; skipping creation for day ${day}, slot ${slot}.`);
+            process.exit(0);
+          }
 
-const channels = await bufferApi(`
-  query GetChannels {
-    channels(input: { organizationId: "${organization.id}" }) {
-      id
-      name
-      displayName
-      service
-    }
-  }
-`);
-
-const xChannel = channels.channels.find(channel =>
-  ['twitter', 'x'].includes(String(channel.service).toLowerCase())
-);
-if (!xChannel) throw new Error('No X/Twitter Buffer channel found');
-
-const queued = await bufferApi(`
-  query GetQueuedPosts {
-    posts(
-      first: 100
-      input: {
-        organizationId: "${organization.id}"
-        filter: {
-          status: [scheduled]
-          channelIds: ["${xChannel.id}"]
-        }
-        sort: [{ field: dueAt, direction: asc }]
-      }
-    ) {
-      edges {
-        node {
-          id
-          text
-          status
-          dueAt
-          channelId
-        }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`);
-
-const duplicate = queued.posts.edges.some(edge => edge.node.text === post.text);
-if (duplicate) {
-  console.log(`Skipped duplicate queued post for day ${day}, slot ${slot}.`);
-  process.exit(0);
-}
-
-const escapedText = JSON.stringify(post.text).slice(1, -1);
-const created = await bufferApi(`
-  mutation CreatePost {
-    createPost(input: {
-      text: "${escapedText}"
-      channelId: "${xChannel.id}"
-      schedulingType: automatic
-      mode: addToQueue
-    }) {
-      ... on PostActionSuccess {
-        post {
-          id
-          text
-          status
-          dueAt
-          channelId
-        }
-      }
-      ... on MutationError {
-        message
-      }
-    }
-  }
-`);
-
-if (!created.createPost?.post) {
-  throw new Error(`Buffer post creation failed: ${created.createPost?.message || 'unknown error'}`);
-}
-
-console.log(`Created one X post for campaign day ${day}, slot ${slot}.`);
-NODE
+          const postId = await createPost(channel.id, post.text);
+          console.log(`Created Buffer post ${postId} for campaign day ${day}, slot ${slot}.`);
+          NODE
