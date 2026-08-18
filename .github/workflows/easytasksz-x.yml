@@ -48,7 +48,7 @@ jobs:
           MANUAL_START_DATE: ${{ inputs.campaign_start_date }}
           MANUAL_SLOT: ${{ inputs.slot }}
         run: |
-          node <<'NODE'
+          node --input-type=commonjs <<'NODE'
           const fs = require('node:fs/promises');
 
           const BUFFER_ENDPOINT = 'https://api.buffer.com/';
