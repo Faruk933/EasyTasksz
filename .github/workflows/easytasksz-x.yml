@@ -174,7 +174,7 @@ jobs:
             return result.id;
           }
 
-          const posts = JSON.parse(await fs.readFile(POSTS_FILE, 'utf8'));
+          const posts = JSON.parse(require('node:fs').readFileSync(POSTS_FILE, 'utf8'));
           if (!Array.isArray(posts) || posts.length !== 90) throw new Error('Expected exactly 90 posts');
 
           const campaignStart = await readCampaignStart();
