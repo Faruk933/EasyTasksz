@@ -177,10 +177,14 @@ if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_START_D
   startDate = persistent.date;
 } else if (process.env.CAMPAIGN_START_DATE_CONFIG) {
   startDate = assertDate(process.env.CAMPAIGN_START_DATE_CONFIG, 'Configured campaign start date');
-  await persistStartDate(startDate);
+  if (process.env.EVENT_NAME !== 'workflow_dispatch') {
+    await persistStartDate(startDate);
+  }
 } else {
   startDate = currentWatDate;
-  await persistStartDate(startDate);
+  if (process.env.EVENT_NAME !== 'workflow_dispatch') {
+    await persistStartDate(startDate);
+  }
 }
 
 let slot;
