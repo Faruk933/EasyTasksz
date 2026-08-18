@@ -54,6 +54,7 @@ jobs:
           const BUFFER_ENDPOINT = 'https://api.buffer.com/';
           const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
           const POSTS_FILE = 'automation/x-posts.json';
+          const IMAGE_URL = 'https://raw.githubusercontent.com/Faruk933/EasyTasksz/main/frontend/src/assets/hero.png';
 
           const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
           for (const name of requiredEnv) {
@@ -189,7 +190,13 @@ jobs:
               input: {
                 channelId,
                 text,
-                assets: [],
+                assets: [
+                  {
+                    image: {
+                      url: IMAGE_URL
+                    }
+                  }
+                ],
                 mode: 'addToQueue',
                 schedulingType: 'automatic',
                 needsApproval: false
