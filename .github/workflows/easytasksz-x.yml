@@ -142,7 +142,7 @@ jobs:
             });
             const body = await response.json();
             if (!response.ok || body.errors?.length) {
-              throw new Error(`Buffer API error: ${JSON.stringify(body.errors || body)}`);
+              throw new Error(`Buffer API error (HTTP ${response.status}): ${JSON.stringify(body.errors || body)}`);
             }
             return includeResponse
               ? { data: body.data, httpStatus: response.status }
