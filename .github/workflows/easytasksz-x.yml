@@ -147,31 +147,57 @@ jobs:
           }
 
           async function findXChannel() {
-            const query = `query { channels { id name service } }`;
-            const data = await bufferGraphQL(query);
-            const channels = data.channels || [];
-            const channel = channels.find(c => /^(twitter|x)$/i.test(c.service) || /twitter|x/i.test(c.name));
-            if (!channel) throw new Error('No X/Twitter Buffer channel found');
-            return channel;
+            const accountQuery = `query { account { organizations { id } } }`;
+            const accountData = await bufferGraphQL(accountQuery);
+            const organizations = accountData.account?.organizations || [];
+            if (!organizations.length) throw new Error('No Buffer organization found');
+
+            const channelsQuery = `query ($input: ChannelsInput!) { channels(input: $input) { id name service isDisconnected organizationId } }`;
+            for (const organization of organizations) {
+              const data = await bufferGraphQL(channelsQuery, {
+                input: { organizationId: organization.id }
+              });
+              const channels = data.channels || [];
+              const channel = channels.find(c =>
+                !c.isDisconnected &&
+                (c.service === 'twitter' || /twitter|x/i.test(c.name))
+              );
+              if (channel) return channel;
+            }
+
+            throw new Error('No connected X/Twitter Buffer channel found');
           }
 
-          async function getQueuedPosts(channelId) {
-            const query = `query ($channelId: ID!) { posts(input: { channelId: $channelId, status: QUEUED, first: 100 }) { edges { node { text } } } }`;
-            const data = await bufferGraphQL(query, { channelId });
+          async function getQueuedPosts(channelId, organizationId) {
+            const query = `query ($input: PostsInput!, $first: Int) { posts(input: $input, first: $first) { edges { node { text } } } }`;
+            const data = await bufferGraphQL(query, {
+              input: {
+                organizationId,
+                filter: {
+                  channelIds: [channelId],
+                  status: ['scheduled']
+                }
+              },
+              first: 100
+            });
             return data.posts?.edges?.map(edge => edge.node?.text).filter(Boolean) || [];
           }
 
           async function createPost(channelId, text) {
-            const mutation = `mutation ($input: CreatePostInput!) { createPost(input: $input) { ... on Post { id } ... on UserError { message } } }`;
+            const mutation = `mutation ($input: CreatePostInput!) { createPost(input: $input) { ... on PostActionSuccess { post { id } } ... on InvalidInputError { message } ... on UnauthorizedError { message } ... on LimitReachedError { message } ... on UnexpectedError { message } } }`;
             const data = await bufferGraphQL(mutation, {
               input: {
                 channelId,
-                text
+                text,
+                assets: [],
+                mode: 'addToQueue',
+                schedulingType: 'automatic',
+                needsApproval: false
               }
             });
             const result = data.createPost;
-            if (!result?.id) throw new Error(`Buffer createPost failed: ${JSON.stringify(result)}`);
-            return result.id;
+            if (!result?.post?.id) throw new Error(`Buffer createPost failed: ${JSON.stringify(result)}`);
+            return result.post.id;
           }
 
           (async () => {
@@ -200,7 +226,7 @@ jobs:
             if (!post || typeof post.text !== 'string') throw new Error(`No post found for day ${day}, slot ${slot}`);
 
             const channel = await findXChannel();
-            const queuedTexts = await getQueuedPosts(channel.id);
+            const queuedTexts = await getQueuedPosts(channel.id, channel.organizationId);
             if (queuedTexts.includes(post.text)) {
               console.log(`Identical post already queued; skipping creation for day ${day}, slot ${slot}.`);
               process.exit(0);
