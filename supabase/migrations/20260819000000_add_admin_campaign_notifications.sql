@@ -41,7 +41,7 @@ security definer
 set search_path = public
 as $$
 declare
-  claimed boolean;
+  claimed boolean := false;
 begin
   if p_amount is null or p_amount <= 0 then
     return false;
@@ -53,7 +53,7 @@ begin
      and user_id = p_user_id
      and bonus_given = false;
 
-  get diagnostics claimed = row_count > 0;
+  claimed := found;
   if not claimed then
     return false;
   end if;
