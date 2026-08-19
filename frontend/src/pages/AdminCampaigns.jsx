@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createCampaign, listCampaigns, previewCampaign, processCampaign } from "../campaigns";
 
-const initialForm = { title: "", message: "", targetType: "all", bonusEnabled: true, bonusAmount: "3.00" };
+const initialForm = { title: "", message: "", campaignType: "one_time", targetType: "all", bonusEnabled: true, bonusAmount: "3.00", isActive: true };
 
 export default function AdminCampaigns() {
   const [form, setForm] = useState(initialForm);
@@ -19,30 +19,32 @@ export default function AdminCampaigns() {
 
   async function updateTarget(targetType) {
     setForm((p) => ({ ...p, targetType }));
-    try { setRecipientCount((await previewCampaign(targetType)).recipients || 0); } catch (e) { setError(e.message); }
+    try { setRecipientCount((await previewCampaign(targetType, form.campaignType)).recipients || 0); } catch (e) { setError(e.message); }
   }
 
-  useEffect(() => { updateTarget(form.targetType); }, []);
+  useEffect(() => { previewCampaign(form.targetType, form.campaignType).then((r) => setRecipientCount(r.recipients || 0)).catch(() => {}); }, [form.campaignType, form.targetType]);
 
   async function send() {
     if (!form.title.trim() || !form.message.trim()) return setError("Title and message are required.");
     const amount = form.bonusEnabled ? Number(form.bonusAmount) : 0;
     if (form.bonusEnabled && (!Number.isFinite(amount) || amount < 0)) return setError("Enter a valid bonus amount.");
-    const confirmed = window.confirm(`You are about to send this campaign to ${recipientCount.toLocaleString()} users.\n\nBonus: $${amount.toFixed(2)}\n\nContinue?`);
+    const isWelcome = form.campaignType === "welcome";
+    const confirmed = window.confirm(isWelcome
+      ? `Activate this Welcome Campaign for future new users?\n\nBonus: $${amount.toFixed(2)}\n\nEach new user can receive it only once.`
+      : `You are about to send this campaign to ${recipientCount.toLocaleString()} users.\n\nBonus: $${amount.toFixed(2)}\n\nContinue?`);
     if (!confirmed) return;
 
     setBusy(true); setError(""); setProgress(null);
     try {
       const created = await createCampaign({ ...form, bonusAmount: amount });
-      let result = await processCampaign(created.campaign.id);
-      setProgress(result);
-      while (!result.done) {
-        result = await processCampaign(created.campaign.id);
+      if (!isWelcome) {
+        let result = await processCampaign(created.campaign.id);
         setProgress(result);
+        while (!result.done) { result = await processCampaign(created.campaign.id); setProgress(result); }
       }
       setForm(initialForm);
       await refresh();
-      alert("Campaign completed safely. No live test campaign was sent automatically.");
+      alert(isWelcome ? "Welcome campaign activated. Future new users will receive it once." : "Campaign completed.");
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
@@ -60,31 +62,33 @@ export default function AdminCampaigns() {
 
   return <div style={{ padding: 16 }}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-      <div><h1 style={{ margin: 0 }}>Notifications & Campaigns</h1><p style={{ color: "#94a3b8" }}>Send reusable Telegram notifications with optional bonuses.</p></div>
+      <div><h1 style={{ margin: 0 }}>Notifications & Campaigns</h1><p style={{ color: "#94a3b8" }}>Send reusable Telegram notifications or automate a welcome bonus.</p></div>
       <Link to="/admin" style={{ color: "#60a5fa" }}>Back</Link>
     </div>
     {error && <div style={{ background: "#7f1d1d", padding: 10, borderRadius: 10, marginBottom: 12 }}>{error}</div>}
 
     <div style={{ background: "#1e293b", borderRadius: 14, padding: 14 }}>
+      <label>Campaign Type</label>
+      <select value={form.campaignType} onChange={(e) => setForm({ ...form, campaignType: e.target.value })} style={inputStyle}>
+        <option value="one_time">📢 One-time campaign</option>
+        <option value="welcome">🎉 Automatic welcome campaign</option>
+      </select>
       <label>Message Title</label>
       <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="🎉 Welcome Bonus" style={inputStyle} />
       <label>Message Body</label>
       <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} rows={10} placeholder="Write your detailed notification here..." style={{ ...inputStyle, resize: "vertical" }} />
-      <label>Target Users</label>
-      <select value={form.targetType} onChange={(e) => updateTarget(e.target.value)} style={inputStyle}>
-        <option value="all">All users</option><option value="new">New users (last 7 days)</option>
-      </select>
-      <p style={{ color: "#94a3b8", fontSize: 12 }}>Recipients: {recipientCount.toLocaleString()}</p>
+      {form.campaignType === "one_time" && <><label>Target Users</label><select value={form.targetType} onChange={(e) => updateTarget(e.target.value)} style={inputStyle}><option value="all">All users</option><option value="new">New users (last 7 days)</option><option value="not_received">Users who have not received this campaign</option></select><p style={{ color: "#94a3b8", fontSize: 12 }}>Recipients: {recipientCount.toLocaleString()}</p></>}
+      {form.campaignType === "welcome" && <div style={{ background: "#0f172a", borderRadius: 10, padding: 10, marginBottom: 12, color: "#cbd5e1", fontSize: 13 }}>Future users only. This will not send anything to existing users. Only one active welcome campaign is allowed.</div>}
       <label style={{ display: "flex", gap: 8, alignItems: "center" }}><input type="checkbox" checked={form.bonusEnabled} onChange={(e) => setForm({ ...form, bonusEnabled: e.target.checked })} /> Add balance bonus</label>
       {form.bonusEnabled && <input type="number" min="0" step="0.01" value={form.bonusAmount} onChange={(e) => setForm({ ...form, bonusAmount: e.target.value })} style={inputStyle} placeholder="3.00" />}
 
       <div style={{ background: "#0f172a", borderRadius: 10, padding: 12, margin: "12px 0" }}><strong>Preview</strong><div style={{ whiteSpace: "pre-wrap", marginTop: 8 }}>{form.title || "Your title"}{"\n\n"}{form.message || "Your message"}</div></div>
-      <button disabled={busy} onClick={send} style={buttonStyle}>{busy ? "Processing..." : "Send Campaign"}</button>
+      <button disabled={busy} onClick={send} style={buttonStyle}>{busy ? "Processing..." : form.campaignType === "welcome" ? "Activate Welcome Campaign" : "Send Campaign"}</button>
       {progress && <p style={{ color: "#94a3b8", fontSize: 12 }}>Processed: {progress.notificationsSent}/{progress.total} · Remaining: {progress.remaining} · Bonuses: {progress.bonusesGiven}</p>}
     </div>
 
     <h2 style={{ marginTop: 22 }}>Campaign History</h2>
-    {history.length === 0 ? <p style={{ color: "#94a3b8" }}>No campaigns yet.</p> : history.map((c) => <div key={c.id} style={{ background: "#1e293b", borderRadius: 12, padding: 12, marginBottom: 10 }}><strong>{c.title}</strong><div style={{ fontSize: 12, color: "#94a3b8", marginTop: 5 }}>Recipients: {c.recipients} · Sent: {c.notificationsSent} · Failed: {c.failed} · Bonus: ${Number(c.bonusDistributed).toFixed(2)}</div><div style={{ fontSize: 12, color: "#94a3b8" }}>{new Date(c.created_at).toLocaleString()}</div>{c.notificationsSent < c.recipients && <button disabled={busy} onClick={() => resume(c.id)} style={{ ...buttonStyle, marginTop: 8 }}>Resume</button>}</div>)}
+    {history.length === 0 ? <p style={{ color: "#94a3b8" }}>No campaigns yet.</p> : history.map((c) => <div key={c.id} style={{ background: "#1e293b", borderRadius: 12, padding: 12, marginBottom: 10 }}><strong>{c.title}</strong><div style={{ fontSize: 12, color: "#94a3b8", marginTop: 5 }}>{c.campaign_type === "welcome" ? `🎉 Welcome · ${c.is_active ? "ACTIVE" : "inactive"}` : `📢 One-time · Recipients: ${c.recipients}`} · Sent: {c.notificationsSent} · Failed: {c.failed} · Bonus: ${Number(c.bonusDistributed).toFixed(2)}</div><div style={{ fontSize: 12, color: "#94a3b8" }}>{new Date(c.created_at).toLocaleString()}</div>{c.campaign_type === "one_time" && c.notificationsSent < c.recipients && <button disabled={busy} onClick={() => resume(c.id)} style={{ ...buttonStyle, marginTop: 8 }}>Resume</button>}</div>)}
   </div>;
 }
 
