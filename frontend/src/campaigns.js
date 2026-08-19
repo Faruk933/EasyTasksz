@@ -9,7 +9,7 @@ async function callCampaigns(payload) {
   return result;
 }
 
-export const previewCampaign = (targetType) => callCampaigns({ action: "preview", targetType });
+export const previewCampaign = (targetType, campaignType, targetUserId) => callCampaigns({ action: "preview", targetType, campaignType, targetUserId });
 export const createCampaign = (data) => callCampaigns({ action: "create", ...data });
 export const processCampaign = (campaignId) => callCampaigns({ action: "process", campaignId });
 export const listCampaigns = () => callCampaigns({ action: "history" });
