@@ -1,3 +1,4 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -19,7 +20,7 @@ function response(body: unknown, status = 200) { return new Response(JSON.string
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return response("ok");
   try {
-    const { initData, action, title, message, targetType, targetUserId, campaignType, isActive, bonusEnabled, bonusAmount, campaignId } = await req.json();
+    const { initData, action, title, message, targetType, targetUserId, testUserId, campaignType, isActive, bonusEnabled, bonusAmount, campaignId } = await req.json();
     const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!; const tgUser = await verifyTelegramData(initData || "", botToken); if (!tgUser) return response({ error: "Invalid Telegram data" }, 401);
     const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
     const { data: admin, error: adminError } = await db.from("users").select("is_admin").eq("telegram_id", tgUser.id).single(); if (adminError || !admin?.is_admin) return response({ error: "Access denied" }, 403);
@@ -27,9 +28,9 @@ Deno.serve(async (req) => {
     if (action === "preview") {
       if (campaignType === "welcome") return response({ recipients: 0 });
       if (targetType === "specific") return response({ recipients: targetUserId ? 1 : 0 });
+      if (targetType === "not_received") return response({ recipients: 0 });
       let query = db.from("users").select("id", { count: "exact", head: true });
       if (targetType === "new") query = query.gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString());
-      if (targetType === "not_received") return response({ recipients: 0 });
       const { count, error } = await query; if (error) throw error; return response({ recipients: count || 0 });
     }
 
@@ -37,33 +38,40 @@ Deno.serve(async (req) => {
       const cleanTitle = String(title || "").trim(); const cleanMessage = String(message || "").trim(); const type = campaignType === "welcome" ? "welcome" : "one_time"; const amount = bonusEnabled ? Number(bonusAmount || 0) : 0;
       if (!cleanTitle || !cleanMessage) return response({ error: "Title and message are required" }, 400); if (amount < 0 || !Number.isFinite(amount)) return response({ error: "Invalid bonus amount" }, 400);
       if (type === "one_time" && !["all", "new", "specific", "not_received"].includes(targetType)) return response({ error: "Invalid target" }, 400);
-      let selectedUserId: number | null = null;
+      let selectedUserId: number | null = null; let selectedTestUserId: number | null = null;
       if (type === "one_time" && targetType === "specific") {
         const telegramId = String(targetUserId || "").trim(); if (!telegramId) return response({ error: "Telegram ID is required" }, 400);
         const { data: target, error: targetError } = await db.from("users").select("id").eq("telegram_id", telegramId).single(); if (targetError || !target) return response({ error: "Target user not found" }, 404); selectedUserId = target.id;
       }
-      const { data: campaign, error } = await db.from("campaigns").insert({ title: cleanTitle, message: cleanMessage, target_type: type === "welcome" ? "new" : targetType, target_user_id: selectedUserId, campaign_type: type, is_active: type === "welcome" ? Boolean(isActive) : false, bonus_enabled: Boolean(bonusEnabled), bonus_amount: amount }).select().single();
+      if (type === "welcome" && String(testUserId || "").trim()) {
+        const telegramId = String(testUserId).trim();
+        const { data: target, error: targetError } = await db.from("users").select("id").eq("telegram_id", telegramId).single();
+        if (targetError || !target) return response({ error: "Welcome test user not found" }, 404);
+        selectedTestUserId = target.id;
+      }
+      const { data: campaign, error } = await db.from("campaigns").insert({ title: cleanTitle, message: cleanMessage, target_type: type === "welcome" ? "new" : targetType, target_user_id: type === "welcome" ? selectedTestUserId : selectedUserId, campaign_type: type, is_active: type === "welcome" ? Boolean(isActive) : false, bonus_enabled: Boolean(bonusEnabled), bonus_amount: amount }).select().single();
       if (error) { if (error.code === "23505") return response({ error: "There is already an active welcome campaign. Deactivate it before activating another." }, 409); throw error; }
 
       if (type === "one_time") {
         let usersQuery = db.from("users").select("id, telegram_id, created_at").order("id", { ascending: true });
         if (targetType === "new") usersQuery = usersQuery.gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString());
         if (targetType === "specific") usersQuery = usersQuery.eq("id", selectedUserId);
-        if (targetType === "not_received") {
-          const { data: received } = await db.from("campaign_user_records").select("user_id").eq("campaign_id", campaign.id);
-          const ids = (received || []).map((r) => r.user_id); if (ids.length) usersQuery = usersQuery.not("id", "in", `(${ids.join(",")})`);
-        }
         const { data: users, error: usersError } = await usersQuery; if (usersError) throw usersError;
         if (users?.length) { const records = users.map((u) => ({ campaign_id: campaign.id, user_id: u.id })); for (let i = 0; i < records.length; i += 500) await db.from("campaign_user_records").upsert(records.slice(i, i + 500), { onConflict: "campaign_id,user_id", ignoreDuplicates: true }); }
         return response({ campaign, recipients: users?.length || 0 });
       }
-      return response({ campaign, recipients: 0, active: Boolean(isActive) });
+      if (selectedTestUserId) await db.from("campaign_user_records").upsert({ campaign_id: campaign.id, user_id: selectedTestUserId }, { onConflict: "campaign_id,user_id", ignoreDuplicates: true });
+      return response({ campaign, recipients: 0, active: Boolean(isActive), testUser: Boolean(selectedTestUserId) });
     }
 
     if (action === "process") {
       const id = Number(campaignId); const { data: campaign, error: campaignError } = await db.from("campaigns").select("*").eq("id", id).single(); if (campaignError || !campaign) return response({ error: "Campaign not found" }, 404);
-      if (campaign.campaign_type === "welcome") return response({ error: "Welcome campaigns run automatically for new users and cannot be manually processed." }, 400);
-      const { data: records, error: recordError } = await db.from("campaign_user_records").select("id, user_id, bonus_given, notification_sent, users(telegram_id)").eq("campaign_id", id).eq("notification_sent", false).order("id", { ascending: true }).limit(50); if (recordError) throw recordError;
+      let recordsQuery = db.from("campaign_user_records").select("id, user_id, bonus_given, notification_sent, users(telegram_id)").eq("campaign_id", id).eq("notification_sent", false).order("id", { ascending: true }).limit(50);
+      if (campaign.campaign_type === "welcome") {
+        if (!campaign.target_user_id) return response({ error: "This welcome campaign has no test user." }, 400);
+        recordsQuery = recordsQuery.eq("user_id", campaign.target_user_id);
+      }
+      const { data: records, error: recordError } = await recordsQuery; if (recordError) throw recordError;
       let sent = 0, failed = 0, bonusUsers = 0, bonusTotal = 0;
       for (const record of records || []) {
         const telegramId = (record as any).users?.telegram_id; let bonusGiven = Boolean(record.bonus_given);
@@ -79,7 +87,7 @@ Deno.serve(async (req) => {
 
     if (action === "history") {
       const { data: campaigns, error } = await db.from("campaigns").select("*").order("created_at", { ascending: false }).limit(50); if (error) throw error; const result = [];
-      for (const campaign of campaigns || []) { const { count: recipients } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id); const { count: notificationsSent } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).eq("notification_sent", true); const { count: failed } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).not("notification_error", "is", null); const { count: bonusesGiven } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).eq("bonus_given", true); result.push({ ...campaign, recipients: recipients || 0, notificationsSent: notificationsSent || 0, failed: failed || 0, bonusesGiven: bonusesGiven || 0, bonusDistributed: (bonusesGiven || 0) * Number(campaign.bonus_amount || 0) }); }
+      for (const campaign of campaigns || []) { const { count: recipients } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id); const { count: notificationsSent } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).eq("notification_sent", true); const { count: failed } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).not("notification_error", "is", null); const { count: bonusesGiven } = await db.from("campaign_user_records").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id).eq("bonus_given", true); result.push({ ...campaign, recipients: recipients || 0, notificationsSent: notificationsSent || 0, failed: failed || 0, bonusesGiven: bonusesGiven || 0, bonusDistributed: (bonusesGiven || 0) * Number(campaign.bonus_amount || 0), test_recipients: campaign.target_user_id ? 1 : 0, test_notifications_sent: campaign.target_user_id && notificationsSent ? 1 : 0 }); }
       return response({ campaigns: result });
     }
     return response({ error: "Unknown action" }, 400);
