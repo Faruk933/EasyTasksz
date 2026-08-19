@@ -33,6 +33,18 @@ Deno.serve(async (req) => {
       const { count, error } = await query; if (error) throw error; return response({ recipients: count || 0 });
     }
 
+    if (action === "deactivate") {
+      const id = Number(campaignId);
+      if (!Number.isInteger(id) || id <= 0) return response({ error: "Invalid campaign ID" }, 400);
+      const { data: campaign, error: campaignError } = await db.from("campaigns").select("id, campaign_type, is_active").eq("id", id).single();
+      if (campaignError || !campaign) return response({ error: "Campaign not found" }, 404);
+      if (campaign.campaign_type !== "welcome") return response({ error: "Only welcome campaigns can be deactivated here." }, 400);
+      if (!campaign.is_active) return response({ campaign, deactivated: false });
+      const { data: updated, error: updateError } = await db.from("campaigns").update({ is_active: false }).eq("id", id).eq("campaign_type", "welcome").eq("is_active", true).select().single();
+      if (updateError) throw updateError;
+      return response({ campaign: updated, deactivated: true });
+    }
+
     if (action === "create") {
       const cleanTitle = String(title || "").trim(); const cleanMessage = String(message || "").trim(); const type = campaignType === "welcome" ? "welcome" : "one_time"; const amount = bonusEnabled ? Number(bonusAmount || 0) : 0;
       if (!cleanTitle || !cleanMessage) return response({ error: "Title and message are required" }, 400); if (amount < 0 || !Number.isFinite(amount)) return response({ error: "Invalid bonus amount" }, 400);
