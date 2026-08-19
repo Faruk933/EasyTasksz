@@ -16,6 +16,7 @@ import BitcoTasksOfferwall from "./pages/BitcoTasksOfferwall";
 import Admin from "./pages/Admin";
 import AdminSettings from "./pages/AdminSettings";
 import ReferralAnalytics from "./pages/ReferralAnalytics";
+import AdminCampaigns from "./pages/AdminCampaigns";
 import Tasks from "./pages/Tasks";
 import TaskDetail from "./pages/TaskDetail";
 import AdminTasks from "./pages/AdminTasks";
@@ -55,6 +56,7 @@ export default function App(){
         <Route path="/offerwall/timewall" element={<TimeWallOfferwall/>}/>
         <Route path="/offerwall/bitcotasks" element={<BitcoTasksOfferwall/>}/>
         <Route path="/admin" element={<Admin/>}/>
+        <Route path="/admin/campaigns" element={<AdminCampaigns/>}/>
         <Route path="/admin/settings" element={<AdminSettings/>}/>
         <Route path="/admin/referrals" element={<ReferralAnalytics/>}/>
         <Route path="/tasks" element={<Tasks/>}/>
