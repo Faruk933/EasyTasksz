@@ -62,6 +62,7 @@ export default function Admin() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12, marginBottom: 12 }}>
           <Link to="/admin/tasks" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Manage Tasks</div></Link>
           <Link to="/admin/submissions" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Review Submissions</div></Link>
+          <Link to="/admin/campaigns" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Notifications & Campaigns</div></Link>
           <Link to="/admin/settings" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Platform Settings</div></Link>
           <Link to="/admin/referrals" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Referral Analytics</div></Link>
         </div>
