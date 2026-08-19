@@ -16,6 +16,7 @@ import BitcoTasksOfferwall from "./pages/BitcoTasksOfferwall";
 import Admin from "./pages/Admin";
 import AdminSettings from "./pages/AdminSettings";
 import ReferralAnalytics from "./pages/ReferralAnalytics";
+import AdminCampaigns from "./pages/AdminCampaigns";
 import Tasks from "./pages/Tasks";
 import TaskDetail from "./pages/TaskDetail";
 import AdminTasks from "./pages/AdminTasks";
@@ -35,32 +36,13 @@ export default function App(){
   ].includes(location.pathname);
 
   return (
-    <div
-      className={isImmersiveOfferwall?"app-content immersive":"app-content"}
-      style={{paddingBottom:isImmersiveOfferwall?0:86}}
-    >
+    <div className={isImmersiveOfferwall?"app-content immersive":"app-content"} style={{paddingBottom:isImmersiveOfferwall?0:86}}>
       {!isImmersiveOfferwall&&<Header/>}
       <Routes>
-        <Route path="/" element={<Dashboard/>}/>
-        <Route path="/ads" element={<WatchAds/>}/>
-        <Route path="/referrals" element={<Referrals/>}/>
-        <Route path="/wallet" element={<Wallet/>}/>
-        <Route path="/history" element={<History/>}/>
-        <Route path="/profile" element={<Profile/>}/>
-        <Route path="/offerwall" element={<Offerwall/>}/>
-        <Route path="/offerwall/offerwallme" element={<OfferwallMeOfferwall/>}/>
-        <Route path="/offerwall/pixylabs" element={<PixyLabsOfferwall/>}/>
-        <Route path="/offerwall/cpalead" element={<CPAleadOfferwall/>}/>
-        <Route path="/offerwall/bitlabs" element={<BitLabsOfferwall/>}/>
-        <Route path="/offerwall/timewall" element={<TimeWallOfferwall/>}/>
-        <Route path="/offerwall/bitcotasks" element={<BitcoTasksOfferwall/>}/>
-        <Route path="/admin" element={<Admin/>}/>
-        <Route path="/admin/settings" element={<AdminSettings/>}/>
-        <Route path="/admin/referrals" element={<ReferralAnalytics/>}/>
-        <Route path="/tasks" element={<Tasks/>}/>
-        <Route path="/tasks/:id" element={<TaskDetail/>}/>
-        <Route path="/admin/tasks" element={<AdminTasks/>}/>
-        <Route path="/admin/submissions" element={<AdminSubmissions/>}/>
+        <Route path="/" element={<Dashboard/>}/><Route path="/ads" element={<WatchAds/>}/><Route path="/referrals" element={<Referrals/>}/><Route path="/wallet" element={<Wallet/>}/><Route path="/history" element={<History/>}/><Route path="/profile" element={<Profile/>}/>
+        <Route path="/offerwall" element={<Offerwall/>}/><Route path="/offerwall/offerwallme" element={<OfferwallMeOfferwall/>}/><Route path="/offerwall/pixylabs" element={<PixyLabsOfferwall/>}/><Route path="/offerwall/cpalead" element={<CPAleadOfferwall/>}/><Route path="/offerwall/bitlabs" element={<BitLabsOfferwall/>}/><Route path="/offerwall/timewall" element={<TimeWallOfferwall/>}/><Route path="/offerwall/bitcotasks" element={<BitcoTasksOfferwall/>}/>
+        <Route path="/admin" element={<Admin/>}/><Route path="/admin/campaigns" element={<AdminCampaigns/>}/><Route path="/admin/settings" element={<AdminSettings/>}/><Route path="/admin/referrals" element={<ReferralAnalytics/>}/>
+        <Route path="/tasks" element={<Tasks/>}/><Route path="/tasks/:id" element={<TaskDetail/>}/><Route path="/admin/tasks" element={<AdminTasks/>}/><Route path="/admin/submissions" element={<AdminSubmissions/>}/>
       </Routes>
       {!isImmersiveOfferwall&&<BottomNav/>}
     </div>
