@@ -88,6 +88,7 @@ Deno.serve(async (req) => {
     if (!user) return jsonResponse({ error: "User not found" }, 404);
 
     const amount = Number(currencyAmount.toFixed(8));
+    const newBalance = Number(user.balance ?? 0) + amount;
     const { error: txError } = await supabase.from("offerwall_transactions").insert({
       click_id: `timewall:${transactionId}`,
       user_id: user.id,
@@ -100,12 +101,49 @@ Deno.serve(async (req) => {
     const { error: userError } = await supabase
       .from("users")
       .update({
-        balance: Number(user.balance ?? 0) + amount,
+        balance: newBalance,
         total_earned: Number(user.total_earned ?? 0) + amount,
       })
       .eq("id", user.id);
 
     if (userError) throw userError;
+
+    // Restore the normal Telegram credit alert. Notification failure must not
+    // undo or reject a successfully credited TimeWall transaction.
+    const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+    if (botToken) {
+      const message = [
+        "🎉 *TimeWall Reward Credited!*",
+        "",
+        `💰 *Amount:* $${amount.toFixed(8)}`,
+        `🎁 *Offer:* ${offerName}`,
+        `🧾 *Transaction:* ${transactionId}`,
+        `💳 *New Balance:* $${newBalance.toFixed(8)}`,
+        "",
+        "✅ Your reward has been added to your EasyTasksz balance.",
+        "🚀 Keep completing offers and keep earning!",
+      ].join("\n");
+
+      try {
+        const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: telegramId,
+            text: message,
+            parse_mode: "Markdown",
+          }),
+        });
+
+        if (!telegramResponse.ok) {
+          console.error("TimeWall Telegram notification failed", await telegramResponse.text());
+        }
+      } catch (notificationError) {
+        console.error("TimeWall Telegram notification error", notificationError);
+      }
+    } else {
+      console.error("TELEGRAM_BOT_TOKEN is not configured; TimeWall notification skipped");
+    }
 
     return jsonResponse({ success: true, credited: amount, offer: offerName });
   } catch (err) {
