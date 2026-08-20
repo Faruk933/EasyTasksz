@@ -28,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      IMAGINEPRO_API_KEY: ${{ secrets.IMAGINEPRO_API_KEY }}
       CAMPAIGN_START_DATE_CONFIG: ${{ vars.CAMPAIGN_START_DATE || secrets.CAMPAIGN_START_DATE || '' }}
       GITHUB_TOKEN: ${{ github.token }}
       REPOSITORY: ${{ github.repository }}
@@ -50,12 +51,13 @@ jobs:
         run: |
           node --input-type=commonjs <<'NODE'
           const fs = require('node:fs/promises');
+          const { execFileSync } = require('node:child_process');
 
           const BUFFER_ENDPOINT = 'https://api.buffer.com/';
           const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
           const POSTS_FILE = 'automation/x-posts.json';
-          const IMAGE_URL = 'https://raw.githubusercontent.com/Faruk933/EasyTasksz/main/automation/assets/general.png';
-          const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
+          const GENERATED_IMAGE_FILE = 'automation/generated-image-url.txt';
+          const requiredEnv = ['BUFFER_API_KEY', 'IMAGINEPRO_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
           for (const name of requiredEnv) {
             if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
           }
@@ -185,7 +187,7 @@ jobs:
             return data.posts?.edges?.map(edge => edge.node?.text).filter(Boolean) || [];
           }
 
-          async function createPost(channelId, text) {
+          async function createPost(channelId, text, imageUrl) {
             const mutation = `mutation ($input: CreatePostInput!) { createPost(input: $input) { __typename ... on PostActionSuccess { post { id status dueAt channelId text assets { id mimeType } } } ... on MutationError { message } } }`;
             const response = await bufferGraphQL(mutation, {
               input: {
@@ -194,7 +196,7 @@ jobs:
                 assets: [
                   {
                     image: {
-                      url: IMAGE_URL
+                      url: imageUrl
                     }
                   }
                 ],
@@ -268,7 +270,14 @@ jobs:
               process.exit(0);
             }
 
-            const createdPost = await createPost(channel.id, post.text);
+            console.log('Generating fresh EasyTasksz image with ImaginePro...');
+            execFileSync('node', ['automation/generate-image.js', post.text], { stdio: 'inherit' });
+            const imageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
+            if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) {
+              throw new Error('ImaginePro did not produce a valid public image URL.');
+            }
+
+            const createdPost = await createPost(channel.id, post.text, imageUrl);
             console.log(`Created and queued Buffer post ${createdPost.id} for campaign day ${day}, slot ${slot}; status=${createdPost.status}; dueAt=${createdPost.dueAt}; assets=${createdPost.assets.length}.`);
           })().catch(error => {
             console.error(error);
