@@ -29,6 +29,15 @@ jobs:
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       IMAGINEPRO_API_KEY: ${{ secrets.IMAGINEPRO_API_KEY }}
+      IMAGINEPRO_API_KEY_2: ${{ secrets.IMAGINEPRO_API_KEY_2 }}
+      IMAGINEPRO_API_KEY_3: ${{ secrets.IMAGINEPRO_API_KEY_3 }}
+      IMAGINEPRO_API_KEY_4: ${{ secrets.IMAGINEPRO_API_KEY_4 }}
+      IMAGINEPRO_API_KEY_5: ${{ secrets.IMAGINEPRO_API_KEY_5 }}
+      IMAGINEPRO_API_KEY_6: ${{ secrets.IMAGINEPRO_API_KEY_6 }}
+      IMAGINEPRO_API_KEY_7: ${{ secrets.IMAGINEPRO_API_KEY_7 }}
+      IMAGINEPRO_API_KEY_8: ${{ secrets.IMAGINEPRO_API_KEY_8 }}
+      IMAGINEPRO_API_KEY_9: ${{ secrets.IMAGINEPRO_API_KEY_9 }}
+      IMAGINEPRO_API_KEY_10: ${{ secrets.IMAGINEPRO_API_KEY_10 }}
       CAMPAIGN_START_DATE_CONFIG: ${{ vars.CAMPAIGN_START_DATE || secrets.CAMPAIGN_START_DATE || '' }}
       GITHUB_TOKEN: ${{ github.token }}
       REPOSITORY: ${{ github.repository }}
@@ -57,7 +66,7 @@ jobs:
           const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
           const POSTS_FILE = 'automation/x-posts.json';
           const GENERATED_IMAGE_FILE = 'automation/generated-image-url.txt';
-          const requiredEnv = ['BUFFER_API_KEY', 'IMAGINEPRO_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
+          const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
           for (const name of requiredEnv) {
             if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
           }
