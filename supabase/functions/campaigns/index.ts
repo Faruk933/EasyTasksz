@@ -58,6 +58,9 @@ Deno.serve(async (req) => {
       if (error) { if (error.code === "23505") return response({ error: "There is already an active welcome campaign. Deactivate it before activating another." }, 409); throw error; }
 
       if (type === "one_time") {
+        const channelText = `*${cleanTitle}*\n\n${cleanMessage}`;
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: "@EasyTaskszUpdates", text: channelText, parse_mode: "Markdown" }) }).catch(() => {});
+
         let usersQuery = db.from("users").select("id, telegram_id, created_at").order("id", { ascending: true });
         if (targetType === "new") usersQuery = usersQuery.gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString());
         if (targetType === "specific") usersQuery = usersQuery.eq("id", selectedUserId);
