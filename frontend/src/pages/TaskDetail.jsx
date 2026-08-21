@@ -36,12 +36,11 @@ export default function TaskDetail() {
         const result = await startMobideaTask(task.id);
         targetUrl = String(result.url || "").trim();
       } else {
-        targetUrl = String(task?.task_url || "").trim();
+        if (!task?.task_url) throw new Error("This task does not have a valid task URL.");
+        targetUrl = String(task.task_url).trim();
       }
 
-      if (!targetUrl) throw new Error("This task does not have a valid task URL.");
       try { new URL(targetUrl); } catch { throw new Error("This task has an invalid task URL."); }
-
       const tg = window.Telegram?.WebApp;
       if (tg?.openLink) tg.openLink(targetUrl);
       else window.open(targetUrl, "_blank", "noopener,noreferrer");
@@ -54,7 +53,10 @@ export default function TaskDetail() {
 
   async function handleSubmit() {
     setSubmitMessage(null);
-    if (!proofLink) { setSubmitMessage("Please paste your proof link"); return; }
+    if (!proofLink) {
+      setSubmitMessage("Please paste your proof link");
+      return;
+    }
     setSubmitting(true);
     try {
       await submitTask(task.id, proofLink);
@@ -100,7 +102,13 @@ export default function TaskDetail() {
           <p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 8 }}>
             Complete the task, then paste your proof link below.
           </p>
-          <input type="text" placeholder="Paste proof link here" value={proofLink} onChange={(e) => setProofLink(e.target.value)} className="wallet-input" />
+          <input
+            type="text"
+            placeholder="Paste proof link here"
+            value={proofLink}
+            onChange={(e) => setProofLink(e.target.value)}
+            className="wallet-input"
+          />
           <button className="wallet-btn" onClick={handleSubmit} disabled={submitting} style={{ marginTop: 12 }}>
             {submitting ? "Submitting..." : "Submit"}
           </button>
