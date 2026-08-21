@@ -15,25 +15,11 @@ async function verifyTelegramData(initData: string, botToken: string): Promise<a
   const dataCheckString = pairs.join("\n");
 
   const encoder = new TextEncoder();
-  const secretKey = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode("WebAppData"),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
+  const secretKey = await crypto.subtle.importKey("raw", encoder.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const secretKeySigned = await crypto.subtle.sign("HMAC", secretKey, encoder.encode(botToken));
-  const finalKey = await crypto.subtle.importKey(
-    "raw",
-    secretKeySigned,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
+  const finalKey = await crypto.subtle.importKey("raw", secretKeySigned, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const signature = await crypto.subtle.sign("HMAC", finalKey, encoder.encode(dataCheckString));
-  const computedHash = Array.from(new Uint8Array(signature))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const computedHash = Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, "0")).join("");
 
   if (computedHash !== hash) return null;
 
@@ -50,8 +36,7 @@ function generateClickId(): string {
 
 function buildMobideaUrl(taskUrl: string, offerId: string, clickId: string): string {
   const url = new URL(taskUrl);
-  const placeholder = url.searchParams.get("site");
-  if (placeholder === "PASS_SITE_HERE") url.searchParams.delete("site");
+  if (url.searchParams.get("site") === "PASS_SITE_HERE") url.searchParams.delete("site");
   url.searchParams.set("offer_id", offerId);
   url.searchParams.set("pub_click_id", clickId);
   return url.toString();
@@ -63,19 +48,27 @@ Deno.serve(async (req) => {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   };
 
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
 
   try {
     const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
     const { initData, action, taskId, proofLink } = await req.json();
 
     if (!initData) {
-      return new Response(JSON.stringify({ error: "Missing initData" }), { status: 400, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "Missing initData" }), {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     const tgUser = await verifyTelegramData(initData, BOT_TOKEN);
     if (!tgUser) {
-      return new Response(JSON.stringify({ error: "Invalid Telegram data" }), { status: 401, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "Invalid Telegram data" }), {
+        status: 401,
+        headers: corsHeaders,
+      });
     }
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -87,7 +80,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "User not found" }), { status: 404, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "User not found" }), {
+        status: 404,
+        headers: corsHeaders,
+      });
     }
 
     if (action === "list-tasks") {
@@ -96,33 +92,27 @@ Deno.serve(async (req) => {
         .select("*")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
+
       if (error) throw error;
-      return new Response(JSON.stringify({ tasks }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ tasks }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (action === "start-mobidea-task") {
       if (!taskId) {
         return new Response(JSON.stringify({ error: "Missing taskId" }), { status: 400, headers: corsHeaders });
       }
-
       const { data: task, error: taskError } = await supabase
         .from("tasks")
         .select("id, is_active, provider, offer_id, task_url")
         .eq("id", taskId)
         .single();
-
-      if (taskError || !task) {
-        return new Response(JSON.stringify({ error: "Task not found" }), { status: 404, headers: corsHeaders });
-      }
-      if (!task.is_active) {
-        return new Response(JSON.stringify({ error: "Task is inactive" }), { status: 400, headers: corsHeaders });
-      }
-      if (String(task.provider || "").toLowerCase() !== "mobidea") {
-        return new Response(JSON.stringify({ error: "This is not a Mobidea task" }), { status: 400, headers: corsHeaders });
-      }
-      if (!task.offer_id || !task.task_url) {
-        return new Response(JSON.stringify({ error: "Mobidea task is not configured correctly" }), { status: 400, headers: corsHeaders });
-      }
+      if (taskError || !task) return new Response(JSON.stringify({ error: "Task not found" }), { status: 404, headers: corsHeaders });
+      if (!task.is_active) return new Response(JSON.stringify({ error: "Task is inactive" }), { status: 400, headers: corsHeaders });
+      if (String(task.provider || "").toLowerCase() !== "mobidea") return new Response(JSON.stringify({ error: "This is not a Mobidea task" }), { status: 400, headers: corsHeaders });
+      if (!task.offer_id || !task.task_url) return new Response(JSON.stringify({ error: "Mobidea task is not configured correctly" }), { status: 400, headers: corsHeaders });
 
       let clickId = "";
       let trackedUrl = "";
@@ -140,10 +130,9 @@ Deno.serve(async (req) => {
         }
         if (!String(insertError.message || "").toLowerCase().includes("duplicate")) throw insertError;
       }
-
       if (!trackedUrl) throw new Error("Could not create a unique Mobidea click ID");
 
-      return new Response(JSON.stringify({ url: trackedUrl, clickId }), {
+      return new Response(JSON.stringify({ url: trackedUrl }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -155,13 +144,20 @@ Deno.serve(async (req) => {
         .select("*, tasks(title, reward_amount)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+
       if (error) throw error;
-      return new Response(JSON.stringify({ submissions }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ submissions }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (action === "submit-task") {
       if (!taskId || !proofLink) {
-        return new Response(JSON.stringify({ error: "Missing taskId or proofLink" }), { status: 400, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: "Missing taskId or proofLink" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
       }
 
       const { data: existing } = await supabase
@@ -173,7 +169,10 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (existing) {
-        return new Response(JSON.stringify({ error: "You already have a pending submission for this task" }), { status: 400, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: "You already have a pending submission for this task" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
       }
 
       const { data: submission, error } = await supabase
@@ -181,12 +180,22 @@ Deno.serve(async (req) => {
         .insert({ task_id: taskId, user_id: user.id, proof_link: proofLink, status: "pending" })
         .select()
         .single();
+
       if (error) throw error;
-      return new Response(JSON.stringify({ submission }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ submission }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: "Unknown action" }), {
+      status: 400,
+      headers: corsHeaders,
+    });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: String(err) }), {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
