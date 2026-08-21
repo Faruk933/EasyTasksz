@@ -1,0 +1,21 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+Deno.serve(async req=>{try{
+  const u=new URL(req.url),p=u.searchParams;
+  const clickId=p.get("clickid")||p.get("ml_sub1")||p.get("click_id");
+  const status=(p.get("status")||"").trim().toLowerCase();
+  if(!clickId)return new Response("Ignored",{status:200});
+  if(["rejected","pending"].includes(status))return new Response("Ignored status",{status:200});
+  const raw=p.get("payout_decimal")||p.get("payout")||"";
+  const payoutRaw=raw.replace(/,/g,"");
+  const payout=Number(payoutRaw);
+  const decimalParam=p.get("payout_decimal");
+  const amount=decimalParam!=null?payout:(payout/100);
+  if(!Number.isFinite(amount)||amount<0)return new Response("Ignored",{status:200});
+  const s=createClient(SUPABASE_URL,SERVICE_ROLE_KEY);
+  const {data,error}=await s.rpc("process_offer_conversion",{p_provider:"mylead",p_click_id:clickId,p_payout_usd:amount});
+  if(error)throw error;
+  const r=Array.isArray(data)?data[0]:data;
+  return new Response(r?.processed?"OK":"Already processed or unknown click",{status:200});
+}catch(e){return new Response("Error: "+String(e),{status:500});}});
