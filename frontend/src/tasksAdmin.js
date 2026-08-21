@@ -8,7 +8,7 @@ async function callTasksAdmin(payload) {
   return result;
 }
 export function listTasksAdmin() { return callTasksAdmin({ action: "list-tasks" }).then((r) => r.tasks); }
-export function createTask(title, instructions, rewardAmount, taskUrl, taskType, provider, offerId) { return callTasksAdmin({ action: "create-task", title, instructions, rewardAmount, taskUrl, taskType, provider, offerId }); }
+export function createTask(title, instructions, rewardAmount, taskUrl, taskType, provider, offerId, targetTelegramId) { return callTasksAdmin({ action: "create-task", title, instructions, rewardAmount, taskUrl, taskType, provider, offerId, targetTelegramId }); }
 export function updateTask(taskId, updates) { return callTasksAdmin({ action: "update-task", taskId, ...updates }); }
 export function deleteTask(taskId) { return callTasksAdmin({ action: "delete-task", taskId }); }
 export function listSubmissions() { return callTasksAdmin({ action: "list-submissions" }).then((r) => r.submissions); }
