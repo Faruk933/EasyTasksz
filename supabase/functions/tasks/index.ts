@@ -14,19 +14,22 @@ async function verifyTelegramData(initData:string, botToken:string):Promise<any|
 }
 
 function generateClickId(){const b=new Uint8Array(16);crypto.getRandomValues(b);return Array.from(b).map(x=>x.toString(16).padStart(2,"0")).join("");}
-function providerName(value:string){const p=value.trim().toLowerCase(); if(p==="golden goose"||p==="golden-goose"||p==="gg.agency")return "gg.agency"; return p;}
+function providerName(value:string){const p=value.trim().toLowerCase(); if(p==="golden goose"||p==="golden-goose"||p==="gg.agency")return "gg.agency"; if(p==="mylead.global"||p==="mylead global")return "mylead"; return p;}
 
 function buildOfferUrl(template:string, provider:string, clickId:string){
   const url=new URL(template);
   const p=providerName(provider);
+  let clickMapped=false;
   for(const [key,value] of url.searchParams.entries()){
-    if(value.includes("{CLICK_ID}")||value.includes("ADD_CLICK_ID_HERE")) url.searchParams.set(key,value.replaceAll("{CLICK_ID}",clickId).replaceAll("ADD_CLICK_ID_HERE",clickId));
+    if(value.includes("{CLICK_ID}")||value.includes("ADD_CLICK_ID_HERE")){url.searchParams.set(key,value.replaceAll("{CLICK_ID}",clickId).replaceAll("ADD_CLICK_ID_HERE",clickId));clickMapped=true;}
     if(value.includes("{SOURCE_ID}")) url.searchParams.set(key,value.replaceAll("{SOURCE_ID}","easytasksz"));
   }
   if(p==="mobidea" && url.searchParams.get("site")==="PASS_SITE_HERE") url.searchParams.delete("site");
-  if(p==="mobidea") url.searchParams.set("pub_click_id",clickId);
+  if(p==="mobidea") { url.searchParams.set("pub_click_id",clickId); clickMapped=true; }
   if(p==="zeydoo" && !url.searchParams.get("ymid")) throw new Error("Zeydoo offer URL must contain ymid={CLICK_ID}");
-  if(p==="gg.agency" && !url.searchParams.has("p1") && !url.searchParams.has("p2")) throw new Error("GG.Agency offer URL must pass the click ID in p1 or p2");
+  if(p==="gg.agency" && !clickMapped && !url.searchParams.has("p1") && !url.searchParams.has("p2")) throw new Error("GG.Agency offer URL must pass the click ID in p1 or p2");
+  if(p==="mylead" && !clickMapped){url.searchParams.set("ml_sub1",clickId);clickMapped=true;}
+  if(!clickMapped) throw new Error("Offer URL must contain a supported click-ID placeholder or tracking parameter");
   if(url.toString().includes("{CLICK_ID}")||url.toString().includes("ADD_CLICK_ID_HERE")||url.toString().includes("{SOURCE_ID}")||url.toString().includes("PASS_SITE_HERE")) throw new Error("Offer URL still contains an unresolved tracking placeholder");
   return url.toString();
 }
@@ -42,12 +45,10 @@ Deno.serve(async req=>{
     const s=createClient(SUPABASE_URL,SERVICE_ROLE_KEY);
     const {data:user,error:userError}=await s.from("users").select("*").eq("telegram_id",tg.id).single();
     if(userError||!user)return new Response(JSON.stringify({error:"User not found"}),{status:404,headers:C});
-
     if(action==="list-tasks"){
       const {data,error}=await s.from("tasks").select("*").eq("is_active",true).order("created_at",{ascending:false}); if(error)throw error;
       return new Response(JSON.stringify({tasks:data}),{status:200,headers:{...C,"Content-Type":"application/json"}});
     }
-
     if(action==="start-offer-task"){
       if(!taskId)return new Response(JSON.stringify({error:"Missing taskId"}),{status:400,headers:C});
       const {data:task,error:taskError}=await s.from("tasks").select("id,is_active,task_type,provider,offer_id,task_url").eq("id",taskId).single();
@@ -66,7 +67,6 @@ Deno.serve(async req=>{
       if(!trackedUrl)throw new Error("Could not create a unique offer click ID");
       return new Response(JSON.stringify({url:trackedUrl}),{status:200,headers:{...C,"Content-Type":"application/json"}});
     }
-
     if(action==="my-submissions"){
       const {data,error}=await s.from("task_submissions").select("*, tasks(title, reward_amount)").eq("user_id",user.id).order("created_at",{ascending:false}); if(error)throw error;
       return new Response(JSON.stringify({submissions:data}),{status:200,headers:{...C,"Content-Type":"application/json"}});
