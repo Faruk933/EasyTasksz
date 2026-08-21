@@ -15,10 +15,7 @@ on:
         description: "Optional slot for this manual run (1, 2, or 3)"
         required: false
         type: choice
-        options:
-          - "1"
-          - "2"
-          - "3"
+        options: ["1", "2", "3"]
 
 permissions:
   contents: write
@@ -45,13 +42,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: Publish one X post through Buffer
+      - name: Publish one X and Instagram post through Buffer
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
@@ -61,235 +56,88 @@ jobs:
           node --input-type=commonjs <<'NODE'
           const fs = require('node:fs/promises');
           const { execFileSync } = require('node:child_process');
-
           const BUFFER_ENDPOINT = 'https://api.buffer.com/';
           const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
           const POSTS_FILE = 'automation/x-posts.json';
           const GENERATED_IMAGE_FILE = 'automation/generated-image-url.txt';
           const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
-          for (const name of requiredEnv) {
-            if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
-          }
+          for (const name of requiredEnv) if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
 
-          function assertDate(value, label) {
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-              throw new Error(`${label} must be YYYY-MM-DD`);
-            }
-          }
-
-          function watDate() {
-            return new Intl.DateTimeFormat('en-CA', {
-              timeZone: 'Africa/Lagos',
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit'
-            }).format(new Date());
-          }
-
-          function dateDiffDays(start, end) {
-            const a = Date.parse(`${start}T00:00:00Z`);
-            const b = Date.parse(`${end}T00:00:00Z`);
-            return Math.floor((b - a) / 86400000);
-          }
+          function assertDate(value, label) { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`${label} must be YYYY-MM-DD`); }
+          function watDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+          function dateDiffDays(start, end) { return Math.floor((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000); }
 
           async function readCampaignStart() {
             if (process.env.EVENT_NAME !== 'workflow_dispatch') {
-              try {
-                const value = (await fs.readFile(CAMPAIGN_FILE, 'utf8')).trim();
-                if (value) {
-                  assertDate(value, CAMPAIGN_FILE);
-                  return value;
-                }
-              } catch (error) {
-                if (error.code !== 'ENOENT') throw error;
-              }
+              try { const value = (await fs.readFile(CAMPAIGN_FILE, 'utf8')).trim(); if (value) { assertDate(value, CAMPAIGN_FILE); return value; } }
+              catch (error) { if (error.code !== 'ENOENT') throw error; }
             }
-
-            if (process.env.MANUAL_START_DATE) {
-              assertDate(process.env.MANUAL_START_DATE, 'campaign_start_date input');
-              return process.env.MANUAL_START_DATE;
-            }
-
-            if (process.env.CAMPAIGN_START_DATE_CONFIG) {
-              assertDate(process.env.CAMPAIGN_START_DATE_CONFIG, 'CAMPAIGN_START_DATE');
-              if (process.env.EVENT_NAME !== 'workflow_dispatch') {
-                await persistCampaignStart(process.env.CAMPAIGN_START_DATE_CONFIG);
-              }
-              return process.env.CAMPAIGN_START_DATE_CONFIG;
-            }
-
-            const today = watDate();
-            if (process.env.EVENT_NAME !== 'workflow_dispatch') {
-              await persistCampaignStart(today);
-            }
-            return today;
-          }
-
-          async function persistCampaignStart(value) {
-            const fsSync = require('node:fs');
-            const { execFileSync } = require('node:child_process');
-            fsSync.mkdirSync('automation', { recursive: true });
-            fsSync.writeFileSync(CAMPAIGN_FILE, `${value}\n`, 'utf8');
-            execFileSync('git', ['config', 'user.name', 'github-actions[bot]']);
-            execFileSync('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
-            execFileSync('git', ['add', CAMPAIGN_FILE]);
-            try {
-              execFileSync('git', ['diff', '--cached', '--quiet']);
-              return;
-            } catch {}
-            execFileSync('git', ['commit', '-m', 'Persist campaign start date']);
-            execFileSync('git', ['push']);
+            if (process.env.MANUAL_START_DATE) { assertDate(process.env.MANUAL_START_DATE, 'campaign_start_date input'); return process.env.MANUAL_START_DATE; }
+            if (process.env.CAMPAIGN_START_DATE_CONFIG) { assertDate(process.env.CAMPAIGN_START_DATE_CONFIG, 'CAMPAIGN_START_DATE'); return process.env.CAMPAIGN_START_DATE_CONFIG; }
+            return watDate();
           }
 
           async function bufferGraphQL(query, variables = {}, includeResponse = false) {
-            const response = await fetch(BUFFER_ENDPOINT, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.BUFFER_API_KEY}`
-              },
-              body: JSON.stringify({ query, variables })
-            });
+            const response = await fetch(BUFFER_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.BUFFER_API_KEY}` }, body: JSON.stringify({ query, variables }) });
             const body = await response.json();
-            if (!response.ok || body.errors?.length) {
-              throw new Error(`Buffer API error (HTTP ${response.status}): ${JSON.stringify(body.errors || body)}`);
-            }
-            return includeResponse
-              ? { data: body.data, httpStatus: response.status }
-              : body.data;
+            if (!response.ok || body.errors?.length) throw new Error(`Buffer API error (HTTP ${response.status}): ${JSON.stringify(body.errors || body)}`);
+            return includeResponse ? { data: body.data, httpStatus: response.status } : body.data;
           }
 
-          async function findXChannel() {
-            const accountQuery = `query { account { organizations { id } } }`;
-            const accountData = await bufferGraphQL(accountQuery);
+          async function findChannel(service, label) {
+            const accountData = await bufferGraphQL(`query { account { organizations { id } } }`);
             const organizations = accountData.account?.organizations || [];
             if (!organizations.length) throw new Error('No Buffer organization found');
-
-            const channelsQuery = `query ($input: ChannelsInput!) { channels(input: $input) { id name service isDisconnected organizationId } }`;
+            const query = `query ($input: ChannelsInput!) { channels(input: $input) { id name service isDisconnected organizationId } }`;
             for (const organization of organizations) {
-              const data = await bufferGraphQL(channelsQuery, {
-                input: { organizationId: organization.id }
-              });
-              const channels = data.channels || [];
-              const channel = channels.find(c =>
-                !c.isDisconnected &&
-                (c.service === 'twitter' || /twitter|x/i.test(c.name))
-              );
+              const data = await bufferGraphQL(query, { input: { organizationId: organization.id } });
+              const channel = (data.channels || []).find(c => !c.isDisconnected && c.service === service);
               if (channel) return channel;
             }
-
-            throw new Error('No connected X/Twitter Buffer channel found');
+            throw new Error(`No connected ${label} Buffer channel found`);
           }
 
           async function getQueuedPosts(channelId, organizationId) {
-            const query = `query ($input: PostsInput!, $first: Int) { posts(input: $input, first: $first) { edges { node { text } } } }`;
-            const data = await bufferGraphQL(query, {
-              input: {
-                organizationId,
-                filter: {
-                  channelIds: [channelId],
-                  status: ['scheduled']
-                }
-              },
-              first: 100
-            });
+            const data = await bufferGraphQL(`query ($input: PostsInput!, $first: Int) { posts(input: $input, first: $first) { edges { node { text } } } }`, { input: { organizationId, filter: { channelIds: [channelId], status: ['scheduled'] } }, first: 100 });
             return data.posts?.edges?.map(edge => edge.node?.text).filter(Boolean) || [];
           }
 
-          async function createPost(channelId, text, imageUrl) {
-            const mutation = `mutation ($input: CreatePostInput!) { createPost(input: $input) { __typename ... on PostActionSuccess { post { id status dueAt channelId text assets { id mimeType } } } ... on MutationError { message } } }`;
-            const response = await bufferGraphQL(mutation, {
-              input: {
-                channelId,
-                text,
-                assets: [
-                  {
-                    image: {
-                      url: imageUrl
-                    }
-                  }
-                ],
-                mode: 'addToQueue',
-                schedulingType: 'automatic',
-                needsApproval: false
-              }
-            }, true);
-
+          async function createPost(channelId, text, imageUrl, service) {
+            const response = await bufferGraphQL(`mutation ($input: CreatePostInput!) { createPost(input: $input) { __typename ... on PostActionSuccess { post { id status dueAt channelId text assets { id mimeType } } } ... on MutationError { message } } }`, { input: { channelId, text, assets: [{ image: { url: imageUrl } }], mode: 'addToQueue', schedulingType: 'automatic', needsApproval: false, ...(service === 'instagram' ? { metadata: { instagram: { type: 'post', shouldShareToFeed: true } } } : {}) } }, true);
             const result = response.data?.createPost;
-            console.log(`Buffer createPost HTTP status: ${response.httpStatus}`);
-            console.log(`Buffer createPost response: ${JSON.stringify(result)}`);
-
-            if (!result) {
-              throw new Error('Buffer createPost returned no result.');
-            }
-            if (result.__typename !== 'PostActionSuccess') {
-              throw new Error(`Buffer createPost was not successful: ${JSON.stringify(result)}`);
-            }
-
+            console.log(`Buffer ${service} createPost response: ${JSON.stringify(result)}`);
+            if (!result || result.__typename !== 'PostActionSuccess') throw new Error(`Buffer ${service} createPost failed: ${JSON.stringify(result)}`);
             const post = result.post;
-            if (!post?.id) throw new Error(`Buffer createPost returned no post ID: ${JSON.stringify(result)}`);
-            if (post.status !== 'scheduled') {
-              throw new Error(`Buffer createPost returned post ${post.id} with unexpected status ${post.status || 'null'}; expected scheduled.`);
-            }
-            if (post.channelId !== channelId) {
-              throw new Error(`Buffer createPost returned post ${post.id} for unexpected channel ${post.channelId || 'null'}; expected ${channelId}.`);
-            }
-            if (post.text !== text) {
-              throw new Error(`Buffer createPost returned post ${post.id} with unexpected text.`);
-            }
-            if (!post.dueAt) {
-              throw new Error(`Buffer createPost returned scheduled post ${post.id} without a dueAt timestamp.`);
-            }
-            if (!Array.isArray(post.assets) || post.assets.length < 1) {
-              throw new Error(`Buffer createPost returned scheduled post ${post.id} without the expected image asset.`);
-            }
-
+            if (!post?.id || post.status !== 'scheduled' || post.channelId !== channelId || post.text !== text || !post.dueAt || !Array.isArray(post.assets) || !post.assets.length) throw new Error(`Buffer ${service} returned an invalid scheduled post: ${JSON.stringify(post)}`);
             return post;
           }
 
           (async () => {
             const posts = JSON.parse(require('node:fs').readFileSync(POSTS_FILE, 'utf8'));
             if (!Array.isArray(posts) || posts.length !== 90) throw new Error('Expected exactly 90 posts');
-
             const campaignStart = await readCampaignStart();
-            const today = watDate();
-            const day = dateDiffDays(campaignStart, today) + 1;
+            const day = dateDiffDays(campaignStart, watDate()) + 1;
             if (day < 1 || day > 30) throw new Error(`Campaign day ${day} is outside 1-30`);
-
             let slot;
-            if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_SLOT) {
-              slot = Number(process.env.MANUAL_SLOT);
-            } else {
-              const scheduleToSlot = {
-                '0 8 * * *': 1,
-                '0 13 * * *': 2,
-                '0 18 * * *': 3
-              };
-              slot = scheduleToSlot[process.env.EVENT_SCHEDULE];
-            }
+            if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_SLOT) slot = Number(process.env.MANUAL_SLOT);
+            else slot = ({ '0 8 * * *': 1, '0 13 * * *': 2, '0 18 * * *': 3 })[process.env.EVENT_SCHEDULE];
             if (![1, 2, 3].includes(slot)) throw new Error(`Unable to determine slot from workflow event: ${process.env.EVENT_NAME}`);
-
             const post = posts.find(p => p.day === day && p.slot === slot);
             if (!post || typeof post.text !== 'string') throw new Error(`No post found for day ${day}, slot ${slot}`);
 
-            const channel = await findXChannel();
-            const queuedTexts = await getQueuedPosts(channel.id, channel.organizationId);
-            if (queuedTexts.includes(post.text)) {
-              console.log(`Identical post already queued; skipping creation for day ${day}, slot ${slot}.`);
-              process.exit(0);
-            }
+            const [xChannel, instagramChannel] = await Promise.all([findChannel('twitter', 'X/Twitter'), findChannel('instagram', 'Instagram')]);
+            const [xQueued, instagramQueued] = await Promise.all([getQueuedPosts(xChannel.id, xChannel.organizationId), getQueuedPosts(instagramChannel.id, instagramChannel.organizationId)]);
+            const xDuplicate = xQueued.includes(post.text);
+            const instagramDuplicate = instagramQueued.includes(post.text);
+            if (xDuplicate && instagramDuplicate) { console.log(`Identical post already queued on both X and Instagram; skipping day ${day}, slot ${slot}.`); return; }
 
             console.log('Generating fresh EasyTasksz image with ImaginePro...');
             execFileSync('node', ['automation/generate-image.js', post.text], { stdio: 'inherit' });
             const imageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
-            if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) {
-              throw new Error('ImaginePro did not produce a valid public image URL.');
-            }
+            if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) throw new Error('ImaginePro did not produce a valid public image URL.');
 
-            const createdPost = await createPost(channel.id, post.text, imageUrl);
-            console.log(`Created and queued Buffer post ${createdPost.id} for campaign day ${day}, slot ${slot}; status=${createdPost.status}; dueAt=${createdPost.dueAt}; assets=${createdPost.assets.length}.`);
-          })().catch(error => {
-            console.error(error);
-            process.exitCode = 1;
-          });
+            if (!xDuplicate) await createPost(xChannel.id, post.text, imageUrl, 'twitter'); else console.log('Identical X post already queued; skipping X creation.');
+            if (!instagramDuplicate) await createPost(instagramChannel.id, post.text, imageUrl, 'instagram'); else console.log('Identical Instagram post already queued; skipping Instagram creation.');
+            console.log(`Campaign day ${day}, slot ${slot} processed for X and Instagram.`);
+          })().catch(error => { console.error(error); process.exitCode = 1; });
           NODE
