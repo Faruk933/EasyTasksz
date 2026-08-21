@@ -126,6 +126,8 @@ jobs:
             if (!post || typeof post.text !== 'string') throw new Error(`No post found for day ${day}, slot ${slot}`);
 
             const [xChannel, instagramChannel] = await Promise.all([findChannel('twitter', 'X/Twitter'), findChannel('instagram', 'Instagram')]);
+            console.log(`X channel found: ${xChannel.name}`);
+            console.log(`Instagram channel found: ${instagramChannel.name}`);
             const [xQueued, instagramQueued] = await Promise.all([getQueuedPosts(xChannel.id, xChannel.organizationId), getQueuedPosts(instagramChannel.id, instagramChannel.organizationId)]);
             const xDuplicate = xQueued.includes(post.text);
             const instagramDuplicate = instagramQueued.includes(post.text);
@@ -135,9 +137,20 @@ jobs:
             execFileSync('node', ['automation/generate-image.js', post.text], { stdio: 'inherit' });
             const imageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
             if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) throw new Error('ImaginePro did not produce a valid public image URL.');
+            console.log('One generated image will be used for both platforms.');
 
-            if (!xDuplicate) await createPost(xChannel.id, post.text, imageUrl, 'twitter'); else console.log('Identical X post already queued; skipping X creation.');
-            if (!instagramDuplicate) await createPost(instagramChannel.id, post.text, imageUrl, 'instagram'); else console.log('Identical Instagram post already queued; skipping Instagram creation.');
-            console.log(`Campaign day ${day}, slot ${slot} processed for X and Instagram.`);
+            const results = [];
+            if (!xDuplicate) {
+              try { const created = await createPost(xChannel.id, post.text, imageUrl, 'twitter'); results.push(`X scheduled (${created.id})`); }
+              catch (error) { results.push(`X FAILED: ${error.message}`); }
+            } else results.push('X already queued');
+
+            if (!instagramDuplicate) {
+              try { const created = await createPost(instagramChannel.id, post.text, imageUrl, 'instagram'); results.push(`Instagram scheduled (${created.id})`); }
+              catch (error) { results.push(`Instagram FAILED: ${error.message}`); }
+            } else results.push('Instagram already queued');
+
+            console.log(`Campaign day ${day}, slot ${slot} result: ${results.join(' | ')}`);
+            if (results.some(result => result.includes('FAILED'))) process.exitCode = 1;
           })().catch(error => { console.error(error); process.exitCode = 1; });
           NODE
