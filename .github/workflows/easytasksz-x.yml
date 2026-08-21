@@ -2,9 +2,9 @@ name: EasyTasksz X/Buffer Automation
 
 on:
   schedule:
-    - cron: "15 8 * * *"
-    - cron: "15 13 * * *"
-    - cron: "15 18 * * *"
+    - cron: "0 7 * * *"
+    - cron: "0 12 * * *"
+    - cron: "0 17 * * *"
   workflow_dispatch:
     inputs:
       campaign_start_date:
@@ -120,7 +120,7 @@ jobs:
             if (day < 1 || day > 30) throw new Error(`Campaign day ${day} is outside 1-30`);
             let slot;
             if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_SLOT) slot = Number(process.env.MANUAL_SLOT);
-            else slot = ({ '15 8 * * *': 1, '15 13 * * *': 2, '15 18 * * *': 3 })[process.env.EVENT_SCHEDULE];
+            else slot = ({ '0 7 * * *': 1, '0 12 * * *': 2, '0 17 * * *': 3 })[process.env.EVENT_SCHEDULE];
             if (![1, 2, 3].includes(slot)) throw new Error(`Unable to determine slot from workflow event: ${process.env.EVENT_NAME}`);
             const post = posts.find(p => p.day === day && p.slot === slot);
             if (!post || typeof post.text !== 'string') throw new Error(`No post found for day ${day}, slot ${slot}`);
