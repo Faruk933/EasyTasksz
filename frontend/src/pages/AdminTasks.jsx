@@ -32,7 +32,7 @@ export default function AdminTasks() {
         <option value="manual">Manual Task</option><option value="offer">Offer Task</option>
       </select>
       {taskType==="offer"&&<select value={provider} onChange={e=>setProvider(e.target.value)} className="wallet-input">
-        <option value="">Select provider</option><option value="mobidea">Mobidea</option><option value="zeydoo">Zeydoo</option><option value="gg.agency">GG.Agency</option>
+        <option value="">Select provider</option><option value="mobidea">Mobidea</option><option value="zeydoo">Zeydoo</option><option value="gg.agency">GG.Agency</option><option value="mylead">MyLead.global</option>
       </select>}
       <input type="text" placeholder={taskType==="offer"?"Paste offer link/template":"Task URL"} value={taskUrl} onChange={e=>setTaskUrl(e.target.value)} className="wallet-input" />
       <button className="wallet-btn" onClick={handleCreate} disabled={submitting}>{submitting?"Creating...":"Create Task"}</button>
