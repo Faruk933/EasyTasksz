@@ -12,6 +12,8 @@ export default function AdminTasks() {
   const [instructions, setInstructions] = useState("");
   const [rewardAmount, setRewardAmount] = useState("");
   const [taskUrl, setTaskUrl] = useState("");
+  const [provider, setProvider] = useState("");
+  const [offerId, setOfferId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [formMessage, setFormMessage] = useState(null);
@@ -25,9 +27,12 @@ export default function AdminTasks() {
   async function handleCreate() {
     setFormMessage(null);
     if (!title || !instructions || !rewardAmount || !taskUrl) { setFormMessage("Please fill in all fields"); return; }
+    if (provider === "mobidea" && !offerId) { setFormMessage("Mobidea tasks require an offer ID"); return; }
     setSubmitting(true);
-    try { await createTask(title, instructions, Number(rewardAmount), taskUrl); setTitle(""); setInstructions(""); setRewardAmount(""); setTaskUrl(""); setShowForm(false); loadTasks(); }
-    catch (err) { setFormMessage(err.message || "Failed to create task"); }
+    try {
+      await createTask(title, instructions, Number(rewardAmount), taskUrl, provider || null, provider === "mobidea" ? offerId : null);
+      setTitle(""); setInstructions(""); setRewardAmount(""); setTaskUrl(""); setProvider(""); setOfferId(""); setShowForm(false); loadTasks();
+    } catch (err) { setFormMessage(err.message || "Failed to create task"); }
     finally { setSubmitting(false); }
   }
 
@@ -57,7 +62,12 @@ export default function AdminTasks() {
         <input type="text" placeholder="Task title" value={title} onChange={(e) => setTitle(e.target.value)} className="wallet-input" />
         <textarea placeholder="Instructions" value={instructions} onChange={(e) => setInstructions(e.target.value)} className="wallet-input" style={{ minHeight: 80 }} />
         <input type="number" placeholder="Reward amount (USDT)" value={rewardAmount} onChange={(e) => setRewardAmount(e.target.value)} className="wallet-input" />
-        <input type="text" placeholder="Task URL" value={taskUrl} onChange={(e) => setTaskUrl(e.target.value)} className="wallet-input" />
+        <select value={provider} onChange={(e) => setProvider(e.target.value)} className="wallet-input">
+          <option value="">Normal task</option>
+          <option value="mobidea">Mobidea</option>
+        </select>
+        {provider === "mobidea" && <input type="text" placeholder="Mobidea offer ID (e.g. 38258)" value={offerId} onChange={(e) => setOfferId(e.target.value)} className="wallet-input" />}
+        <input type="text" placeholder={provider === "mobidea" ? "Mobidea offer URL template" : "Task URL"} value={taskUrl} onChange={(e) => setTaskUrl(e.target.value)} className="wallet-input" />
         <button className="wallet-btn" onClick={handleCreate} disabled={submitting}>{submitting ? "Creating..." : "Create Task"}</button>
         {formMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{formMessage}</p>}
       </div>}
@@ -65,6 +75,7 @@ export default function AdminTasks() {
         <div key={task.id} className="wallet-card" style={{ marginBottom: 12 }}>
           <h2>{task.title}</h2>
           <p style={{ color: "#4ade80", fontWeight: "bold" }}>${Number(task.reward_amount).toFixed(2)}</p>
+          <p style={{ color: "#94a3b8", fontSize: 13 }}>{task.provider === "mobidea" ? `Mobidea · Offer ${task.offer_id}` : "Normal task"}</p>
           <p style={{ color: task.is_active ? "#4ade80" : "#94a3b8", fontSize: 13 }}>{task.is_active ? "Active" : "Inactive"}</p>
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button className="wallet-btn" onClick={() => handleToggleActive(task)} style={{ flex: 1, background: task.is_active ? "#7f1d1d" : "#166534" }}>{task.is_active ? "Deactivate" : "Activate"}</button>

@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-    const { initData, action, taskId, title, instructions, rewardAmount, taskUrl, isActive, submissionId, status, comment } = await req.json();
+    const { initData, action, taskId, title, instructions, rewardAmount, taskUrl, provider, offerId, isActive, submissionId, status, comment } = await req.json();
     if (!initData) return new Response(JSON.stringify({ error: "Missing initData" }), { status: 400, headers: corsHeaders });
     const tgUser = await verifyTelegramData(initData, BOT_TOKEN);
     if (!tgUser) return new Response(JSON.stringify({ error: "Invalid Telegram data" }), { status: 401, headers: corsHeaders });
@@ -45,11 +45,14 @@ Deno.serve(async (req) => {
 
     if (action === "create-task") {
       if (!title || !instructions || !rewardAmount || !taskUrl) return new Response(JSON.stringify({ error: "Missing task fields" }), { status: 400, headers: corsHeaders });
-      const { data: task, error } = await supabase.from("tasks").insert({ title, instructions, reward_amount: rewardAmount, task_url: taskUrl, is_active: true }).select().single();
+      const normalizedProvider = provider ? String(provider).toLowerCase() : null;
+      if (normalizedProvider === "mobidea" && !offerId) return new Response(JSON.stringify({ error: "Mobidea tasks require an offer ID" }), { status: 400, headers: corsHeaders });
+      const { data: task, error } = await supabase.from("tasks").insert({ title, instructions, reward_amount: rewardAmount, task_url: taskUrl, provider: normalizedProvider, offer_id: offerId ? String(offerId) : null, is_active: true }).select().single();
       if (error) throw error;
-      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: "@EasyTaskszUpdates", text: "🆕 New Task Available!\n\n📌 " + title + "\n💰 Reward: $" + Number(rewardAmount).toFixed(2) + " USDT\n\n👉 Open EasyTasksz to complete it now!" }) }).catch(() => {});
+      const message = "🆕 New Task Available!\n\n📌 " + title + "\n💰 Reward: $" + Number(rewardAmount).toFixed(2) + " USDT\n\n👉 Open EasyTasksz to complete it now!";
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: "@EasyTaskszUpdates", text: message }) }).catch(() => {});
       const { data: telegramUsers } = await supabase.from("users").select("telegram_id").not("telegram_id", "is", null);
-      Promise.all((telegramUsers || []).map(({ telegram_id }) => fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: telegram_id, text: "🆕 New Task Available!\n\n📌 " + title + "\n💰 Reward: $" + Number(rewardAmount).toFixed(2) + " USDT\n\n👉 Open EasyTasksz to complete it now!" }) }))).catch(() => {});
+      Promise.all((telegramUsers || []).map(({ telegram_id }) => fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: telegram_id, text: message }) }))).catch(() => {});
       return new Response(JSON.stringify({ task }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -60,6 +63,8 @@ Deno.serve(async (req) => {
       if (instructions !== undefined) updates.instructions = instructions;
       if (rewardAmount !== undefined) updates.reward_amount = rewardAmount;
       if (taskUrl !== undefined) updates.task_url = taskUrl;
+      if (provider !== undefined) updates.provider = provider ? String(provider).toLowerCase() : null;
+      if (offerId !== undefined) updates.offer_id = offerId ? String(offerId) : null;
       if (isActive !== undefined) updates.is_active = isActive;
       const { data: task, error } = await supabase.from("tasks").update(updates).eq("id", taskId).select().single();
       if (error) throw error;
@@ -68,21 +73,10 @@ Deno.serve(async (req) => {
 
     if (action === "delete-task") {
       if (!taskId) return new Response(JSON.stringify({ error: "Missing taskId" }), { status: 400, headers: corsHeaders });
-
-      // Remove dependent submissions first. This prevents foreign-key errors when a
-      // task has already been completed/submitted by users.
-      const { error: submissionsError } = await supabase
-        .from("task_submissions")
-        .delete()
-        .eq("task_id", taskId);
+      const { error: submissionsError } = await supabase.from("task_submissions").delete().eq("task_id", taskId);
       if (submissionsError) throw submissionsError;
-
-      const { error: taskError } = await supabase
-        .from("tasks")
-        .delete()
-        .eq("id", taskId);
+      const { error: taskError } = await supabase.from("tasks").delete().eq("id", taskId);
       if (taskError) throw taskError;
-
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

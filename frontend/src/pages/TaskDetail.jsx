@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { listTasks, submitTask } from "../tasks";
+import { listTasks, submitTask, startMobideaTask } from "../tasks";
 import "./Wallet.css";
 
 export default function TaskDetail() {
@@ -12,6 +12,7 @@ export default function TaskDetail() {
   const [proofLink, setProofLink] = useState("");
   const [submitMessage, setSubmitMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     listTasks()
@@ -24,33 +25,36 @@ export default function TaskDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  function handleStartTask() {
-    if (!task?.task_url) {
-      setSubmitMessage("This task does not have a valid task URL.");
-      return;
-    }
+  const isMobidea = String(task?.provider || "").toLowerCase() === "mobidea";
 
-    // Always use the URL saved with this specific task. Telegram's
-    // openLink is used only as the browser-opening mechanism.
-    const targetUrl = String(task.task_url).trim();
+  async function handleStartTask() {
+    setSubmitMessage(null);
+    setStarting(true);
     try {
-      new URL(targetUrl);
-    } catch {
-      setSubmitMessage("This task has an invalid task URL.");
-      return;
-    }
+      let targetUrl;
+      if (isMobidea) {
+        const result = await startMobideaTask(task.id);
+        targetUrl = String(result.url || "").trim();
+      } else {
+        targetUrl = String(task?.task_url || "").trim();
+      }
 
-    const tg = window.Telegram?.WebApp;
-    if (tg?.openLink) tg.openLink(targetUrl);
-    else window.open(targetUrl, "_blank", "noopener,noreferrer");
+      if (!targetUrl) throw new Error("This task does not have a valid task URL.");
+      try { new URL(targetUrl); } catch { throw new Error("This task has an invalid task URL."); }
+
+      const tg = window.Telegram?.WebApp;
+      if (tg?.openLink) tg.openLink(targetUrl);
+      else window.open(targetUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setSubmitMessage(err.message || "Failed to start task");
+    } finally {
+      setStarting(false);
+    }
   }
 
   async function handleSubmit() {
     setSubmitMessage(null);
-    if (!proofLink) {
-      setSubmitMessage("Please paste your proof link");
-      return;
-    }
+    if (!proofLink) { setSubmitMessage("Please paste your proof link"); return; }
     setSubmitting(true);
     try {
       await submitTask(task.id, proofLink);
@@ -78,27 +82,31 @@ export default function TaskDetail() {
         <p style={{ color: "#cbd5e1", whiteSpace: "pre-wrap" }}>{task.instructions}</p>
       </div>
 
-      <button className="wallet-btn" onClick={handleStartTask} style={{ marginTop: 12 }}>
-        Start Task
+      <button className="wallet-btn" onClick={handleStartTask} disabled={starting} style={{ marginTop: 12 }}>
+        {starting ? "Starting..." : "Start Task"}
       </button>
 
-      <div className="wallet-card" style={{ marginTop: 16 }}>
-        <h2>Submit Proof</h2>
-        <p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 8 }}>
-          Complete the task, then paste your proof link below.
-        </p>
-        <input
-          type="text"
-          placeholder="Paste proof link here"
-          value={proofLink}
-          onChange={(e) => setProofLink(e.target.value)}
-          className="wallet-input"
-        />
-        <button className="wallet-btn" onClick={handleSubmit} disabled={submitting} style={{ marginTop: 12 }}>
-          {submitting ? "Submitting..." : "Submit"}
-        </button>
-        {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
-      </div>
+      {isMobidea ? (
+        <div className="wallet-card" style={{ marginTop: 16 }}>
+          <h2>Automatic Completion</h2>
+          <p style={{ color: "#94a3b8", fontSize: 13 }}>
+            Complete the Mobidea offer. Your reward is credited automatically after the verified conversion postback.
+          </p>
+          {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
+        </div>
+      ) : (
+        <div className="wallet-card" style={{ marginTop: 16 }}>
+          <h2>Submit Proof</h2>
+          <p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 8 }}>
+            Complete the task, then paste your proof link below.
+          </p>
+          <input type="text" placeholder="Paste proof link here" value={proofLink} onChange={(e) => setProofLink(e.target.value)} className="wallet-input" />
+          <button className="wallet-btn" onClick={handleSubmit} disabled={submitting} style={{ marginTop: 12 }}>
+            {submitting ? "Submitting..." : "Submit"}
+          </button>
+          {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
+        </div>
+      )}
     </div>
   );
 }
