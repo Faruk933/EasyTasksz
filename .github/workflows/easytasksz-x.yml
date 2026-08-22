@@ -46,7 +46,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Publish one X and Instagram post through Buffer
+      - name: Publish one X, Instagram, and Threads post through Buffer
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
@@ -125,19 +125,29 @@ jobs:
             const post = posts.find(p => p.day === day && p.slot === slot);
             if (!post || typeof post.text !== 'string') throw new Error(`No post found for day ${day}, slot ${slot}`);
 
-            const [xChannel, instagramChannel] = await Promise.all([findChannel('twitter', 'X/Twitter'), findChannel('instagram', 'Instagram')]);
+            const [xChannel, instagramChannel, threadsChannel] = await Promise.all([
+              findChannel('twitter', 'X/Twitter'),
+              findChannel('instagram', 'Instagram'),
+              findChannel('threads', 'Threads')
+            ]);
             console.log(`X channel found: ${xChannel.name}`);
             console.log(`Instagram channel found: ${instagramChannel.name}`);
-            const [xQueued, instagramQueued] = await Promise.all([getQueuedPosts(xChannel.id, xChannel.organizationId), getQueuedPosts(instagramChannel.id, instagramChannel.organizationId)]);
+            console.log(`Threads channel found: ${threadsChannel.name}`);
+            const [xQueued, instagramQueued, threadsQueued] = await Promise.all([
+              getQueuedPosts(xChannel.id, xChannel.organizationId),
+              getQueuedPosts(instagramChannel.id, instagramChannel.organizationId),
+              getQueuedPosts(threadsChannel.id, threadsChannel.organizationId)
+            ]);
             const xDuplicate = xQueued.includes(post.text);
             const instagramDuplicate = instagramQueued.includes(post.text);
-            if (xDuplicate && instagramDuplicate) { console.log(`Identical post already queued on both X and Instagram; skipping day ${day}, slot ${slot}.`); return; }
+            const threadsDuplicate = threadsQueued.includes(post.text);
+            if (xDuplicate && instagramDuplicate && threadsDuplicate) { console.log(`Identical post already queued on X, Instagram, and Threads; skipping day ${day}, slot ${slot}.`); return; }
 
             console.log('Generating fresh EasyTasksz image with ImaginePro...');
             execFileSync('node', ['automation/generate-image.js', post.text], { stdio: 'inherit' });
             const imageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
             if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) throw new Error('ImaginePro did not produce a valid public image URL.');
-            console.log('One generated image will be used for both platforms.');
+            console.log('One generated image will be used for X, Instagram, and Threads.');
 
             const results = [];
             if (!xDuplicate) {
@@ -149,6 +159,11 @@ jobs:
               try { const created = await createPost(instagramChannel.id, post.text, imageUrl, 'instagram'); results.push(`Instagram scheduled (${created.id})`); }
               catch (error) { results.push(`Instagram FAILED: ${error.message}`); }
             } else results.push('Instagram already queued');
+
+            if (!threadsDuplicate) {
+              try { const created = await createPost(threadsChannel.id, post.text, imageUrl, 'threads'); results.push(`Threads scheduled (${created.id})`); }
+              catch (error) { results.push(`Threads FAILED: ${error.message}`); }
+            } else results.push('Threads already queued');
 
             console.log(`Campaign day ${day}, slot ${slot} result: ${results.join(' | ')}`);
             if (results.some(result => result.includes('FAILED'))) process.exitCode = 1;
