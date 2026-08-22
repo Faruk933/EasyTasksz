@@ -2,6 +2,7 @@ import "./Offerwall.css";
 import { useNavigate } from "react-router-dom";
 
 const providers = [
+  { name: "MyLead", desc: "Offers, surveys & rewards", logo: "https://www.google.com/s2/favicons?domain=mylead.global&sz=128", route: "/offerwall/mylead" },
   { name: "Offerwall.me", desc: "Microtasks, offers, shortlinks & PTC", logo: "https://www.google.com/s2/favicons?domain=offerwall.me&sz=128", route: "/offerwall/offerwallme" },
   { name: "CPAlead", desc: "Complete offers & surveys", logo: "https://www.cpalead.com/favicon.ico", route: "/offerwall/cpalead" },
   { name: "PixyLabs", desc: "Offers, surveys & more", logo: "https://pixylabs.co/favicon.ico", route: "/offerwall/pixylabs" },
