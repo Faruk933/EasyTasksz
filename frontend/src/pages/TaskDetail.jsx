@@ -56,7 +56,8 @@ export default function TaskDetail() {
     <div className="wallet-card"><h2>Instructions</h2><p style={{ color: "#cbd5e1", whiteSpace: "pre-wrap" }}>{task.instructions}</p></div>
     <button className="wallet-btn" onClick={handleStartTask} disabled={starting} style={{ marginTop: 12 }}>{starting ? "Starting..." : "Start Task"}</button>
     {isOffer ? <div className="wallet-card" style={{ marginTop: 16 }}><h2>Automatic Completion</h2><p style={{ color: "#94a3b8", fontSize: 13 }}>Complete the offer. Your reward is credited automatically after the provider confirms the conversion.</p>{submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}</div> : <div className="wallet-card" style={{ marginTop: 16 }}>
-      <h2>Submit Proof</h2><p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 8 }}>Complete the task, then paste your proof link below.</p>
+      <h2>Submit Proof</h2><p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 8 }}>Complete the task, upload your screenshot/proof to ImgBB, then copy and paste the proof link below.</p>
+      <a href="https://imgbb.com" target="_blank" rel="noopener noreferrer" className="wallet-btn" style={{ display: "block", textAlign: "center", textDecoration: "none", marginBottom: 12 }}>Upload Screenshot / Proof</a>
       <input type="text" placeholder="Paste proof link here" value={proofLink} onChange={(e) => setProofLink(e.target.value)} className="wallet-input" />
       <button className="wallet-btn" onClick={handleSubmit} disabled={submitting} style={{ marginTop: 12 }}>{submitting ? "Submitting..." : "Submit"}</button>
       {submitMessage && <p className="wallet-note" style={{ color: "#facc15" }}>{submitMessage}</p>}
