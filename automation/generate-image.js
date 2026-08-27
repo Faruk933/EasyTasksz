@@ -40,22 +40,49 @@ Use the actual logo reference to understand the brand's visual character and der
 its natural colour palette, tones, contrast, and overall visual feel. Do not assume
 or force any particular colours; let the supplied logo determine the palette.
 
-Create a polished, modern, trustworthy visual that communicates the idea behind
-this specific post:
+Create a polished, modern, trustworthy social-media graphic that communicates the
+idea AND useful information from this specific post:
 
 ${POST_TEXT}
 
-Treat the post only as the concept/message for the scene. Do not reproduce the
-post as typography. The artwork should communicate the idea visually through the
-subject, composition, lighting, environment, objects, and mood.
+IMPORTANT: This image must contain readable text information, not just a graphic
+illustration. Treat the supplied post as the source of truth for the text shown in
+the image.
 
-IMPORTANT TEXT RULES:
-- Do not add captions, slogans, headlines, paragraphs, labels, UI text, numbers,
-  letters, fake words, watermarks, or decorative typography.
-- Do not attempt to spell out the supplied post text inside the image.
-- Avoid readable text anywhere in the artwork.
-- The only brand reference is the supplied EasyTasksz logo; do not invent another
-  company's logo or brand.
+TEXT CONTENT REQUIREMENTS:
+- Extract the most important information from the supplied post and present it as
+  concise, useful on-image text.
+- Create one clear, attention-grabbing headline based on the post.
+- Add 2-4 short supporting points or a concise supporting sentence containing the
+  key instructions, benefit, action, requirement, or other important information
+  from the post.
+- Preserve important facts, numbers, names, requirements, and meaning from the
+  supplied post. Do not invent facts, offers, prices, rewards, dates, links, or
+  instructions that are not present in the post.
+- Keep the wording concise enough to fit comfortably and remain highly readable.
+- Use strong visual hierarchy: headline first, supporting information second.
+- Use clean, professional typography with correct spelling and natural line breaks.
+- Make all intended text large enough to read clearly on a mobile social-media feed.
+- If the post contains a URL, do not invent or alter it. Include it only if it can
+  be rendered accurately and legibly; otherwise prioritize the main information.
+- Do not fill the image with unnecessary text. Quality and readability are more
+  important than including every sentence of the post.
+
+VISUAL + TEXT BALANCE:
+- Combine the informative typography with a relevant, attractive visual scene.
+- The visual should reinforce the meaning of the post rather than compete with the
+  information.
+- Use deliberate space for the headline and supporting text; do not place text over
+  busy faces, hands, important objects, or high-detail backgrounds.
+- Text should look like intentional professional campaign design, not random labels
+  pasted onto an image.
+- The final result should feel like a real EasyTasksz social-media advertisement or
+  educational post: visually engaging AND informative at a glance.
+
+BRAND RULES:
+- The only brand reference is the supplied EasyTasksz logo.
+- Do not invent another company's logo, brand, watermark, or product identity.
+- Keep the EasyTasksz visual character consistent with the supplied logo.
 
 Visual direction:
 - premium digital-work and fintech-inspired aesthetic
@@ -66,7 +93,8 @@ Visual direction:
 - visually distinctive enough to feel like a real EasyTasksz campaign
 
 Avoid generic stock-photo appearance, excessive neon, cryptocurrency imagery,
-cluttered compositions, robotic-looking subjects, and artificial-looking text.
+cluttered compositions, robotic-looking subjects, fake words, misspelled text,
+and meaningless decorative typography.
 `;
 
 async function submit(apiKey) {
