@@ -1,11 +1,4 @@
-// Supabase client is kept for compatibility with the existing page setup.
 const SUPABASE_URL = "https://iewdxruivjwblsnsjicq.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_OTGy-BXC2O42Rw9RM5UlRA_QLKu6tfF";
-
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
 
 const tg = window.Telegram?.WebApp;
 
@@ -29,14 +22,20 @@ async function loadUser() {
       throw new Error("Telegram session data is unavailable");
     }
 
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/telegram-auth`,
-      {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    let response;
+    try {
+      response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData })
-      }
-    );
+        body: JSON.stringify({ initData }),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const result = await response.json().catch(() => ({}));
 
