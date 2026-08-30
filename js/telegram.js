@@ -1,7 +1,7 @@
-const tg = window.Telegram.WebApp;
+const telegramWebApp = window.Telegram?.WebApp;
 
-tg.ready();
-
-tg.expand();
-
-console.log("Telegram Mini App Ready");
+if (telegramWebApp) {
+  telegramWebApp.ready();
+  telegramWebApp.expand();
+  console.log("Telegram Mini App Ready");
+}

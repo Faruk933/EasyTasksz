@@ -1,4 +1,4 @@
-// Supabase Configuration
+// Supabase client is kept for compatibility with the existing page setup.
 const SUPABASE_URL = "https://iewdxruivjwblsnsjicq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_OTGy-BXC2O42Rw9RM5UlRA_QLKu6tfF";
 
@@ -7,55 +7,61 @@ const supabase = window.supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-// Telegram Mini App
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+const tg = window.Telegram?.WebApp;
 
-// Demo user if not inside Telegram
-const telegramUser = tg.initDataUnsafe.user || {
-  id: 123456789,
-  username: "DemoUser",
-  first_name: "Demo"
-};
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
 
 async function loadUser() {
-  // Look for existing user
-  let { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("telegram_id", telegramUser.id)
-    .single();
-
-  // Create new user if none exists
-  if (!user) {
-    const { data } = await supabase
-      .from("users")
-      .insert({
-        telegram_id: telegramUser.id,
-        username: telegramUser.username || "",
-        first_name: telegramUser.first_name || "",
-        balance: 0,
-        ads_watched: 0,
-        total_earned: 0
-      })
-      .select()
-      .single();
-
-    user = data;
-  }
-
-  // Update UI
   const username = document.getElementById("username");
   const balance = document.getElementById("balance");
+  const avatar = document.getElementById("avatar");
 
-  if (username) {
-    username.innerText =
-      user.first_name || user.username || "User";
-  }
+  try {
+    if (!tg) {
+      throw new Error("Telegram WebApp is unavailable");
+    }
 
-  if (balance) {
-    balance.innerText = "$" + Number(user.balance).toFixed(2);
+    const initData = tg.initData;
+    if (!initData) {
+      throw new Error("Telegram session data is unavailable");
+    }
+
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/telegram-auth`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData })
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.user) {
+      throw new Error(result.error || `Telegram authentication failed (${response.status})`);
+    }
+
+    const user = result.user;
+
+    if (username) {
+      username.innerText = user.first_name || user.username || "User";
+    }
+
+    if (balance) {
+      balance.innerText = "$" + Number(user.balance ?? 0).toFixed(2);
+    }
+
+    if (avatar && user.photo_url) {
+      avatar.src = user.photo_url;
+    }
+  } catch (error) {
+    console.error("EasyTasksz user loading failed:", error);
+    if (username) {
+      username.innerText = "Unable to load profile";
+    }
   }
 }
 
