@@ -17,8 +17,8 @@ Deno.serve(async (req) => {
       const referralCode = parts.length > 1 ? parts[1] : "";
 
       const webAppUrl = referralCode
-        ? `https://easytasksz.netlify.app?startapp=${referralCode}`
-        : `https://easytasksz.netlify.app`;
+        ? `https://easytasksz.pages.dev/?startapp=${referralCode}`
+        : `https://easytasksz.pages.dev/`;
 
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: "POST",
