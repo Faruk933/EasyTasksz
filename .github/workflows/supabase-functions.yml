@@ -7,6 +7,7 @@ on:
     paths:
       - 'supabase/functions/**'
       - 'supabase/config.toml'
+      - 'supabase/migrations/**'
   workflow_dispatch:
 
 permissions:
@@ -27,5 +28,21 @@ jobs:
         with:
           version: latest
 
+      - name: Apply database security hardening
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          sql = Path("supabase/migrations/20260919000000_harden_users_security.sql").read_text()
+          Path("/tmp/query.json").write_text(json.dumps({"query": sql}))
+          PY
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/query" \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data-binary @/tmp/query.json
       - name: Deploy Edge Functions
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID"
