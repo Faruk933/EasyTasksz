@@ -83,11 +83,47 @@ Deno.serve(async (req) => {
     }
 
     if (action === "toggle-ban") {
-      if (!targetTelegramId) return new Response(JSON.stringify({ error: "Missing targetTelegramId" }), { status: 400, headers: corsHeaders });
-      const { data: targetUser } = await supabase.from("users").select("is_banned").eq("telegram_id", targetTelegramId).single();
-      const { data: updatedUser, error } = await supabase.from("users").update({ is_banned: !(targetUser?.is_banned) }).eq("telegram_id", targetTelegramId).select().single();
-      if (error) throw error;
-      return new Response(JSON.stringify({ user: updatedUser }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (!targetTelegramId) {
+        return new Response(JSON.stringify({ error: "Missing targetTelegramId" }), { status: 400, headers: corsHeaders });
+      }
+
+      const { data: targetUser, error: targetError } = await supabase
+        .from("users")
+        .select("id, telegram_id, is_banned")
+        .eq("telegram_id", targetTelegramId)
+        .maybeSingle();
+
+      if (targetError) {
+        return new Response(JSON.stringify({
+          error: "Failed to find user",
+          details: targetError.message,
+          code: targetError.code || null
+        }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      if (!targetUser) {
+        return new Response(JSON.stringify({ error: "User not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const nextBanned = !Boolean(targetUser.is_banned);
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ is_banned: nextBanned })
+        .eq("id", targetUser.id);
+
+      if (updateError) {
+        return new Response(JSON.stringify({
+          error: "Failed to update ban status",
+          details: updateError.message,
+          code: updateError.code || null,
+          hint: updateError.hint || null
+        }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        user: { id: targetUser.id, telegram_id: targetUser.telegram_id, is_banned: nextBanned }
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "list") {
