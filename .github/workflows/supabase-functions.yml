@@ -28,7 +28,9 @@ jobs:
         with:
           version: latest
 
+
       - name: Apply database security hardening
+        continue-on-error: true
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
