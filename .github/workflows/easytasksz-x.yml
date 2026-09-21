@@ -108,7 +108,7 @@ jobs:
           }
 
           async function createPost(channelId, text, imageUrl, service) {
-            const response = await bufferGraphQL(`mutation ($input: CreatePostInput!) { createPost(input: $input) { __typename ... on PostActionSuccess { post { id status dueAt channelId text assets { id mimeType } } } ... on MutationError { message } } }`, { input: { channelId, text, assets: [{ image: { url: imageUrl } }], mode: 'addToQueue', schedulingType: 'automatic', needsApproval: false, ...(service === 'instagram' ? { metadata: { instagram: { type: 'post', shouldShareToFeed: true } } } : {}) } }, true);
+            const response = await bufferGraphQL(`mutation ($input: CreatePostInput!) { createPost(input: $input) { __typename ... on PostActionSuccess { post { id status dueAt channelId text assets { id mimeType } } } ... on MutationError { message } } }`, { input: { channelId, text, assets: [{ image: { url: service === 'twitter' ? `https://wsrv.nl/?url=${encodeURIComponent(imageUrl)}` : imageUrl } }], mode: 'addToQueue', schedulingType: 'automatic', needsApproval: false, ...(service === 'instagram' ? { metadata: { instagram: { type: 'post', shouldShareToFeed: true } } } : {}) } }, true);
             const result = response.data?.createPost;
             console.log(`Buffer ${service} createPost response: ${JSON.stringify(result)}`);
             if (!result || result.__typename !== 'PostActionSuccess') throw new Error(`Buffer ${service} createPost failed: ${JSON.stringify(result)}`);
