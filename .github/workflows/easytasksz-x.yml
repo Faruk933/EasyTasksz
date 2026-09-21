@@ -1,6 +1,11 @@
 name: EasyTasksz X/Buffer Automation
 
 on:
+  push:
+    paths:
+      - "automation/x-posts.json"
+      - "automation/campaign_start_date.txt"
+      - ".github/workflows/easytasksz-x.yml"
   schedule:
     - cron: "0 7 * * *"
     - cron: "0 12 * * *"
@@ -116,10 +121,12 @@ jobs:
             const posts = JSON.parse(require('node:fs').readFileSync(POSTS_FILE, 'utf8'));
             if (!Array.isArray(posts) || posts.length !== 90) throw new Error('Expected exactly 90 posts');
             const campaignStart = await readCampaignStart();
-            const day = dateDiffDays(campaignStart, watDate()) + 1;
+            let day = dateDiffDays(campaignStart, watDate()) + 1;
+            if (process.env.EVENT_NAME === 'push' && day < 1) day = 1;
             if (day < 1 || day > 30) throw new Error(`Campaign day ${day} is outside 1-30`);
             let slot;
             if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_SLOT) slot = Number(process.env.MANUAL_SLOT);
+            else if (process.env.EVENT_NAME === 'push') slot = 1;
             else slot = ({ '0 7 * * *': 1, '0 12 * * *': 2, '0 17 * * *': 3 })[process.env.EVENT_SCHEDULE];
             if (![1, 2, 3].includes(slot)) throw new Error(`Unable to determine slot from workflow event: ${process.env.EVENT_NAME}`);
             const post = posts.find(p => p.day === day && p.slot === slot);
