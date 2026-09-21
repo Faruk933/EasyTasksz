@@ -1,92 +1,452 @@
 [
-  {"day":1,"slot":1,"text":"📌 Getting started\n\nEasyTasksz is a Telegram Mini App built to bring tasks, ads, offerwalls and referrals into one place. Open the app, review what is available, choose an activity and follow its requirements.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":1,"slot":2,"text":"💡 Getting started\n\nEasyTasksz keeps earning activities inside Telegram. Instead of searching across many sites, open the Mini App and check the tasks, offers, ads and referral options currently available to you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":1,"slot":3,"text":"🚀 Getting started\n\nNew to EasyTasksz? Start with one activity you understand. Read the instructions, complete the required steps, then check your reward status in the app.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":2,"slot":1,"text":"📌 How it works\n\nThe basic EasyTasksz flow is simple: open the Mini App, browse available activities, read the requirements, complete an eligible activity and check the result. Always follow the offer instructions.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":2,"slot":2,"text":"💡 How it works\n\nAvailability can change by user, location and provider. If you do not see an activity, check again later rather than assuming it is available to everyone.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":2,"slot":3,"text":"🚀 How it works\n\nA good rule on EasyTasksz: read first, act second. Understanding the requirements before starting helps you avoid incomplete or invalid task submissions.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":3,"slot":1,"text":"📌 Tasks\n\nManual tasks are activities with instructions provided by EasyTasksz. Open the task, understand exactly what is required, complete it as instructed and submit only when you are sure the requirements are met.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":3,"slot":2,"text":"💡 Tasks\n\nTask rewards and requirements can vary. Compare the instructions before choosing an activity, and keep proof when the task specifically asks you to provide evidence.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":3,"slot":3,"text":"🚀 Tasks\n\nLooking for a straightforward place to start? Browse the Tasks section in EasyTasksz and choose an activity whose requirements you can complete correctly.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":4,"slot":1,"text":"📌 Offer tasks\n\nOffer tasks let EasyTasksz users access provider offers through a simple task experience. Open an offer, review the requirements and only continue if the conditions are clear to you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":4,"slot":2,"text":"💡 Offer tasks\n\nOffer availability depends on the provider, campaign, country and other eligibility rules. Seeing an offer does not guarantee the same offer will appear for every user.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":4,"slot":3,"text":"🚀 Offer tasks\n\nWhen completing an offer, use the exact link and follow the provider's instructions. Avoid changing required steps or creating duplicate activity that could invalidate the completion.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":5,"slot":1,"text":"📌 Offerwalls\n\nOfferwalls collect different third-party activities such as offers, surveys or promotions in one section. Each activity can have its own eligibility and completion rules.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":5,"slot":2,"text":"💡 Offerwalls\n\nBefore starting an offerwall activity, check the reward, requirements and any restrictions. Some campaigns may require specific devices, countries, registrations or other conditions.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":5,"slot":3,"text":"🚀 Offerwalls\n\nEasyTasksz does not make every offer available to every user. Offerwalls can change frequently, so check the current list rather than relying on an old screenshot or description.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":6,"slot":1,"text":"📌 Ads\n\nAds can provide another activity option inside EasyTasksz. If an ad-based reward is available, follow the displayed instructions and allow the required action to finish before checking your status.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":6,"slot":2,"text":"💡 Ads\n\nAd availability can depend on your location, device and current inventory. If no ad is available, that does not necessarily mean something is broken.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":6,"slot":3,"text":"🚀 Ads\n\nTip: don't rush through an ad activity. Complete the required viewing or interaction as shown, then give the system time to record the result.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":7,"slot":1,"text":"📌 Rewards\n\nEasyTasksz is designed to show the reward information associated with available activities. Always check the task or offer details before starting so you know what completion is expected.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":7,"slot":2,"text":"💡 Rewards\n\nA displayed reward is tied to the specific activity and its conditions. Completing only part of a task may not qualify, so read the full requirements before you begin.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":7,"slot":3,"text":"🚀 Rewards\n\nRewards are connected to successful completion of eligible activities. If a provider requires confirmation, allow time for the completion to be processed before expecting an update.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":8,"slot":1,"text":"📌 Referrals\n\nEasyTasksz includes referrals so users can invite others to discover the platform. Share your referral information only with people who may genuinely find the app useful.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":8,"slot":2,"text":"💡 Referrals\n\nReferral programs can have their own eligibility and reward conditions. Read the current referral terms inside EasyTasksz before assuming an invite will qualify for a reward.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":8,"slot":3,"text":"🚀 Referrals\n\nKnow someone interested in tasks and online activities? You can introduce them to EasyTasksz and let them explore the Mini App for themselves.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":9,"slot":1,"text":"📌 Safety\n\nProtect your account when using any online earning platform. Never share passwords, verification codes or sensitive account information with someone claiming to offer a reward.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":9,"slot":2,"text":"💡 Safety\n\nEasyTasksz users should read task requirements carefully and avoid activities that request information they are not comfortable providing. If something looks suspicious, stop and review it first.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":9,"slot":3,"text":"🚀 Safety\n\nDon't trust screenshots alone. Check the actual task instructions, reward details and eligibility conditions inside EasyTasksz before starting an activity.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":10,"slot":1,"text":"📌 Choosing tasks\n\nThe highest reward is not automatically the best choice. Consider the requirements, time involved, eligibility and whether you can complete the activity correctly.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":10,"slot":2,"text":"💡 Choosing tasks\n\nBefore starting a task, ask three questions: What exactly must I do? What confirms completion? What could make the activity invalid? Clear answers make better task choices.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":10,"slot":3,"text":"🚀 Choosing tasks\n\nIf a task feels unclear, don't guess. Read the instructions again or choose another activity that has requirements you understand.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":11,"slot":1,"text":"📌 Completion tips\n\nFor tasks that require proof, follow the requested format exactly. Missing evidence, wrong screenshots or incomplete steps can prevent a task from being accepted.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":11,"slot":2,"text":"💡 Completion tips\n\nKeep track of what you completed and when, especially for activities that may take time to verify. This makes it easier to understand your task history.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":11,"slot":3,"text":"🚀 Completion tips\n\nUse the exact instructions shown in EasyTasksz. Small changes to a required step can matter when a provider is checking whether an activity was completed correctly.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":12,"slot":1,"text":"📌 Availability\n\nNot every EasyTasksz activity is available to every user. Campaigns can depend on country, device, provider rules, capacity and other eligibility factors.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":12,"slot":2,"text":"💡 Availability\n\nIf an offer disappears or you cannot access it, check the available activities again later. Campaign inventory can change without being a problem with your account.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":12,"slot":3,"text":"🚀 Availability\n\nDifferent users may see different tasks and offers. EasyTasksz shows opportunities based on what is currently available and eligible for the user.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":13,"slot":1,"text":"📌 Providers\n\nEasyTasksz can work with different offer and task providers. Each provider may use different tracking, eligibility and completion rules.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":13,"slot":2,"text":"💡 Providers\n\nWhen an offer comes from a third-party provider, follow that provider's instructions exactly. The provider may need to confirm completion before a reward can be recorded.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":13,"slot":3,"text":"🚀 Providers\n\nSeeing a provider name on an offer helps you understand where the campaign comes from. Still, always read the individual offer terms because campaigns can differ.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":14,"slot":1,"text":"📌 Tracking\n\nSome offer activities use tracking to connect your click with a later completion. Follow the provided link and avoid unnecessary changes during the process.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":14,"slot":2,"text":"💡 Tracking\n\nIf an offer uses tracking, completing the required steps in a different way may prevent the provider from matching the conversion to your activity.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":14,"slot":3,"text":"🚀 Tracking\n\nTracking is not the same as instant reward confirmation. A completed activity may need provider verification before its status changes.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":15,"slot":1,"text":"📌 Pending rewards\n\nSome completions may take time to verify. A pending status does not necessarily mean the activity failed; provider confirmation can happen after the action is completed.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":15,"slot":2,"text":"💡 Pending rewards\n\nIf a reward is still pending, avoid repeating the same offer immediately. Check the activity instructions and allow the stated verification period to pass.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":15,"slot":3,"text":"🚀 Pending rewards\n\nWhen a provider confirms a conversion, EasyTasksz can update the associated activity status. Keep your completion details if you need to review what happened.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":16,"slot":1,"text":"📌 Withdrawals\n\nBefore requesting a withdrawal, check the current balance and withdrawal requirements shown in EasyTasksz. Different reward systems can have different minimums and rules.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":16,"slot":2,"text":"💡 Withdrawals\n\nA smooth withdrawal starts with accurate account information. Make sure your selected withdrawal method and details are correct before submitting a request.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":16,"slot":3,"text":"🚀 Withdrawals\n\nIf a withdrawal is unavailable, check the displayed requirements first. Minimum balances, verification and method availability can affect when you can request one.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":17,"slot":1,"text":"📌 Dashboard\n\nYour EasyTasksz dashboard is the place to keep an eye on your activity and available information. Use it to understand what you have completed and what still needs attention.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":17,"slot":2,"text":"💡 Dashboard\n\nA useful habit is to review your dashboard after completing activities. This helps you spot pending items, completed tasks and any status changes.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":17,"slot":3,"text":"🚀 Dashboard\n\nDon't judge your activity only by the number of tasks shown. Check their status and requirements so you know which actions actually count.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":18,"slot":1,"text":"📌 Telegram\n\nEasyTasksz runs as a Telegram Mini App, making it convenient to access from the same place where you chat and follow communities.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":18,"slot":2,"text":"💡 Telegram\n\nOpen EasyTasksz from Telegram and explore the available sections. You can return to the Mini App whenever you want to check current activities.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":18,"slot":3,"text":"🚀 Telegram\n\nUsing a Telegram Mini App means you don't need another standalone app just to explore EasyTasksz. Your available features are presented inside the Telegram experience.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":19,"slot":1,"text":"📌 Community\n\nFeedback helps shape EasyTasksz. Tell us which task types, features or improvements would make the platform more useful for you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":19,"slot":2,"text":"💡 Community\n\nWhat should EasyTasksz improve next: more tasks, clearer instructions, faster status updates, better navigation or something else? Your feedback matters.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":19,"slot":3,"text":"🚀 Community\n\nEarly users help identify what works and what needs improvement. If you find a confusing screen or process, let the EasyTasksz team know.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":20,"slot":1,"text":"📌 Transparency\n\nEasyTasksz is about real activities and clear requirements—not promises of instant riches. Review each opportunity and make your own decision before participating.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":20,"slot":2,"text":"💡 Transparency\n\nNo platform can guarantee that every activity will be available or successful for every user. Eligibility and provider rules matter, so read the details before starting.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":20,"slot":3,"text":"🚀 Transparency\n\nWe would rather explain how an activity works than make unrealistic promises. Check the requirements, understand the process and choose what makes sense for you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":21,"slot":1,"text":"📌 Product updates\n\nEasyTasksz is being improved over time. New task types, provider campaigns and product features can change what is available in the Mini App.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":21,"slot":2,"text":"💡 Product updates\n\nIf you notice a new section or feature in EasyTasksz, explore its instructions before using it. Updates can introduce new workflows or requirements.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":21,"slot":3,"text":"🚀 Product updates\n\nBuilding EasyTasksz is an ongoing process. User feedback, testing and real usage help us decide which improvements should come next.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":22,"slot":1,"text":"📌 Tips\n\nDon't open every offer you see. Start with activities whose requirements you understand and whose conditions fit your situation.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":22,"slot":2,"text":"💡 Tips\n\nAvoid rushing through multiple tasks at once. Completing one activity correctly is more useful than starting several and missing important requirements.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":22,"slot":3,"text":"🚀 Tips\n\nKeep your activity organized: read, complete, verify and then move to the next task. A simple process can prevent avoidable mistakes.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":23,"slot":1,"text":"📌 FAQs\n\nWhy can't I see an offer? It may be unavailable for your country, device, eligibility profile or because the campaign has reached its limit.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":23,"slot":2,"text":"💡 FAQs\n\nWhy is a reward not instant? Some activities need provider tracking and verification before a completion can be confirmed.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":23,"slot":3,"text":"🚀 FAQs\n\nWhy do users see different tasks? Availability can vary by campaign targeting, provider inventory, location, device and other eligibility conditions.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":24,"slot":1,"text":"📌 Quality\n\nA quality task experience starts with clear instructions. EasyTasksz aims to make activity details easier to understand before you start.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":24,"slot":2,"text":"💡 Quality\n\nIf an instruction says to complete a specific step, treat that step as required. Don't assume an alternative action will qualify unless the task says so.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":24,"slot":3,"text":"🚀 Quality\n\nGood task completion is about accuracy, not speed. Follow the instructions carefully and give the system or provider time to verify the result.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":25,"slot":1,"text":"📌 New users\n\nFirst time on EasyTasksz? Explore the dashboard, then check Tasks and other available activity sections. Start with something simple and clearly explained.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":25,"slot":2,"text":"💡 New users\n\nYou don't need to complete everything on your first visit. Learn how the app works, understand the requirements and choose an activity that fits you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":25,"slot":3,"text":"🚀 New users\n\nWelcome to EasyTasksz! Take a few minutes to explore the Mini App and learn where tasks, offers, ads, referrals and your activity information are located.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":26,"slot":1,"text":"📌 Long-term\n\nThe goal is to make EasyTasksz a useful place to discover different online activities—not just a list of links.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":26,"slot":2,"text":"💡 Long-term\n\nAs EasyTasksz grows, we want the experience to become clearer, more reliable and easier to navigate. Feedback from active users helps us prioritize.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":26,"slot":3,"text":"🚀 Long-term\n\nConsistency matters. Check the available activities regularly, follow the requirements and focus on completing tasks correctly rather than chasing every opportunity.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":27,"slot":1,"text":"📌 Myth vs fact\n\nMYTH: Every user sees the same offers. FACT: Campaign eligibility and availability can vary by user, location, device and provider.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":27,"slot":2,"text":"💡 Myth vs fact\n\nMYTH: Clicking an offer guarantees a reward. FACT: The required activity must be completed and, where applicable, verified by the provider.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":27,"slot":3,"text":"🚀 Myth vs fact\n\nMYTH: A pending conversion always means failure. FACT: Some providers need time to verify a completion before the status is finalized.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":28,"slot":1,"text":"📌 Explore\n\nThere is more to EasyTasksz than one task type. Explore the available sections and see which activities are currently relevant to you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":28,"slot":2,"text":"💡 Explore\n\nTake a fresh look at EasyTasksz today. Campaigns change, so an activity you couldn't access before may not be the only option available now.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":28,"slot":3,"text":"🚀 Explore\n\nYour next activity could be a task, offer, ad or referral. Open EasyTasksz, review what's available and choose carefully.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":29,"slot":1,"text":"📌 Support and troubleshooting\n\nIf something doesn't look right in EasyTasksz, first check the activity instructions and status. Some issues are caused by provider verification or campaign rules.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":29,"slot":2,"text":"💡 Support and troubleshooting\n\nBefore reporting a task issue, note the activity name, what step you completed and the status you see. Useful details make troubleshooting easier.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":29,"slot":3,"text":"🚀 Support and troubleshooting\n\nIf an activity fails to track, don't repeatedly submit the same action. Review the instructions and allow the provider's stated processing time before trying again.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"},
-  {"day":30,"slot":1,"text":"📌 Why EasyTasksz\n\nEasyTasksz brings multiple activity types into one Telegram Mini App: tasks, offers, ads and referrals. The aim is simple access and a clearer experience.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #Telegram"},
-  {"day":30,"slot":2,"text":"💡 Why EasyTasksz\n\nInstead of treating every opportunity the same, EasyTasksz lets you review the requirements and choose activities that fit your time, device and eligibility.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"},
-  {"day":30,"slot":3,"text":"🚀 Why EasyTasksz\n\nEasyTasksz is being built around useful features, clear information and real user feedback. Explore the Mini App and tell us what would make it better.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"}
+  {
+    "day": 1,
+    "slot": 1,
+    "text": "📌 Start here\n\nOpen EasyTasksz in Telegram and take a quick tour of the dashboard before choosing an activity.\n\nRead the requirements first, then pick one task or offer you understand."
+  },
+  {
+    "day": 1,
+    "slot": 2,
+    "text": "💡 Quick tip: Start here\n\nOpen EasyTasksz in Telegram and take a quick tour of the dashboard before choosing an activity. Read the requirements first, then pick one task or offer you understand.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 1,
+    "slot": 3,
+    "text": "🚀 Try this today: Start here\n\nOpen EasyTasksz in Telegram and take a quick tour of the dashboard before choosing an activity.\n\nRead the requirements first, then pick one task or offer you understand.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 2,
+    "slot": 1,
+    "text": "📌 Task checklist\n\nBefore starting a task, check the required action, proof requirements and reward details.\n\nA two-minute review can help prevent avoidable mistakes."
+  },
+  {
+    "day": 2,
+    "slot": 2,
+    "text": "💡 Quick tip: Task checklist\n\nBefore starting a task, check the required action, proof requirements and reward details. A two-minute review can help prevent avoidable mistakes.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 2,
+    "slot": 3,
+    "text": "🚀 Try this today: Task checklist\n\nBefore starting a task, check the required action, proof requirements and reward details.\n\nA two-minute review can help prevent avoidable mistakes.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 3,
+    "slot": 1,
+    "text": "📌 Offerwall basics\n\nOfferwalls can contain different third-party activities with different rules.\n\nCheck each offer individually instead of assuming every offer works the same way."
+  },
+  {
+    "day": 3,
+    "slot": 2,
+    "text": "💡 Quick tip: Offerwall basics\n\nOfferwalls can contain different third-party activities with different rules. Check each offer individually instead of assuming every offer works the same way.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 3,
+    "slot": 3,
+    "text": "🚀 Try this today: Offerwall basics\n\nOfferwalls can contain different third-party activities with different rules.\n\nCheck each offer individually instead of assuming every offer works the same way.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 4,
+    "slot": 1,
+    "text": "📌 Ad activity\n\nWhen an ad activity is available, follow the instructions shown in the app.\n\nLet the required viewing or interaction finish before checking your reward status."
+  },
+  {
+    "day": 4,
+    "slot": 2,
+    "text": "💡 Quick tip: Ad activity\n\nWhen an ad activity is available, follow the instructions shown in the app. Let the required viewing or interaction finish before checking your reward status.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 4,
+    "slot": 3,
+    "text": "🚀 Try this today: Ad activity\n\nWhen an ad activity is available, follow the instructions shown in the app.\n\nLet the required viewing or interaction finish before checking your reward status.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 5,
+    "slot": 1,
+    "text": "📌 Referral basics\n\nEasyTasksz referrals give users a way to invite people they know.\n\nShare your referral with people who are genuinely interested rather than sending unwanted messages."
+  },
+  {
+    "day": 5,
+    "slot": 2,
+    "text": "💡 Quick tip: Referral basics\n\nEasyTasksz referrals give users a way to invite people they know. Share your referral with people who are genuinely interested rather than sending unwanted messages.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 5,
+    "slot": 3,
+    "text": "🚀 Try this today: Referral basics\n\nEasyTasksz referrals give users a way to invite people they know.\n\nShare your referral with people who are genuinely interested rather than sending unwanted messages.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 6,
+    "slot": 1,
+    "text": "📌 Read before you click\n\nAn offer can have eligibility rules, time limits or specific completion steps.\n\nRead the details before opening it so you know what is expected."
+  },
+  {
+    "day": 6,
+    "slot": 2,
+    "text": "💡 Quick tip: Read before you click\n\nAn offer can have eligibility rules, time limits or specific completion steps. Read the details before opening it so you know what is expected.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 6,
+    "slot": 3,
+    "text": "🚀 Try this today: Read before you click\n\nAn offer can have eligibility rules, time limits or specific completion steps.\n\nRead the details before opening it so you know what is expected.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 7,
+    "slot": 1,
+    "text": "📌 Completion proof\n\nSome manual tasks require proof of completion.\n\nUse the requested proof format and make sure the important details are visible."
+  },
+  {
+    "day": 7,
+    "slot": 2,
+    "text": "💡 Quick tip: Completion proof\n\nSome manual tasks require proof of completion. Use the requested proof format and make sure the important details are visible.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 7,
+    "slot": 3,
+    "text": "🚀 Try this today: Completion proof\n\nSome manual tasks require proof of completion.\n\nUse the requested proof format and make sure the important details are visible.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 8,
+    "slot": 1,
+    "text": "📌 Pending status\n\nSome third-party activities may need verification before a completion is confirmed.\n\nIf something is pending, check the activity details before repeating the same action."
+  },
+  {
+    "day": 8,
+    "slot": 2,
+    "text": "💡 Quick tip: Pending status\n\nSome third-party activities may need verification before a completion is confirmed. If something is pending, check the activity details before repeating the same action.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 8,
+    "slot": 3,
+    "text": "🚀 Try this today: Pending status\n\nSome third-party activities may need verification before a completion is confirmed.\n\nIf something is pending, check the activity details before repeating the same action.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 9,
+    "slot": 1,
+    "text": "📌 Different offers\n\nTwo users may not see identical offers.\n\nAvailability can vary by campaign, provider, location, device and eligibility."
+  },
+  {
+    "day": 9,
+    "slot": 2,
+    "text": "💡 Quick tip: Different offers\n\nTwo users may not see identical offers. Availability can vary by campaign, provider, location, device and eligibility.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 9,
+    "slot": 3,
+    "text": "🚀 Try this today: Different offers\n\nTwo users may not see identical offers.\n\nAvailability can vary by campaign, provider, location, device and eligibility.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 10,
+    "slot": 1,
+    "text": "📌 Choose carefully\n\nA bigger displayed reward does not tell you everything about an activity.\n\nConsider the requirements and time involved before you start."
+  },
+  {
+    "day": 10,
+    "slot": 2,
+    "text": "💡 Quick tip: Choose carefully\n\nA bigger displayed reward does not tell you everything about an activity. Consider the requirements and time involved before you start.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 10,
+    "slot": 3,
+    "text": "🚀 Try this today: Choose carefully\n\nA bigger displayed reward does not tell you everything about an activity.\n\nConsider the requirements and time involved before you start.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 11,
+    "slot": 1,
+    "text": "📌 Protect your account\n\nKeep passwords, login codes and private account details to yourself.\n\nA reward opportunity should never require you to hand over sensitive credentials."
+  },
+  {
+    "day": 11,
+    "slot": 2,
+    "text": "💡 Quick tip: Protect your account\n\nKeep passwords, login codes and private account details to yourself. A reward opportunity should never require you to hand over sensitive credentials.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 11,
+    "slot": 3,
+    "text": "🚀 Try this today: Protect your account\n\nKeep passwords, login codes and private account details to yourself.\n\nA reward opportunity should never require you to hand over sensitive credentials.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 12,
+    "slot": 1,
+    "text": "📌 Task history\n\nReview your activity after completing tasks or offers.\n\nKnowing whether something is pending, completed or unavailable helps you decide what to do next."
+  },
+  {
+    "day": 12,
+    "slot": 2,
+    "text": "💡 Quick tip: Task history\n\nReview your activity after completing tasks or offers. Knowing whether something is pending, completed or unavailable helps you decide what to do next.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 12,
+    "slot": 3,
+    "text": "🚀 Try this today: Task history\n\nReview your activity after completing tasks or offers.\n\nKnowing whether something is pending, completed or unavailable helps you decide what to do next.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 13,
+    "slot": 1,
+    "text": "📌 Provider rules\n\nThird-party providers can have their own tracking and eligibility rules.\n\nFollow the exact instructions attached to the activity you choose."
+  },
+  {
+    "day": 13,
+    "slot": 2,
+    "text": "💡 Quick tip: Provider rules\n\nThird-party providers can have their own tracking and eligibility rules. Follow the exact instructions attached to the activity you choose.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 13,
+    "slot": 3,
+    "text": "🚀 Try this today: Provider rules\n\nThird-party providers can have their own tracking and eligibility rules.\n\nFollow the exact instructions attached to the activity you choose.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 14,
+    "slot": 1,
+    "text": "📌 Tracking matters\n\nSome offers use tracking to connect a click with a later completion.\n\nUse the provided path and avoid unnecessary changes during the process."
+  },
+  {
+    "day": 14,
+    "slot": 2,
+    "text": "💡 Quick tip: Tracking matters\n\nSome offers use tracking to connect a click with a later completion. Use the provided path and avoid unnecessary changes during the process.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 14,
+    "slot": 3,
+    "text": "🚀 Try this today: Tracking matters\n\nSome offers use tracking to connect a click with a later completion.\n\nUse the provided path and avoid unnecessary changes during the process.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 15,
+    "slot": 1,
+    "text": "📌 Don't duplicate\n\nRepeating the same offer without checking its status can create confusion.\n\nReview your activity first and follow the provider's instructions."
+  },
+  {
+    "day": 15,
+    "slot": 2,
+    "text": "💡 Quick tip: Don't duplicate\n\nRepeating the same offer without checking its status can create confusion. Review your activity first and follow the provider's instructions.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 15,
+    "slot": 3,
+    "text": "🚀 Try this today: Don't duplicate\n\nRepeating the same offer without checking its status can create confusion.\n\nReview your activity first and follow the provider's instructions.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 16,
+    "slot": 1,
+    "text": "📌 Daily routine\n\nA simple routine can make task sessions easier: check, read, complete, verify.\n\nFocus on activities you can actually finish correctly."
+  },
+  {
+    "day": 16,
+    "slot": 2,
+    "text": "💡 Quick tip: Daily routine\n\nA simple routine can make task sessions easier: check, read, complete, verify. Focus on activities you can actually finish correctly.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 16,
+    "slot": 3,
+    "text": "🚀 Try this today: Daily routine\n\nA simple routine can make task sessions easier: check, read, complete, verify.\n\nFocus on activities you can actually finish correctly.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 17,
+    "slot": 1,
+    "text": "📌 New user tip\n\nYou do not need to complete everything on your first visit.\n\nLearn the app first, then choose an activity that fits your situation."
+  },
+  {
+    "day": 17,
+    "slot": 2,
+    "text": "💡 Quick tip: New user tip\n\nYou do not need to complete everything on your first visit. Learn the app first, then choose an activity that fits your situation.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 17,
+    "slot": 3,
+    "text": "🚀 Try this today: New user tip\n\nYou do not need to complete everything on your first visit.\n\nLearn the app first, then choose an activity that fits your situation.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 18,
+    "slot": 1,
+    "text": "📌 Dashboard check\n\nYour dashboard gives you a quick view of your EasyTasksz activity.\n\nMake it a habit to check your status after completing something."
+  },
+  {
+    "day": 18,
+    "slot": 2,
+    "text": "💡 Quick tip: Dashboard check\n\nYour dashboard gives you a quick view of your EasyTasksz activity. Make it a habit to check your status after completing something.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 18,
+    "slot": 3,
+    "text": "🚀 Try this today: Dashboard check\n\nYour dashboard gives you a quick view of your EasyTasksz activity.\n\nMake it a habit to check your status after completing something.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 19,
+    "slot": 1,
+    "text": "📌 Availability changes\n\nAn activity that appears today may disappear later.\n\nCampaign inventory and eligibility can change, so check the current list."
+  },
+  {
+    "day": 19,
+    "slot": 2,
+    "text": "💡 Quick tip: Availability changes\n\nAn activity that appears today may disappear later. Campaign inventory and eligibility can change, so check the current list.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 19,
+    "slot": 3,
+    "text": "🚀 Try this today: Availability changes\n\nAn activity that appears today may disappear later.\n\nCampaign inventory and eligibility can change, so check the current list.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 20,
+    "slot": 1,
+    "text": "📌 Clear instructions\n\nGood task completion starts with understanding the instructions.\n\nIf a requirement is unclear, reread it before taking action."
+  },
+  {
+    "day": 20,
+    "slot": 2,
+    "text": "💡 Quick tip: Clear instructions\n\nGood task completion starts with understanding the instructions. If a requirement is unclear, reread it before taking action.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 20,
+    "slot": 3,
+    "text": "🚀 Try this today: Clear instructions\n\nGood task completion starts with understanding the instructions.\n\nIf a requirement is unclear, reread it before taking action.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 21,
+    "slot": 1,
+    "text": "📌 Manual tasks\n\nManual tasks can require a specific action followed by proof.\n\nComplete the requested steps in order and submit the requested evidence."
+  },
+  {
+    "day": 21,
+    "slot": 2,
+    "text": "💡 Quick tip: Manual tasks\n\nManual tasks can require a specific action followed by proof. Complete the requested steps in order and submit the requested evidence.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 21,
+    "slot": 3,
+    "text": "🚀 Try this today: Manual tasks\n\nManual tasks can require a specific action followed by proof.\n\nComplete the requested steps in order and submit the requested evidence.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 22,
+    "slot": 1,
+    "text": "📌 Offer completion\n\nThird-party offers may require several steps before they qualify.\n\nDo not stop at the first screen; follow the complete offer requirements."
+  },
+  {
+    "day": 22,
+    "slot": 2,
+    "text": "💡 Quick tip: Offer completion\n\nThird-party offers may require several steps before they qualify. Do not stop at the first screen; follow the complete offer requirements.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 22,
+    "slot": 3,
+    "text": "🚀 Try this today: Offer completion\n\nThird-party offers may require several steps before they qualify.\n\nDo not stop at the first screen; follow the complete offer requirements.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 23,
+    "slot": 1,
+    "text": "📌 Reward verification\n\nA reward may not appear at the exact moment you finish an activity.\n\nSome providers need time to verify the conversion."
+  },
+  {
+    "day": 23,
+    "slot": 2,
+    "text": "💡 Quick tip: Reward verification\n\nA reward may not appear at the exact moment you finish an activity. Some providers need time to verify the conversion.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 23,
+    "slot": 3,
+    "text": "🚀 Try this today: Reward verification\n\nA reward may not appear at the exact moment you finish an activity.\n\nSome providers need time to verify the conversion.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 24,
+    "slot": 1,
+    "text": "📌 Withdrawal check\n\nBefore requesting a withdrawal, review the balance and current withdrawal requirements.\n\nMake sure your account details are correct before submitting."
+  },
+  {
+    "day": 24,
+    "slot": 2,
+    "text": "💡 Quick tip: Withdrawal check\n\nBefore requesting a withdrawal, review the balance and current withdrawal requirements. Make sure your account details are correct before submitting.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 24,
+    "slot": 3,
+    "text": "🚀 Try this today: Withdrawal check\n\nBefore requesting a withdrawal, review the balance and current withdrawal requirements.\n\nMake sure your account details are correct before submitting.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 25,
+    "slot": 1,
+    "text": "📌 Smart sessions\n\nShort, focused sessions can be easier to manage than opening many activities at once.\n\nFinish one clear activity before moving to the next."
+  },
+  {
+    "day": 25,
+    "slot": 2,
+    "text": "💡 Quick tip: Smart sessions\n\nShort, focused sessions can be easier to manage than opening many activities at once. Finish one clear activity before moving to the next.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 25,
+    "slot": 3,
+    "text": "🚀 Try this today: Smart sessions\n\nShort, focused sessions can be easier to manage than opening many activities at once.\n\nFinish one clear activity before moving to the next.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 26,
+    "slot": 1,
+    "text": "📌 Avoid assumptions\n\nA task description is more reliable than an old screenshot or someone else's experience.\n\nUse the current instructions shown in EasyTasksz."
+  },
+  {
+    "day": 26,
+    "slot": 2,
+    "text": "💡 Quick tip: Avoid assumptions\n\nA task description is more reliable than an old screenshot or someone else's experience. Use the current instructions shown in EasyTasksz.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 26,
+    "slot": 3,
+    "text": "🚀 Try this today: Avoid assumptions\n\nA task description is more reliable than an old screenshot or someone else's experience.\n\nUse the current instructions shown in EasyTasksz.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 27,
+    "slot": 1,
+    "text": "📌 Feedback\n\nUser feedback helps identify confusing screens and useful improvements.\n\nIf something is unclear, note what you expected and what you actually saw."
+  },
+  {
+    "day": 27,
+    "slot": 2,
+    "text": "💡 Quick tip: Feedback\n\nUser feedback helps identify confusing screens and useful improvements. If something is unclear, note what you expected and what you actually saw.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 27,
+    "slot": 3,
+    "text": "🚀 Try this today: Feedback\n\nUser feedback helps identify confusing screens and useful improvements.\n\nIf something is unclear, note what you expected and what you actually saw.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 28,
+    "slot": 1,
+    "text": "📌 Telegram convenience\n\nEasyTasksz is available as a Telegram Mini App.\n\nOpen it from Telegram whenever you want to review current activities."
+  },
+  {
+    "day": 28,
+    "slot": 2,
+    "text": "💡 Quick tip: Telegram convenience\n\nEasyTasksz is available as a Telegram Mini App. Open it from Telegram whenever you want to review current activities.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 28,
+    "slot": 3,
+    "text": "🚀 Try this today: Telegram convenience\n\nEasyTasksz is available as a Telegram Mini App.\n\nOpen it from Telegram whenever you want to review current activities.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 29,
+    "slot": 1,
+    "text": "📌 Explore today\n\nTasks, offers, ads and referrals can change over time.\n\nOpen EasyTasksz and see what is currently available to you."
+  },
+  {
+    "day": 29,
+    "slot": 2,
+    "text": "💡 Quick tip: Explore today\n\nTasks, offers, ads and referrals can change over time. Open EasyTasksz and see what is currently available to you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 29,
+    "slot": 3,
+    "text": "🚀 Try this today: Explore today\n\nTasks, offers, ads and referrals can change over time.\n\nOpen EasyTasksz and see what is currently available to you.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  },
+  {
+    "day": 30,
+    "slot": 1,
+    "text": "📌 Build in public\n\nEasyTasksz is being improved through testing, feedback and real usage.\n\nFollow the project and watch for new features and refinements."
+  },
+  {
+    "day": 30,
+    "slot": 2,
+    "text": "💡 Quick tip: Build in public\n\nEasyTasksz is being improved through testing, feedback and real usage. Follow the project and watch for new features and refinements.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #EarnOnline"
+  },
+  {
+    "day": 30,
+    "slot": 3,
+    "text": "🚀 Try this today: Build in public\n\nEasyTasksz is being improved through testing, feedback and real usage.\n\nFollow the project and watch for new features and refinements.\n\nhttps://tinyurl.com/EasyTasksz\n#EasyTasksz #BuildInPublic"
+  }
 ]
