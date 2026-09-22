@@ -4,10 +4,24 @@ const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-async function verifyTelegramData(initData: string): Promise<any | null> {
+
+const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
+const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
+
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (!/^[0-9a-f]{64}$/i.test(a) || !/^[0-9a-f]{64}$/i.test(b)) return false;
+  let diff = 0;
+  for (let i = 0; i < 64; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function verifyTelegramData(initData: string, botToken: string): Promise<any | null> {
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
-  if (!hash) return null;
+  const authDate = Number(params.get("auth_date"));
+  if (!hash || !Number.isInteger(authDate)) return null;
+  const now = Math.floor(Date.now() / 1000);
+  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS || now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return null;
   params.delete("hash");
   const pairs: string[] = [];
   params.forEach((value, key) => pairs.push(`${key}=${value}`));
@@ -15,17 +29,16 @@ async function verifyTelegramData(initData: string): Promise<any | null> {
   const dataCheckString = pairs.join("\n");
   const encoder = new TextEncoder();
   const secretKey = await crypto.subtle.importKey("raw", encoder.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const secretKeySigned = await crypto.subtle.sign("HMAC", secretKey, encoder.encode(BOT_TOKEN));
+  const secretKeySigned = await crypto.subtle.sign("HMAC", secretKey, encoder.encode(botToken));
   const finalKey = await crypto.subtle.importKey("raw", secretKeySigned, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const signature = await crypto.subtle.sign("HMAC", finalKey, encoder.encode(dataCheckString));
   const computedHash = Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, "0")).join("");
-  if (computedHash !== hash) return null;
+  if (!timingSafeEqualHex(computedHash, hash)) return null;
   const userStr = params.get("user");
   if (!userStr) return null;
-  const user = JSON.parse(userStr);
-  const startParam = params.get("start_param");
-  return { ...user, __start_param: startParam };
+  try { const user = JSON.parse(userStr); const startParam = params.get("start_param"); return { ...user, __start_param: startParam }; } catch { return null; }
 }
+
 
 Deno.serve(async (req) => {
   const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
