@@ -3,6 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+function timingSafeEqualText(a: string, b: string): boolean { if (!a || !b || a.length !== b.length) return false; let diff=0; for(let i=0;i<a.length;i++) diff|=a.charCodeAt(i)^b.charCodeAt(i); return diff===0; }
+
 Deno.serve(async (req) => {
   try {
     const POSTBACK_TOKEN = Deno.env.get("PIXYLABS_POSTBACK_TOKEN")!;
@@ -13,7 +15,7 @@ Deno.serve(async (req) => {
     const clickId = url.searchParams.get("click_id");
     const payoutUsd = url.searchParams.get("payout_usd");
 
-    if (token !== POSTBACK_TOKEN) {
+    if (!timingSafeEqualText(token || "", POSTBACK_TOKEN)) {
       return new Response("Unauthorized", { status: 401 });
     }
 
