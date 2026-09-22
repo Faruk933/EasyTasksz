@@ -159,3 +159,39 @@ REVOKE ALL ON FUNCTION public.process_mobidea_conversion(text,numeric) FROM PUBL
 GRANT EXECUTE ON FUNCTION public.process_mobidea_conversion(text,numeric) TO service_role;
 REVOKE ALL ON FUNCTION public.process_mylead_offerwall_conversion(text,text,numeric,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.process_mylead_offerwall_conversion(text,text,numeric,text) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.process_task_submission_atomic(p_submission_id bigint,p_status text,p_comment text DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_submission public.task_submissions%rowtype; v_task public.tasks%rowtype; v_user public.users%rowtype; v_reward numeric; v_balance numeric; v_pct numeric;
+BEGIN
+ IF p_submission_id IS NULL OR lower(coalesce(p_status,'')) NOT IN ('approved','rejected') THEN RAISE EXCEPTION 'Invalid submission action'; END IF;
+ SELECT * INTO v_submission FROM public.task_submissions WHERE id=p_submission_id FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Submission not found'; END IF;
+ IF v_submission.status <> 'pending' THEN RETURN jsonb_build_object('processed',false,'status',v_submission.status); END IF;
+ IF lower(p_status)='rejected' THEN
+   IF p_comment IS NULL OR length(trim(p_comment))=0 THEN RAISE EXCEPTION 'Comment required for rejection'; END IF;
+   UPDATE public.task_submissions SET status='rejected',admin_comment=p_comment,processed_at=now() WHERE id=v_submission.id;
+   RETURN jsonb_build_object('processed',true,'status','rejected');
+ END IF;
+ SELECT * INTO v_task FROM public.tasks WHERE id=v_submission.task_id;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Task not found'; END IF;
+ SELECT * INTO v_user FROM public.users WHERE id=v_submission.user_id FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'User not found'; END IF;
+ IF COALESCE(v_user.is_banned,false) THEN RAISE EXCEPTION 'Account is banned'; END IF;
+ v_reward:=COALESCE(v_task.reward_amount,0);
+ IF v_reward<0 OR v_reward>100000 THEN RAISE EXCEPTION 'Invalid task reward'; END IF;
+ v_balance:=COALESCE(v_user.balance,0)+v_reward;
+ UPDATE public.users SET balance=v_balance,total_earned=COALESCE(v_user.total_earned,0)+v_reward WHERE id=v_user.id;
+ UPDATE public.task_submissions SET status='approved',admin_comment=NULLIF(trim(coalesce(p_comment,'')),''),processed_at=now() WHERE id=v_submission.id;
+ IF v_user.referred_by IS NOT NULL AND v_reward>0 THEN
+   SELECT COALESCE((SELECT value::numeric FROM public.settings WHERE key='referral_commission_percent' LIMIT 1),3) INTO v_pct;
+   PERFORM public.add_referral_commission(v_user.referred_by,v_reward*(v_pct/100));
+ END IF;
+ INSERT INTO public.transactions(user_id,type,amount,description) VALUES(v_user.id,'task_reward',v_reward,'Task reward: '||COALESCE(v_task.title,'Task'));
+ RETURN jsonb_build_object('processed',true,'status','approved','reward',v_reward,'new_balance',v_balance);
+END $$;
+
+REVOKE ALL ON FUNCTION public.process_task_submission_atomic(bigint,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.process_task_submission_atomic(bigint,text,text) TO service_role;
