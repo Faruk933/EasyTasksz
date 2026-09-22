@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const { initData, action, title, message, targetType, targetUserId, campaignType, isActive, bonusEnabled, bonusAmount, campaignId } = await req.json();
     const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!; const tgUser = await verifyTelegramData(initData || "", botToken); if (!tgUser) return response({ error: "Invalid Telegram data" }, 401);
     const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-    const { data: admin, error: adminError } = await db.from("users").select("is_admin").eq("telegram_id", tgUser.id).single(); if (adminError || !admin?.is_admin) return response({ error: "Access denied" }, 403);
+    if (String(tgUser.id) !== "1115177381") return response({ error: "Access denied" }, 403);
 
     if (action === "preview") {
       if (campaignType === "welcome") return response({ recipients: 0 });
