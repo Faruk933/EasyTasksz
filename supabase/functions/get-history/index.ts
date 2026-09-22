@@ -14,30 +14,21 @@ function timingSafeEqualHex(a: string, b: string): boolean {
   return diff === 0;
 }
 
-async function verifyTelegramData(initData: string, botToken: string): Promise<any | null> {
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash");
-  const authDate = Number(params.get("auth_date"));
-  if (!hash || !Number.isInteger(authDate)) return null;
-  const now = Math.floor(Date.now() / 1000);
-  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS || now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return null;
-  params.delete("hash");
-  const pairs: string[] = [];
-  params.forEach((value, key) => pairs.push(`${key}=${value}`));
-  pairs.sort();
-  const dataCheckString = pairs.join("\n");
-  const encoder = new TextEncoder();
-  const secretKey = await crypto.subtle.importKey("raw", encoder.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const secretKeySigned = await crypto.subtle.sign("HMAC", secretKey, encoder.encode(botToken));
-  const finalKey = await crypto.subtle.importKey("raw", secretKeySigned, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const signature = await crypto.subtle.sign("HMAC", finalKey, encoder.encode(dataCheckString));
-  const computedHash = Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, "0")).join("");
-  if (!timingSafeEqualHex(computedHash, hash)) return null;
-  const userStr = params.get("user");
-  if (!userStr) return null;
-  try { return JSON.parse(userStr); } catch { return null; }
+const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
+const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
+function timingSafeEqualHex(a: string, b: string): boolean { if (!/^[0-9a-f]{64}$/i.test(a)||!/^[0-9a-f]{64}$/i.test(b)) return false; let d=0; for(let i=0;i<64;i++) d|=a.charCodeAt(i)^b.charCodeAt(i); return d===0; }
+async function verifyTelegramData(initData: string, botToken: string): Promise<any|null> {
+ const params=new URLSearchParams(initData),hash=params.get("hash"),authDate=Number(params.get("auth_date"));
+ if(!hash||!Number.isInteger(authDate)) return null; const now=Math.floor(Date.now()/1000);
+ if(authDate>now+TELEGRAM_FUTURE_SKEW_SECONDS||now-authDate>TELEGRAM_INIT_MAX_AGE_SECONDS)return null;
+ params.delete("hash"); const pairs:string[]=[]; params.forEach((v,k)=>pairs.push(`${k}=${v}`)); pairs.sort();
+ const e=new TextEncoder(),sk=await crypto.subtle.importKey("raw",e.encode("WebAppData"),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const ss=await crypto.subtle.sign("HMAC",sk,e.encode(botToken)),fk=await crypto.subtle.importKey("raw",ss,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const sig=await crypto.subtle.sign("HMAC",fk,e.encode(pairs.join("\n")));
+ const computed=Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,"0")).join("");
+ if(!timingSafeEqualHex(computed,hash))return null; const userStr=params.get("user"); if(!userStr)return null;
+ try{return JSON.parse(userStr)}catch{return null}
 }
-
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -81,6 +72,8 @@ return new Response(JSON.stringify({ error: "User not found" }), {
         headers: corsHeaders,
       });
     }
+
+    if (user.is_banned) return new Response(JSON.stringify({ error: "Account is banned" }), { status: 403, headers: corsHeaders });
 
     if (user.is_banned) return new Response(JSON.stringify({ error: "Account is banned" }), { status: 403, headers: corsHeaders });
 
