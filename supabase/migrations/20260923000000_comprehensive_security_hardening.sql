@@ -189,7 +189,7 @@ BEGIN
    SELECT COALESCE((SELECT value::numeric FROM public.settings WHERE key='referral_commission_percent' LIMIT 1),3) INTO v_pct;
    PERFORM public.add_referral_commission(v_user.referred_by,v_reward*(v_pct/100));
  END IF;
- INSERT INTO public.transactions(user_id,type,amount,description) VALUES(v_user.id,'task_reward',v_reward,'Task reward: '||COALESCE(v_task.title,'Task'));
+
  RETURN jsonb_build_object('processed',true,'status','approved','reward',v_reward,'new_balance',v_balance);
 END $$;
 
