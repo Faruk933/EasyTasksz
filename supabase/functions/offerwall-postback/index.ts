@@ -46,38 +46,20 @@ Deno.serve(async (req) => {
     }
 
     const totalPayout = Number(payoutUsd);
+    if (!Number.isFinite(totalPayout) || totalPayout <= 0 || totalPayout > 100000) return new Response("Invalid payout", { status: 400 });
     const userShare = totalPayout * 0.6;
-
-    const newBalance = Number(user.balance ?? 0) + userShare;
-    const newTotalEarned = Number(user.total_earned ?? 0) + userShare;
-
-    await supabase
-      .from("users")
-      .update({ balance: newBalance, total_earned: newTotalEarned })
-      .eq("id", user.id);
-
-    if (user.referred_by) {
+    const creditId = clickId || `pixylabs:${userId}:${crypto.randomUUID()}`;
+    const { data: credit, error: creditError } = await supabase.rpc("credit_offerwall_atomic", {
+      p_click_id: creditId, p_telegram_id: Number(userId), p_payout_usd: totalPayout, p_user_share: userShare
+    });
+    if (creditError) throw creditError;
+    if (!credit?.processed) return new Response("Duplicate, already processed", { status: 200 });
+    if (credit.referred_by) {
       const { data: settingsRows } = await supabase.from("settings").select("key, value");
-      const settingsMap: Record<string, string> = {};
-      (settingsRows || []).forEach((r) => { settingsMap[r.key] = r.value; });
+      const settingsMap: Record<string,string> = {}; (settingsRows || []).forEach((r) => { settingsMap[r.key] = r.value; });
       const commissionPercent = Number(settingsMap.referral_commission_percent ?? 3);
-      const commission = userShare * (commissionPercent / 100);
-
-      await supabase.rpc("add_referral_commission", {
-        ref_telegram_id: user.referred_by,
-        commission_amount: commission,
-      });
+      await supabase.rpc("add_referral_commission", { ref_telegram_id: credit.referred_by, commission_amount: userShare * (commissionPercent / 100) });
     }
-
-    if (clickId) {
-      await supabase.from("offerwall_transactions").insert({
-        click_id: clickId,
-        user_id: user.id,
-        payout_usd: totalPayout,
-        user_share: userShare,
-      });
-    }
-
     return new Response("OK", { status: 200 });
   } catch (err) {
     return new Response("Error: " + String(err), { status: 500 });
