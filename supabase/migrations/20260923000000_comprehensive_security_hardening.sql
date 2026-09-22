@@ -90,3 +90,72 @@ BEGIN
    GRANT EXECUTE ON FUNCTION public.add_referral_commission(bigint,numeric) TO service_role;
  END IF;
 END $$;
+
+-- Harden the legacy offer-conversion processors too: validate payouts, block banned accounts,
+-- use an empty search_path, and keep referral accounting server-side.
+CREATE OR REPLACE FUNCTION public.process_offer_conversion(p_provider text,p_click_id text,p_payout_usd numeric)
+RETURNS TABLE(processed boolean,user_id bigint,user_share numeric)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_click public.offer_clicks%rowtype; v_user public.users%rowtype; v_share numeric; v_pct numeric;
+BEGIN
+ IF p_provider IS NULL OR p_click_id IS NULL OR length(trim(p_click_id))<8 OR length(trim(p_click_id))>128 OR p_payout_usd IS NULL OR p_payout_usd<=0 OR p_payout_usd>100000 THEN RETURN QUERY SELECT false,NULL::bigint,0::numeric; RETURN; END IF;
+ SELECT * INTO v_click FROM public.offer_clicks WHERE provider=lower(trim(p_provider)) AND click_id=trim(p_click_id) FOR UPDATE;
+ IF NOT FOUND OR v_click.status='converted' THEN RETURN QUERY SELECT false,CASE WHEN FOUND THEN v_click.user_id ELSE NULL::bigint END,0::numeric; RETURN; END IF;
+ SELECT * INTO v_user FROM public.users WHERE id=v_click.user_id FOR UPDATE;
+ IF NOT FOUND OR COALESCE(v_user.is_banned,false) THEN RETURN QUERY SELECT false,NULL::bigint,0::numeric; RETURN; END IF;
+ v_share:=round(p_payout_usd*0.60,6);
+ UPDATE public.users SET balance=COALESCE(balance,0)+v_share,total_earned=COALESCE(total_earned,0)+v_share WHERE id=v_user.id;
+ UPDATE public.offer_clicks SET status='converted',converted_at=now(),payout_usd=p_payout_usd WHERE id=v_click.id;
+ IF v_user.referred_by IS NOT NULL THEN
+   SELECT COALESCE((SELECT value::numeric FROM public.settings WHERE key='referral_commission_percent' LIMIT 1),3) INTO v_pct;
+   PERFORM public.add_referral_commission(v_user.referred_by,v_share*(v_pct/100));
+ END IF;
+ RETURN QUERY SELECT true,v_user.id,v_share;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.process_mobidea_conversion(p_click_id text,p_payout_usd numeric)
+RETURNS TABLE(processed boolean,user_id bigint,user_share numeric)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_click public.mobidea_clicks%rowtype; v_user public.users%rowtype; v_share numeric; v_pct numeric;
+BEGIN
+ IF p_click_id IS NULL OR length(trim(p_click_id))<8 OR length(trim(p_click_id))>64 OR p_payout_usd IS NULL OR p_payout_usd<=0 OR p_payout_usd>100000 THEN RETURN QUERY SELECT false,NULL::bigint,0::numeric; RETURN; END IF;
+ SELECT * INTO v_click FROM public.mobidea_clicks WHERE click_id=trim(p_click_id) FOR UPDATE;
+ IF NOT FOUND OR v_click.status='converted' THEN RETURN QUERY SELECT false,CASE WHEN FOUND THEN v_click.user_id ELSE NULL::bigint END,0::numeric; RETURN; END IF;
+ SELECT * INTO v_user FROM public.users WHERE id=v_click.user_id FOR UPDATE;
+ IF NOT FOUND OR COALESCE(v_user.is_banned,false) THEN RETURN QUERY SELECT false,NULL::bigint,0::numeric; RETURN; END IF;
+ v_share:=round(p_payout_usd*0.60,6);
+ UPDATE public.users SET balance=COALESCE(balance,0)+v_share,total_earned=COALESCE(total_earned,0)+v_share WHERE id=v_user.id;
+ UPDATE public.mobidea_clicks SET status='converted',converted_at=now(),payout_usd=p_payout_usd WHERE id=v_click.id;
+ IF v_user.referred_by IS NOT NULL THEN
+   SELECT COALESCE((SELECT value::numeric FROM public.settings WHERE key='referral_commission_percent' LIMIT 1),3) INTO v_pct;
+   PERFORM public.add_referral_commission(v_user.referred_by,v_share*(v_pct/100));
+ END IF;
+ RETURN QUERY SELECT true,v_user.id,v_share;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.process_mylead_offerwall_conversion(p_transaction_id text,p_player_id text,p_payout_usd numeric,p_status text)
+RETURNS TABLE(processed boolean,user_id bigint,user_share numeric)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_user public.users%rowtype; v_share numeric;
+BEGIN
+ IF p_transaction_id IS NULL OR length(trim(p_transaction_id))<1 OR length(trim(p_transaction_id))>128 OR p_payout_usd IS NULL OR p_payout_usd<=0 OR p_payout_usd>100000 OR lower(coalesce(p_status,'')) NOT IN ('approved','completed','complete','confirmed','converted','') THEN RETURN QUERY SELECT false,NULL::bigint,0::numeric; RETURN; END IF;
+ PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext(trim(p_transaction_id)));
+ IF EXISTS(SELECT 1 FROM public.offerwall_transactions WHERE click_id=trim(p_transaction_id)) THEN RETURN QUERY SELECT false,NULL::bigint,0::numeric; RETURN; END IF;
+ BEGIN SELECT * INTO v_user FROM public.users WHERE telegram_id=trim(p_player_id)::bigint FOR UPDATE;
+ EXCEPTION WHEN invalid_text_representation THEN v_user:=NULL; END;
+ IF v_user.id IS NULL OR COALESCE(v_user.is_banned,false) THEN RETURN QUERY SELECT false,NULL::bigint,0::numeric; RETURN; END IF;
+ v_share:=round(p_payout_usd*0.60,6);
+ UPDATE public.users SET balance=COALESCE(balance,0)+v_share,total_earned=COALESCE(total_earned,0)+v_share WHERE id=v_user.id;
+ INSERT INTO public.offerwall_transactions(click_id,user_id,payout_usd,user_share) VALUES(trim(p_transaction_id),v_user.id,p_payout_usd,v_share);
+ RETURN QUERY SELECT true,v_user.id,v_share;
+END $$;
+
+REVOKE ALL ON FUNCTION public.process_offer_conversion(text,text,numeric) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.process_offer_conversion(text,text,numeric) TO service_role;
+REVOKE ALL ON FUNCTION public.process_mobidea_conversion(text,numeric) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.process_mobidea_conversion(text,numeric) TO service_role;
+REVOKE ALL ON FUNCTION public.process_mylead_offerwall_conversion(text,text,numeric,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.process_mylead_offerwall_conversion(text,text,numeric,text) TO service_role;
