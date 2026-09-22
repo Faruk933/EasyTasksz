@@ -50,11 +50,44 @@ Deno.serve(async (req) => {
     }
 
     if (action === "list-users") {
-      const searchTerm = (search || "").trim();
-      let query = supabase.from("users").select("id, telegram_id, username, first_name, balance, total_earned, ads_watched, referral_count, is_admin, is_banned").order("id", { ascending: false }).limit(50);
-      if (searchTerm) query = query.or(`username.ilike.%${searchTerm}%,telegram_id.eq.${searchTerm}`);
-      const { data: users, error } = await query;
-      if (error) throw error;
+      const searchTerm = String(search || "").trim();
+      const userFields = "id, telegram_id, username, first_name, balance, total_earned, ads_watched, referral_count, is_admin, is_banned";
+
+      if (!searchTerm) {
+        const { data: users, error } = await supabase.from("users").select(userFields).order("id", { ascending: false }).limit(50);
+        if (error) throw error;
+        return new Response(JSON.stringify({ users: users || [] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // Search username safely, and Telegram ID separately only when numeric.
+      // This avoids PostgreSQL integer-cast errors when an admin searches text.
+      const { data: usernameUsers, error: usernameError } = await supabase
+        .from("users")
+        .select(userFields)
+        .ilike("username", `%${searchTerm}%`)
+        .order("id", { ascending: false })
+        .limit(50);
+      if (usernameError) throw usernameError;
+
+      let idUsers: any[] = [];
+      if (/^\\d+$/.test(searchTerm)) {
+        const { data, error } = await supabase
+          .from("users")
+          .select(userFields)
+          .eq("telegram_id", Number(searchTerm))
+          .limit(50);
+        if (error) throw error;
+        idUsers = data || [];
+      }
+
+      const merged = [...(usernameUsers || []), ...idUsers];
+      const seen = new Set<number>();
+      const users = merged.filter((u) => {
+        if (seen.has(u.id)) return false;
+        seen.add(u.id);
+        return true;
+      }).slice(0, 50);
+
       return new Response(JSON.stringify({ users }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
