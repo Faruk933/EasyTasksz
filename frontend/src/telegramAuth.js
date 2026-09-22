@@ -26,6 +26,16 @@ export async function loginWithTelegram() {
   const result = await response.json();
 
   if (!response.ok) {
+    if (response.status === 403 && result?.error === "ACCOUNT_BANNED") {
+      try {
+        tg.showPopup?.({
+          title: "Account banned",
+          message: result.message || "Your EasyTasksz account has been banned.",
+          buttons: [{ type: "ok" }],
+        });
+      } catch {}
+      throw new Error("ACCOUNT_BANNED");
+    }
     console.error("Auth failed:", result);
     return null;
   }
