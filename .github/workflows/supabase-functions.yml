@@ -42,7 +42,12 @@ jobs:
           sql = "\n\n".join(Path(path).read_text() for path in migrations)
           Path("/tmp/query.json").write_text(json.dumps({"query": sql}))
           PY
-          curl --fail-with-body --silent --show-error             --request POST             --url "https://api.supabase.com/v1/projects/\$SUPABASE_PROJECT_ID/database/query"             --header "Authorization: Bearer \$SUPABASE_ACCESS_TOKEN"             --header "Content-Type: application/json"             --data-binary @/tmp/query.json
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/query" \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data-binary @/tmp/query.json
 
       - name: Deploy Edge Functions
-        run: supabase functions deploy --project-ref "\$SUPABASE_PROJECT_ID"
+        run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID"
