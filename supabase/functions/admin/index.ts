@@ -115,7 +115,9 @@ Deno.serve(async (req) => {
 
     if (action === "update-balance") {
       if (!targetTelegramId || newBalance === undefined) return new Response(JSON.stringify({ error: "Missing targetTelegramId or newBalance" }), { status: 400, headers: corsHeaders });
-      const { data: updatedUser, error } = await supabase.from("users").update({ balance: Number(newBalance) }).eq("telegram_id", targetTelegramId).select().single();
+      const parsedBalance = Number(newBalance);
+      if (!Number.isFinite(parsedBalance) || parsedBalance < 0 || parsedBalance > 100000000) return new Response(JSON.stringify({ error: "Invalid balance" }), { status: 400, headers: corsHeaders });
+      const { data: updatedUser, error } = await supabase.from("users").update({ balance: parsedBalance }).eq("telegram_id", targetTelegramId).select().single();
       if (error) throw error;
       return new Response(JSON.stringify({ user: updatedUser }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
