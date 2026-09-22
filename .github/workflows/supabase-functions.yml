@@ -38,6 +38,7 @@ jobs:
           migrations = [
               "supabase/migrations/20260919000000_harden_users_security.sql",
               "supabase/migrations/20260922000000_harden_withdrawals.sql",
+              "supabase/migrations/20260923000000_comprehensive_security_hardening.sql",
           ]
           sql = "\n\n".join(Path(path).read_text() for path in migrations)
           Path("/tmp/query.json").write_text(json.dumps({"query": sql}))
