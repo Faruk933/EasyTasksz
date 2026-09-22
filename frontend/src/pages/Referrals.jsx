@@ -6,7 +6,7 @@ import "./Referrals.css";
 export default function Referrals() {
   const [user, setUser] = useState(null); const [loading,setLoading]=useState(true); const [error,setError]=useState(null); const [copied,setCopied]=useState(false); const [settings,setSettings]=useState({});
   useEffect(()=>{getPublicSettings().then(setSettings).catch(()=>{});loginWithTelegram().then(u=>u?setUser(u):setError("Could not load Telegram user. Open this app from your Telegram bot.")).catch(()=>setError("Something went wrong loading your referrals.")).finally(()=>setLoading(false));},[]);
-  const referralLink=user?`https://t.me/Easytasksz_bot/EasyTasksz?startapp=${user.referral_code}`:"";
+  const referralLink=user?`https://t.me/Easytasksz_bot?startapp=${user.referral_code}`:"";
   function handleCopy(){navigator.clipboard.writeText(referralLink);setCopied(true);setTimeout(()=>setCopied(false),2000)}
   if(loading)return <div style={{padding:16}}>Loading...</div>; if(error)return <div style={{padding:16,color:"#f87171"}}>{error}</div>;
   return <div className="referrals-page">
