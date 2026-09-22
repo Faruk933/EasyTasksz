@@ -88,25 +88,19 @@ Deno.serve(async (req) => {
     if (!user) return jsonResponse({ error: "User not found" }, 404);
 
     const amount = Number(currencyAmount.toFixed(8));
-    const newBalance = Number(user.balance ?? 0) + amount;
-    const { error: txError } = await supabase.from("offerwall_transactions").insert({
-      click_id: `timewall:${transactionId}`,
-      user_id: user.id,
-      payout_usd: revenue,
-      user_share: amount,
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) return jsonResponse({ error: "Invalid reward amount" }, 400);
+    const { data: credit, error: creditError } = await supabase.rpc("credit_offerwall_atomic", {
+      p_click_id: `timewall:${transactionId}`, p_telegram_id: telegramId, p_payout_usd: revenue, p_user_share: amount
     });
-
-    if (txError) throw txError;
-
-    const { error: userError } = await supabase
-      .from("users")
-      .update({
-        balance: newBalance,
-        total_earned: Number(user.total_earned ?? 0) + amount,
-      })
-      .eq("id", user.id);
-
-    if (userError) throw userError;
+    if (creditError) throw creditError;
+    if (!credit?.processed) return jsonResponse({ success: true, duplicate: true });
+    const newBalance = Number(credit.new_balance);
+    if (credit.referred_by) {
+      const { data: settingsRows } = await supabase.from("settings").select("key, value");
+      const settingsMap: Record<string,string> = {}; (settingsRows || []).forEach((r) => { settingsMap[r.key] = r.value; });
+      const commissionPercent = Number(settingsMap.referral_commission_percent ?? 3);
+      await supabase.rpc("add_referral_commission", { ref_telegram_id: credit.referred_by, commission_amount: amount * (commissionPercent / 100) });
+    }
 
     // Restore the normal Telegram credit alert. Notification failure must not
     // undo or reject a successfully credited TimeWall transaction.
