@@ -50,7 +50,9 @@ Deno.serve(async (req) => {
     }
 
     if (action === "list-users") {
-      const searchTerm = String(search || "").trim();
+      let searchTerm = String(search || "").trim();
+      searchTerm = searchTerm.replace(/^@+/, "");
+
       const userFields = "id, telegram_id, username, first_name, balance, total_earned, ads_watched, referral_count, is_admin, is_banned";
 
       if (!searchTerm) {
@@ -59,18 +61,27 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ users: users || [] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Search username safely, and Telegram ID separately only when numeric.
-      // This avoids PostgreSQL integer-cast errors when an admin searches text.
+      const escaped = searchTerm.replace(/[%_\\]/g, "\\$&");
+      const pattern = `%${escaped}%`;
+
       const { data: usernameUsers, error: usernameError } = await supabase
         .from("users")
         .select(userFields)
-        .ilike("username", `%${searchTerm}%`)
+        .ilike("username", pattern)
         .order("id", { ascending: false })
         .limit(50);
       if (usernameError) throw usernameError;
 
+      const { data: nameUsers, error: nameError } = await supabase
+        .from("users")
+        .select(userFields)
+        .or(`first_name.ilike.${pattern},last_name.ilike.${pattern}`)
+        .order("id", { ascending: false })
+        .limit(50);
+      if (nameError) throw nameError;
+
       let idUsers: any[] = [];
-      if (/^\\d+$/.test(searchTerm)) {
+      if (/^\d+$/.test(searchTerm)) {
         const { data, error } = await supabase
           .from("users")
           .select(userFields)
@@ -80,7 +91,7 @@ Deno.serve(async (req) => {
         idUsers = data || [];
       }
 
-      const merged = [...(usernameUsers || []), ...idUsers];
+      const merged = [...(usernameUsers || []), ...(nameUsers || []), ...idUsers];
       const seen = new Set<number>();
       const users = merged.filter((u) => {
         if (seen.has(u.id)) return false;
@@ -116,47 +127,14 @@ Deno.serve(async (req) => {
     }
 
     if (action === "toggle-ban") {
-      if (!targetTelegramId) {
-        return new Response(JSON.stringify({ error: "Missing targetTelegramId" }), { status: 400, headers: corsHeaders });
-      }
-
-      const { data: targetUser, error: targetError } = await supabase
-        .from("users")
-        .select("id, telegram_id, is_banned")
-        .eq("telegram_id", targetTelegramId)
-        .maybeSingle();
-
-      if (targetError) {
-        return new Response(JSON.stringify({
-          error: "Failed to find user",
-          details: targetError.message,
-          code: targetError.code || null
-        }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      if (!targetUser) {
-        return new Response(JSON.stringify({ error: "User not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
+      if (!targetTelegramId) return new Response(JSON.stringify({ error: "Missing targetTelegramId" }), { status: 400, headers: corsHeaders });
+      const { data: targetUser, error: targetError } = await supabase.from("users").select("id, telegram_id, is_banned").eq("telegram_id", targetTelegramId).maybeSingle();
+      if (targetError) return new Response(JSON.stringify({ error: "Failed to find user", details: targetError.message, code: targetError.code || null }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (!targetUser) return new Response(JSON.stringify({ error: "User not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const nextBanned = !Boolean(targetUser.is_banned);
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({ is_banned: nextBanned })
-        .eq("id", targetUser.id);
-
-      if (updateError) {
-        return new Response(JSON.stringify({
-          error: "Failed to update ban status",
-          details: updateError.message,
-          code: updateError.code || null,
-          hint: updateError.hint || null
-        }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      return new Response(JSON.stringify({
-        success: true,
-        user: { id: targetUser.id, telegram_id: targetUser.telegram_id, is_banned: nextBanned }
-      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { error: updateError } = await supabase.from("users").update({ is_banned: nextBanned }).eq("id", targetUser.id);
+      if (updateError) return new Response(JSON.stringify({ error: "Failed to update ban status", details: updateError.message, code: updateError.code || null, hint: updateError.hint || null }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: true, user: { id: targetUser.id, telegram_id: targetUser.telegram_id, is_banned: nextBanned } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "list") {
