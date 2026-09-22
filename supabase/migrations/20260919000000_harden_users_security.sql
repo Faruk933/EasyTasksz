@@ -36,3 +36,21 @@ FOR EACH ROW
 EXECUTE FUNCTION public.lock_users_admin_flag();
 
 -- No client policy is created intentionally: users must go through the verified Telegram Edge Functions.
+
+
+-- Lock down all SECURITY DEFINER reward/conversion RPCs.
+-- These functions can change user balances and must never be callable by browser roles.
+REVOKE ALL ON FUNCTION public.process_offer_conversion(text, text, numeric) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.process_offer_conversion(text, text, numeric) FROM anon;
+REVOKE ALL ON FUNCTION public.process_offer_conversion(text, text, numeric) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.process_offer_conversion(text, text, numeric) TO service_role;
+
+REVOKE ALL ON FUNCTION public.process_mobidea_conversion(text, numeric) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.process_mobidea_conversion(text, numeric) FROM anon;
+REVOKE ALL ON FUNCTION public.process_mobidea_conversion(text, numeric) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.process_mobidea_conversion(text, numeric) TO service_role;
+
+REVOKE ALL ON FUNCTION public.process_mylead_offerwall_conversion(text, text, numeric, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.process_mylead_offerwall_conversion(text, text, numeric, text) FROM anon;
+REVOKE ALL ON FUNCTION public.process_mylead_offerwall_conversion(text, text, numeric, text) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.process_mylead_offerwall_conversion(text, text, numeric, text) TO service_role;
