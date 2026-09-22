@@ -1,8 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const POSTBACK_SECRET = Deno.env.get("MYLEAD_POSTBACK_SECRET")?.trim() || "";
+function timingSafeEqualText(a:string,b:string):boolean{if(!a||!b||a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
 Deno.serve(async req=>{try{
-  const u=new URL(req.url),p=u.searchParams;
+  const u=new URL(req.url),p=u.searchParams;const token=p.get("token")||p.get("secret")||"";if(!POSTBACK_SECRET||!timingSafeEqualText(token,POSTBACK_SECRET))return new Response("Unauthorized",{status:401});
   const transactionId=p.get("transaction_id")||p.get("transactionid")||p.get("txid")||p.get("clickid");
   const playerId=p.get("player_id")||p.get("playerid");
   const status=(p.get("status")||"").trim().toLowerCase();
@@ -10,7 +12,7 @@ Deno.serve(async req=>{try{
   const raw=p.get("payout_decimal")||p.get("payout")||p.get("amount")||"";
   const payoutRaw=raw.replace(/,/g,"");
   const payout=Number(payoutRaw);
-  if(!Number.isFinite(payout)||payout<0)return new Response("Ignored",{status:200});
+  if(!Number.isFinite(payout)||payout<=0)return new Response("Ignored",{status:200});
   const s=createClient(SUPABASE_URL,SERVICE_ROLE_KEY);
   const {data,error}=await s.rpc("process_mylead_offerwall_conversion",{p_transaction_id:transactionId,p_player_id:playerId,p_payout_usd:payout,p_status:status});
   if(error)throw error;
