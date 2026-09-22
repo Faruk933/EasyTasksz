@@ -5,6 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function timingSafeEqualText(a: string, b: string): boolean {
+  if (!a || !b || a.length !== b.length) return false;
+  let diff = 0; for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -51,7 +57,7 @@ Deno.serve(async (req) => {
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
 
-    if (hash !== expectedHash) {
+    if (!timingSafeEqualText(hash, expectedHash)) {
       return jsonResponse({ error: "Invalid hash" }, 403);
     }
 
