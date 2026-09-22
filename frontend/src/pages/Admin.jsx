@@ -51,7 +51,7 @@ export default function Admin() {
 
   function handleSettingChange(key, value) { setSettingsForm((prev) => ({ ...prev, [key]: value })); }
 
-  if (loading) return <div style={{ padding: 16 }}>Loading...</div>;
+  if (loading) return <div className="admin-shell">Loading...</div>;
   if (error) return <div className="admin-denied"><h2>Access Denied</h2><p>{error}</p></div>;
 
   return (
@@ -59,12 +59,12 @@ export default function Admin() {
       <div className="admin-header">
         <h1>Admin Panel</h1>
         <p style={{ color: "#94a3b8" }}>Manage your platform</p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12, marginBottom: 12 }}>
-          <Link to="/admin/tasks" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Manage Tasks</div></Link>
-          <Link to="/admin/submissions" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Review Submissions</div></Link>
-          <Link to="/admin/campaigns" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Notifications & Campaigns</div></Link>
-          <Link to="/admin/settings" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Platform Settings</div></Link>
-          <Link to="/admin/referrals" style={{ textDecoration: "none" }}><div style={{ background: "#1e293b", borderRadius: 10, padding: 10, textAlign: "center", color: "white", fontWeight: "bold", fontSize: 13 }}>Referral Analytics</div></Link>
+        <div className="admin-nav-grid">
+          <Link to="/admin/tasks" style={{ textDecoration: "none" }}><div className="admin-nav-card">Manage Tasks</div></Link>
+          <Link to="/admin/submissions" style={{ textDecoration: "none" }}><div className="admin-nav-card">Review Submissions</div></Link>
+          <Link to="/admin/campaigns" style={{ textDecoration: "none" }}><div className="admin-nav-card">Notifications & Campaigns</div></Link>
+          <Link to="/admin/settings" style={{ textDecoration: "none" }}><div className="admin-nav-card">Platform Settings</div></Link>
+          <Link to="/admin/referrals" style={{ textDecoration: "none" }}><div className="admin-nav-card">Referral Analytics</div></Link>
         </div>
       </div>
 
@@ -75,14 +75,14 @@ export default function Admin() {
         <div style={{ background: "#1e293b", borderRadius: 14, padding: 14 }}><p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 4px" }}>Total Withdrawn</p><p style={{ fontSize: 18, fontWeight: "bold", margin: 0, color: "#22c55e" }}>${Number(stats.totalWithdrawn).toFixed(2)}</p></div>
       </div>}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <button onClick={() => setTab("withdrawals")} style={{ flex: 1, padding: 10, borderRadius: 10, border: "none", fontWeight: "bold", background: tab === "withdrawals" ? "#3b82f6" : "#1e293b", color: "white" }}>Withdrawals</button>
-        <button onClick={() => setTab("users")} style={{ flex: 1, padding: 10, borderRadius: 10, border: "none", fontWeight: "bold", background: tab === "users" ? "#3b82f6" : "#1e293b", color: "white" }}>Users</button>
+      <div className="admin-tabs">
+        <button onClick={() => setTab("withdrawals")} className={`admin-tab ${tab === "withdrawals" ? "active" : ""}`}>Withdrawals</button>
+        <button onClick={() => setTab("users")} className={`admin-tab ${tab === "users" ? "active" : ""}`}>Users</button>
       </div>
 
       {tab === "withdrawals" && <div>{withdrawals.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No withdrawal requests</p> : withdrawals.map((w) => <div className="admin-item" key={w.id}><div className="admin-item-top"><span className="admin-username">@{w.users?.username || w.users?.telegram_id || "unknown"}</span><span className="admin-amount">${Number(w.amount).toFixed(2)}</span></div><div className="admin-address">{w.wallet_address}</div><div style={{ marginBottom: 10, fontSize: 12, color: "#94a3b8" }}>Status: {w.status} - {new Date(w.created_at).toLocaleString()}</div>{w.status === "pending" && <div className="admin-actions"><button className="admin-btn admin-btn-approve" disabled={processingId === w.id} onClick={() => handleAction(w.id, "approved")}>Approve</button><button className="admin-btn admin-btn-reject" disabled={processingId === w.id} onClick={() => handleAction(w.id, "rejected")}>Reject</button></div>}</div>)}</div>}
 
-      {tab === "users" && <div><div style={{ display: "flex", gap: 8, marginBottom: 16 }}><input type="text" placeholder="Search username or Telegram ID" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: 1, padding: 10, borderRadius: 10, border: "1px solid #334155", background: "#0f172a", color: "white" }} /><button onClick={handleSearch} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#3b82f6", color: "white", fontWeight: "bold" }}>Search</button></div>{users.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No users found</p> : users.map((u) => <div className="admin-item" key={u.id}><div className="admin-item-top"><span className="admin-username">@{u.username || u.telegram_id}{u.is_admin && " (admin)"}{u.is_banned && " (banned)"}</span><span className="admin-amount">${Number(u.balance).toFixed(2)}</span></div><div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10 }}>Earned: ${Number(u.total_earned).toFixed(2)} - Ads: {u.ads_watched} - Referrals: {u.referral_count}</div><div className="admin-actions"><button className="admin-btn admin-btn-reject" onClick={() => handleToggleBan(u.telegram_id)}>{u.is_banned ? "Unban" : "Ban"}</button></div></div>)}</div>}
+      {tab === "users" && <div><div style={{ display: "flex", gap: 8, marginBottom: 16 }}><input type="text" placeholder="Search username or Telegram ID" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: 1, padding: 10, borderRadius: 10, border: "1px solid #334155", background: "#0f172a", color: "white" }} /><button onClick={handleSearch} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#3b82f6", color: "white", fontWeight: "bold" }}>Search</button></div>{users.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No users found</p> : users.map((u) => <div className="admin-item" key={u.id}><div className="admin-item-top"><span className="admin-username">@{u.username || u.telegram_id}{u.is_admin && " (admin)"}{u.is_banned && " (banned)"}</span><span className="admin-amount">${Number(u.balance).toFixed(2)}</span></div><div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10 }}>Earned: ${Number(u.total_earned).toFixed(2)} - Ads: {u.ads_watched} - Referrals: {u.referral_count}</div><div className="admin-user-footer"><span className={`admin-status ${u.is_banned ? "banned" : "active"}`}>{u.is_banned ? "Banned" : "Active"}</span><button className={`admin-ban-btn ${u.is_banned ? "unban" : ""}`} onClick={() => handleToggleBan(u.telegram_id)}>{u.is_banned ? "Unban user" : "Ban user"}</button></div></div>)}</div>}
 
       {tab === "settings" && settings && <div><p>Use Platform Settings above to manage live platform economics.</p><button onClick={handleSaveSettings}>Save Settings</button></div>}
     </div>
