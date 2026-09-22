@@ -6,16 +6,6 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
 const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
-
-function timingSafeEqualHex(a: string, b: string): boolean {
-  if (!/^[0-9a-f]{64}$/i.test(a) || !/^[0-9a-f]{64}$/i.test(b)) return false;
-  let diff = 0;
-  for (let i = 0; i < 64; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
-const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
 function timingSafeEqualHex(a: string, b: string): boolean { if (!/^[0-9a-f]{64}$/i.test(a)||!/^[0-9a-f]{64}$/i.test(b)) return false; let d=0; for(let i=0;i<64;i++) d|=a.charCodeAt(i)^b.charCodeAt(i); return d===0; }
 async function verifyTelegramData(initData: string, botToken: string): Promise<any|null> {
  const params=new URLSearchParams(initData),hash=params.get("hash"),authDate=Number(params.get("auth_date"));
