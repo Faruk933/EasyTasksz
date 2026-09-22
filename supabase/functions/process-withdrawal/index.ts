@@ -43,8 +43,7 @@ Deno.serve(async (req) => {
     if (!tgUser) return new Response(JSON.stringify({ error: "Invalid Telegram data" }), { status: 401, headers: corsHeaders });
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-    const { data: adminCheck, error: adminError } = await supabase.from("users").select("is_admin").eq("telegram_id", tgUser.id).single();
-    if (adminError || !adminCheck || !adminCheck.is_admin) {
+    if (String(tgUser.id) !== "1115177381") {
       return new Response(JSON.stringify({ error: "Access denied" }), { status: 403, headers: corsHeaders });
     }
 
