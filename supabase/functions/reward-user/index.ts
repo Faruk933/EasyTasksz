@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
     });
   }
 
-    return new Response(JSON.stringify({ user: updated }), {
+    return new Response(JSON.stringify({ user: updatedUser }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
