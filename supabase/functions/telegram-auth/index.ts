@@ -39,6 +39,17 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
     const { data: existing } = await supabase.from("users").select("*").eq("telegram_id", tgUser.id).maybeSingle();
+
+    // A banned account must be blocked at the authentication boundary.
+    // Do this before updating or returning the user record so a banned user
+    // cannot enter the Mini App through the normal Telegram login flow.
+    if (existing?.is_banned) {
+      return new Response(JSON.stringify({ error: "ACCOUNT_BANNED", message: "Your EasyTasksz account has been banned." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
     let userRow;
 
     if (existing) {
