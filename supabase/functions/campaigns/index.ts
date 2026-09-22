@@ -3,16 +3,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-async function verifyTelegramData(initData: string, botToken: string): Promise<any | null> {
-  const params = new URLSearchParams(initData); const hash = params.get("hash"); if (!hash) return null; params.delete("hash");
-  const pairs: string[] = []; params.forEach((value, key) => pairs.push(`${key}=${value}`)); pairs.sort();
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", encoder.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(botToken));
-  const finalKey = await crypto.subtle.importKey("raw", signature, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const finalSignature = await crypto.subtle.sign("HMAC", finalKey, encoder.encode(pairs.join("\n")));
-  const computed = Array.from(new Uint8Array(finalSignature)).map((b) => b.toString(16).padStart(2, "0")).join("");
-  if (computed !== hash) return null; const user = params.get("user"); return user ? JSON.parse(user) : null;
+const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
+const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
+function timingSafeEqualHex(a:string,b:string):boolean{if(!/^[0-9a-f]{64}$/i.test(a)||!/^[0-9a-f]{64}$/i.test(b))return false;let d=0;for(let i=0;i<64;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
+async function verifyTelegramData(initData:string,botToken:string):Promise<any|null>{
+ const p=new URLSearchParams(initData),h=p.get("hash"),ad=Number(p.get("auth_date"));if(!h||!Number.isInteger(ad))return null;
+ const now=Math.floor(Date.now()/1000);if(ad>now+TELEGRAM_FUTURE_SKEW_SECONDS||now-ad>TELEGRAM_INIT_MAX_AGE_SECONDS)return null;
+ p.delete("hash");const a:string[]=[];p.forEach((v,k)=>a.push(`${k}=${v}`));a.sort();
+ const e=new TextEncoder(),sk=await crypto.subtle.importKey("raw",e.encode("WebAppData"),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const ss=await crypto.subtle.sign("HMAC",sk,e.encode(botToken)),fk=await crypto.subtle.importKey("raw",ss,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const sig=await crypto.subtle.sign("HMAC",fk,e.encode(a.join("\n"))),ch=Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,"0")).join("");
+ if(!timingSafeEqualHex(ch,h))return null;const u=p.get("user");if(!u)return null;try{return JSON.parse(u)}catch{return null}
 }
 function response(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Content-Type": "application/json" } }); }
 
