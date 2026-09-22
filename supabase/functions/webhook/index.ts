@@ -9,6 +9,7 @@ function timingSafeEqualText(a: string, b: string): boolean {
 
 Deno.serve(async (req) => {
   try {
+    if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
     if (!WEBHOOK_SECRET || !timingSafeEqualText(req.headers.get("X-Telegram-Bot-Api-Secret-Token") || "", WEBHOOK_SECRET)) return new Response("Unauthorized", { status: 401 });
     const update = await req.json();
     const message = update.message;
