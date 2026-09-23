@@ -27,7 +27,7 @@ Deno.serve(async(req)=>{
     const rewardEvent=p.get("reward_event_type")||p.get("value")||"";
     const telegramId=p.get("telegram_id")||"";
     const price=Number(p.get("estimated_price")||p.get("amount")||0);
-    if(!/^[-_a-zA-Z0-9:.]{16,128}$/.test(ymid)||zone!==ZONE_ID||event!=="impression"||rewardEvent!=="valued") return new Response("Ignored",{status:200});
+    if(!/^[-_a-zA-Z0-9:.]{16,128}$/.test(ymid)||zone!==ZONE_ID||event!=="impression"||!["yes","valued"].includes(rewardEvent.toLowerCase())) return new Response("Ignored",{status:200});
 
     const s=createClient(SUPABASE_URL,SERVICE_ROLE_KEY);
     const {data:ad,error}=await s.from("monetag_ad_rewards").select("telegram_id,status,expires_at").eq("ymid",ymid).maybeSingle();
