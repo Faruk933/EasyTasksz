@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     const withdrawal = transition;
     const payoutAmountSol = Number(withdrawal?.payout_amount);
     if (!Number.isFinite(payoutAmountSol) || payoutAmountSol <= 0) {
-      await supabase.from("withdrawals").update({ payout_status: "failed", payout_error: "Invalid SOL payout amount" }).eq("id", id).eq("status", "pending");
+      await supabase.from("withdrawals").update({ payout_status: "failed", payout_error: "Invalid SOL payout amount" }).eq("id", id).eq("status", "pending").eq("payout_status", "processing");
       return new Response(JSON.stringify({ error: "Invalid SOL payout amount" }), { status: 400, headers: corsHeaders });
     }
 
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
 
     if (!oxapayResponse.ok || oxapayResult.error) {
       const errorMsg = oxapayResult.error?.message || oxapayResult.message || "Payout failed";
-      await supabase.from("withdrawals").update({ payout_status: "failed", payout_error: errorMsg }).eq("id", id).eq("status", "pending");
+      await supabase.from("withdrawals").update({ payout_status: "failed", payout_error: errorMsg }).eq("id", id).eq("status", "pending").eq("payout_status", "processing");
       return new Response(JSON.stringify({ error: "OxaPay payout failed: " + errorMsg }), { status: 400, headers: corsHeaders });
     }
 
