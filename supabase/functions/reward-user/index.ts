@@ -2,7 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
+const DEFAULT_REWARD_PER_AD = 0.01;
+const DEFAULT_DAILY_LIMIT = 1;
 
 const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
 const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
@@ -48,6 +49,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: corsHeaders });
+  }
 
   try {
     const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
@@ -71,9 +75,9 @@ Deno.serve(async (req) => {
     const { data: settingsRows } = await supabase.from("settings").select("key, value");
     const settingsMap = {};
     (settingsRows || []).forEach((r) => { settingsMap[r.key] = r.value; });
-    const rewardPerAd = Number(settingsMap.reward_per_ad ?? REWARD_PER_AD);
+    const rewardPerAd = Number(settingsMap.reward_per_ad ?? DEFAULT_REWARD_PER_AD);
     const commissionPercent = Number(settingsMap.referral_commission_percent ?? 3);
-    const dailyLimit = Number(settingsMap.daily_ad_limit ?? DAILY_LIMIT);
+    const dailyLimit = Number(settingsMap.daily_ad_limit ?? DEFAULT_DAILY_LIMIT);
 
 
     const { data: rewardResult, error: rewardError } = await supabase.rpc("reward_ad_atomic", {
