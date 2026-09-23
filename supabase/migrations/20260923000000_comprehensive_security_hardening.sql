@@ -81,7 +81,8 @@ GRANT EXECUTE ON FUNCTION public.create_withdrawal_atomic(bigint,text,numeric,nu
 REVOKE ALL ON FUNCTION public.transition_withdrawal(bigint,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.transition_withdrawal(bigint,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.claim_welcome_campaign(bigint,bigint) TO service_role;
-GRANT EXECUTE ON FUNCTION public.apply_campaign_bonus(bigint,bigint,numeric) TO service_role;
+REVOKE ALL ON FUNCTION public.apply_campaign_bonus(bigint,bigint,numeric,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.apply_campaign_bonus(bigint,bigint,numeric,text) TO service_role;
 
 DO $$
 BEGIN
