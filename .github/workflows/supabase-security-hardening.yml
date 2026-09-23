@@ -1,0 +1,40 @@
+name: Apply Supabase Security Hardening
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: iewdxruivjwblsnsjicq
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply security hardening migrations
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          migrations = [
+              "supabase/migrations/20260919000000_harden_users_security.sql",
+              "supabase/migrations/20260922000000_harden_withdrawals.sql",
+              "supabase/migrations/20260923000000_comprehensive_security_hardening.sql",
+          ]
+
+          sql = "\n\n".join(Path(path).read_text() for path in migrations)
+          Path("/tmp/query.json").write_text(json.dumps({"query": sql}))
+          PY
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/query" \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data-binary @/tmp/query.json
