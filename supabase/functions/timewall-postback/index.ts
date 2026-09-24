@@ -123,8 +123,7 @@ Deno.serve(async (req) => {
         "",
         "✅ Your reward has been added to your EasyTasksz balance.",
         "🚀 Keep completing offers and keep earning!",
-      ].join("
-");
+      ].join("\n");
 
       try {
         const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
