@@ -49,8 +49,14 @@ Deno.serve(async (req) => {
   try {
     const { initData } = await req.json();
     if (!initData) return new Response(JSON.stringify({ error: "Missing initData" }), { status: 400, headers: corsHeaders });
-    const tgUser = await verifyTelegramData(initData);
-    if (!tgUser) return new Response(JSON.stringify({ error: "Invalid Telegram data" }), { status: 401, headers: corsHeaders });
+    const verified = await verifyTelegramData(initData, BOT_TOKEN);
+    if (!verified?.user) {
+      return new Response(
+        JSON.stringify({ error: verified?.error || "Invalid Telegram data" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const tgUser = verified.user;
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
     const { data: existing } = await supabase.from("users").select("*").eq("telegram_id", tgUser.id).maybeSingle();
