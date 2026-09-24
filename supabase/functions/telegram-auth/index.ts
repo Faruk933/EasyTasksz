@@ -21,7 +21,8 @@ async function verifyTelegramData(initData: string, botToken: string): Promise<{
   const authDate = Number(params.get("auth_date"));
   if (!hash || !Number.isInteger(authDate)) return { user: null, error: "TELEGRAM_DATA_MISSING_FIELDS" };
   const now = Math.floor(Date.now() / 1000);
-  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS) return { user: null, error: "TELEGRAM_DATA_FROM_FUTURE" };\n  if (now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return { user: null, error: "TELEGRAM_DATA_EXPIRED" };
+  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS) return { user: null, error: "TELEGRAM_DATA_FROM_FUTURE" };
+  if (now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return { user: null, error: "TELEGRAM_DATA_EXPIRED" };
   params.delete("hash");
   const pairs: string[] = [];
   params.forEach((value, key) => pairs.push(`${key}=${value}`));
