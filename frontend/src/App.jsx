@@ -7,7 +7,6 @@ import Wallet from "./pages/Wallet";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Offerwall from "./pages/Offerwall";
-import MyLeadOfferwall from "./pages/MyLeadOfferwall";
 import OfferwallMeOfferwall from "./pages/OfferwallMeOfferwall";
 import PixyLabsOfferwall from "./pages/PixyLabsOfferwall";
 import CPAleadOfferwall from "./pages/CPAleadOfferwall";
@@ -28,7 +27,6 @@ import BottomNav from "./components/BottomNav";
 export default function App(){
   const location=useLocation();
   const isImmersiveOfferwall=[
-    "/offerwall/mylead",
     "/offerwall/offerwallme",
     "/offerwall/pixylabs",
     "/offerwall/cpalead",
@@ -51,7 +49,6 @@ export default function App(){
         <Route path="/history" element={<History/>}/>
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/offerwall" element={<Offerwall/>}/>
-        <Route path="/offerwall/mylead" element={<MyLeadOfferwall/>}/>
         <Route path="/offerwall/offerwallme" element={<OfferwallMeOfferwall/>}/>
         <Route path="/offerwall/pixylabs" element={<PixyLabsOfferwall/>}/>
         <Route path="/offerwall/cpalead" element={<CPAleadOfferwall/>}/>
