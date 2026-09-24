@@ -106,7 +106,9 @@ Deno.serve(async (req) => {
 
     if (action === "update-settings") {
       if (!settingsUpdates || typeof settingsUpdates !== "object") return new Response(JSON.stringify({ error: "Missing settingsUpdates" }), { status: 400, headers: corsHeaders });
+      const allowedSettings = new Set(["minimum_withdrawal", "withdrawal_fee_percent", "referral_commission_percent", "daily_ad_limit", "ad_reward_amount"]);
       for (const [key, value] of Object.entries(settingsUpdates)) {
+        if (!allowedSettings.has(key)) return new Response(JSON.stringify({ error: "Setting is not editable" }), { status: 400, headers: corsHeaders });
         const { error } = await supabase.from("settings").update({ value: String(value), updated_at: new Date().toISOString() }).eq("key", key);
         if (error) throw error;
       }
