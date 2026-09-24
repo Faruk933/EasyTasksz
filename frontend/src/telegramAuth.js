@@ -37,7 +37,7 @@ export async function loginWithTelegram() {
       throw new Error("ACCOUNT_BANNED");
     }
     console.error("Auth failed:", result);
-    return null;
+    throw new Error(result?.error || "TELEGRAM_AUTH_FAILED");
   }
 
   return result.user;
