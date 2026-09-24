@@ -21,8 +21,7 @@ async function verifyTelegramData(initData: string, botToken: string): Promise<{
   const authDate = Number(params.get("auth_date"));
   if (!hash || !Number.isInteger(authDate)) return { user: null, error: "TELEGRAM_DATA_MISSING_FIELDS" };
   const now = Math.floor(Date.now() / 1000);
-  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS) return { user: null, error: "TELEGRAM_DATA_FROM_FUTURE" };
-  if (now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return { user: null, error: "TELEGRAM_DATA_EXPIRED" };
+  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS) return { user: null, error: "TELEGRAM_DATA_FROM_FUTURE" };\n  if (now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return { user: null, error: "TELEGRAM_DATA_EXPIRED" };
   params.delete("hash");
   const pairs: string[] = [];
   params.forEach((value, key) => pairs.push(`${key}=${value}`));
@@ -93,9 +92,7 @@ Deno.serve(async (req) => {
         if (claimError) throw claimError;
         if (!claimed) continue;
         try {
-          const text = `*${campaign.title}*
-
-${campaign.message}`;
+          const text = `*${campaign.title}*\n\n${campaign.message}`;
           const tg = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: tgUser.id, text }) });
           const result = await tg.json();
           if (!tg.ok || !result.ok) throw new Error(result.description || "Telegram send failed");
@@ -106,35 +103,14 @@ ${campaign.message}`;
       }
 
       // Existing welcome message remains unchanged.
-      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: tgUser.id, text: "🎉 Welcome to EasyTasksz!
-
-Hello, " + (tgUser.first_name ?? "there") + "!
-
-💰 Complete tasks and offers to earn USDT
-📅 Watch Ads daily to earn USDT
-👥 Invite friends for up to 10% commission
-
-🚀 Invite friends to earn $50-100 USDT monthly
-
-👇 Join all our community below to be updated for new tasks
-━━━━━━━━━━━━━━━
-📢 Announcements  ➜  @EasyTaskszUpdates
-👥 Community  ➜  @EasyTaskszSupportGroup
-━━━━━━━━━━━━━━━
-⚡ Stay updated and don't miss new tasks!" }) }).catch(() => {});
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: tgUser.id, text: "🎉 Welcome to EasyTasksz!\n\nHello, " + (tgUser.first_name ?? "there") + "!\n\n💰 Complete tasks and offers to earn USDT\n📅 Watch Ads daily to earn USDT\n👥 Invite friends for up to 10% commission\n\n🚀 Invite friends to earn $50-100 USDT monthly\n\n👇 Join all our community below to be updated for new tasks\n━━━━━━━━━━━━━━━\n📢 Announcements  ➜  @EasyTaskszUpdates\n👥 Community  ➜  @EasyTaskszSupportGroup\n━━━━━━━━━━━━━━━\n⚡ Stay updated and don't miss new tasks!" }) }).catch(() => {});
 
       if (referredByTelegramId) {
         const { data: commissionSetting } = await supabase.from("settings").select("value").eq("key", "referral_commission_percent").maybeSingle();
         const commissionPct = commissionSetting?.value ?? "3";
         const newUserName = tgUser.first_name ?? "A new user";
         const newUserUsername = tgUser.username ? "@" + tgUser.username : "N/A";
-        const notifyText = "👥 Invite Success!
-
-🎊 Your friend " + newUserName + " has registered
-🔗 Friend: " + newUserUsername + "
-💰 You'll earn " + commissionPct + "% commission when they watch ads or complete tasks.
-
-Keep inviting friends to earn more!";
+        const notifyText = "👥 Invite Success!\n\n🎊 Your friend " + newUserName + " has registered\n🔗 Friend: " + newUserUsername + "\n💰 You'll earn " + commissionPct + "% commission when they watch ads or complete tasks.\n\nKeep inviting friends to earn more!";
         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: referredByTelegramId, text: notifyText }) }).catch(() => {});
       }
     }
