@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const TELEGRAM_INIT_MAX_AGE_SECONDS = 3600;
+const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
 const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
 function timingSafeEqualHex(a:string,b:string):boolean{if(!/^[0-9a-f]{64}$/i.test(a)||!/^[0-9a-f]{64}$/i.test(b))return false;let d=0;for(let i=0;i<64;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
 async function verifyTelegramData(initData:string,botToken:string):Promise<any|null>{
@@ -117,7 +117,11 @@ Deno.serve(async (req) => {
       if (!targetTelegramId || newBalance === undefined) return new Response(JSON.stringify({ error: "Missing targetTelegramId or newBalance" }), { status: 400, headers: corsHeaders });
       const parsedBalance = Number(newBalance);
       if (!Number.isFinite(parsedBalance) || parsedBalance < 0 || parsedBalance > 100000000) return new Response(JSON.stringify({ error: "Invalid balance" }), { status: 400, headers: corsHeaders });
-      const { data: updatedUser, error } = await supabase.from("users").update({ balance: parsedBalance }).eq("telegram_id", targetTelegramId).select().single();
+      const { data: updatedUser, error } = await supabase.rpc("admin_adjust_balance", {
+        p_telegram_id: Number(targetTelegramId),
+        p_new_balance: parsedBalance,
+        p_description: "Admin balance adjustment",
+      });
       if (error) throw error;
       return new Response(JSON.stringify({ user: updatedUser }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -137,13 +141,6 @@ Deno.serve(async (req) => {
       const { data: withdrawals, error } = await supabase.from("withdrawals").select("*, users!withdrawals_user_id_fkey(username, telegram_id)").order("created_at", { ascending: false });
       if (error) throw error;
       return new Response(JSON.stringify({ withdrawals }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    if (action === "update-status") {
-      if (!withdrawalId || !status) return new Response(JSON.stringify({ error: "Missing withdrawalId or status" }), { status: 400, headers: corsHeaders });
-      const { data: updated, error } = await supabase.from("withdrawals").update({ status, processed_at: new Date().toISOString() }).eq("id", withdrawalId).select().single();
-      if (error) throw error;
-      return new Response(JSON.stringify({ withdrawal: updated }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
