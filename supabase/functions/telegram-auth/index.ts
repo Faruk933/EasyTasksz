@@ -27,8 +27,7 @@ async function verifyTelegramData(initData: string, botToken: string): Promise<{
   const pairs: string[] = [];
   params.forEach((value, key) => pairs.push(`${key}=${value}`));
   pairs.sort();
-  const dataCheckString = pairs.join("
-");
+  const dataCheckString = pairs.join("\n");
   const encoder = new TextEncoder();
   const secretKey = await crypto.subtle.importKey("raw", encoder.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const secretKeySigned = await crypto.subtle.sign("HMAC", secretKey, encoder.encode(botToken));
