@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
+const TELEGRAM_INIT_MAX_AGE_SECONDS = 3600;
 const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
 function timingSafeEqualHex(a:string,b:string):boolean{if(!/^[0-9a-f]{64}$/i.test(a)||!/^[0-9a-f]{64}$/i.test(b))return false;let d=0;for(let i=0;i<64;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
 async function verifyTelegramData(initData:string,botToken:string):Promise<any|null>{
