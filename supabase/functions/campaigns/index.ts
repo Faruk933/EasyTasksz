@@ -84,8 +84,14 @@ Deno.serve(async (req) => {
       for (const record of records || []) {
         const telegramId = (record as any).users?.telegram_id; let bonusGiven = Boolean(record.bonus_given);
         if (campaign.bonus_enabled && Number(campaign.bonus_amount) > 0 && !bonusGiven) {
-          const { data: claimed, error: claimError } = await db.from("campaign_user_records").update({ bonus_given: true }).eq("id", record.id).eq("bonus_given", false).select("id").maybeSingle(); if (claimError) throw claimError;
-          if (claimed) { const { data: user, error: userError } = await db.from("users").select("balance, total_earned").eq("id", record.user_id).single(); if (userError) throw userError; const amount = Number(campaign.bonus_amount); const { error: balanceError } = await db.from("users").update({ balance: Number(user.balance || 0) + amount, total_earned: Number(user.total_earned || 0) + amount }).eq("id", record.user_id); if (balanceError) throw balanceError; await db.from("transactions").insert({ user_id: record.user_id, type: "bonus", amount, description: `Campaign Bonus: ${campaign.title}` }); bonusGiven = true; bonusUsers++; bonusTotal += amount; }
+          const { data: bonusApplied, error: bonusError } = await db.rpc("apply_campaign_bonus_atomic", {
+            p_campaign_id: campaign.id,
+            p_user_id: record.user_id,
+            p_amount: Number(campaign.bonus_amount),
+            p_description: `Campaign Bonus: ${campaign.title}`
+          });
+          if (bonusError) throw bonusError;
+          if (bonusApplied === true) { bonusGiven = true; bonusUsers++; bonusTotal += Number(campaign.bonus_amount); }
         }
         if (!telegramId) { await db.from("campaign_user_records").update({ notification_error: "No Telegram ID" }).eq("id", record.id); failed++; continue; }
         try { const text = `*${campaign.title}*\n\n${campaign.message}`; const tg = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: telegramId, text }) }); const result = await tg.json(); if (!tg.ok || !result.ok) throw new Error(result.description || "Telegram send failed"); await db.from("campaign_user_records").update({ notification_sent: true, notification_error: null }).eq("id", record.id); sent++; } catch (err) { await db.from("campaign_user_records").update({ notification_error: String(err) }).eq("id", record.id); failed++; }
