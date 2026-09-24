@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
       const { data: settingsRows } = await supabase.from("settings").select("key, value");
       const settingsMap: Record<string,string> = {}; (settingsRows || []).forEach((r) => { settingsMap[r.key] = r.value; });
       const commissionPercent = Number(settingsMap.referral_commission_percent ?? 3);
-      await supabase.rpc("add_referral_commission", { ref_telegram_id: credit.referred_by, commission_amount: amount * (commissionPercent / 100) });
+      const { error: referralError } = await supabase.rpc("add_referral_commission", { ref_telegram_id: credit.referred_by, commission_amount: amount * (commissionPercent / 100) });\n      if (referralError) throw referralError;
     }
 
     // Restore the normal Telegram credit alert. Notification failure must not
