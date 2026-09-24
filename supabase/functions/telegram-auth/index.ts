@@ -15,13 +15,13 @@ function timingSafeEqualHex(a: string, b: string): boolean {
   return diff === 0;
 }
 
-async function verifyTelegramData(initData: string, botToken: string): Promise<any | null> {
+async function verifyTelegramData(initData: string, botToken: string): Promise<{ user: any; error?: string } | null> {
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
   const authDate = Number(params.get("auth_date"));
-  if (!hash || !Number.isInteger(authDate)) return null;
+  if (!hash || !Number.isInteger(authDate)) return { user: null, error: "TELEGRAM_DATA_MISSING_FIELDS" };
   const now = Math.floor(Date.now() / 1000);
-  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS || now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return null;
+  if (authDate > now + TELEGRAM_FUTURE_SKEW_SECONDS) return { user: null, error: "TELEGRAM_DATA_FROM_FUTURE" };\n  if (now - authDate > TELEGRAM_INIT_MAX_AGE_SECONDS) return { user: null, error: "TELEGRAM_DATA_EXPIRED" };
   params.delete("hash");
   const pairs: string[] = [];
   params.forEach((value, key) => pairs.push(`${key}=${value}`));
@@ -33,10 +33,10 @@ async function verifyTelegramData(initData: string, botToken: string): Promise<a
   const finalKey = await crypto.subtle.importKey("raw", secretKeySigned, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const signature = await crypto.subtle.sign("HMAC", finalKey, encoder.encode(dataCheckString));
   const computedHash = Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, "0")).join("");
-  if (!timingSafeEqualHex(computedHash, hash)) return null;
+  if (!timingSafeEqualHex(computedHash, hash)) return { user: null, error: "TELEGRAM_SIGNATURE_INVALID" };
   const userStr = params.get("user");
-  if (!userStr) return null;
-  try { const user = JSON.parse(userStr); const startParam = params.get("start_param"); return { ...user, __start_param: startParam }; } catch { return null; }
+  if (!userStr) return { user: null, error: "TELEGRAM_USER_MISSING" };
+  try { const user = JSON.parse(userStr); const startParam = params.get("start_param"); return { user: { ...user, __start_param: startParam } }; } catch { return { user: null, error: "TELEGRAM_USER_INVALID" }; }
 }
 
 
