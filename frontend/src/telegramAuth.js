@@ -3,7 +3,7 @@ export async function loginWithTelegram() {
 
   if (!tg) {
     console.warn("Not running inside Telegram");
-    return null;
+    throw new Error("TELEGRAM_WEBAPP_MISSING");
   }
 
   tg.ready();
@@ -11,7 +11,7 @@ export async function loginWithTelegram() {
 
   if (!initData) {
     console.warn("No initData available");
-    return null;
+    throw new Error("TELEGRAM_INITDATA_MISSING");
   }
 
   const response = await fetch(
