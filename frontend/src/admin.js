@@ -29,7 +29,7 @@ export function listWithdrawals() {
 }
 
 export function updateWithdrawalStatus(withdrawalId, status) {
-  return callAdmin({ action: "update-status", withdrawalId, status });
+  return processWithdrawal(withdrawalId, status);
 }
 
 export function getStats() {
