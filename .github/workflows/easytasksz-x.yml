@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       IMAGINEPRO_API_KEY: ${{ secrets.IMAGINEPRO_API_KEY }}
       IMAGINEPRO_API_KEY_2: ${{ secrets.IMAGINEPRO_API_KEY_2 }}
       IMAGINEPRO_API_KEY_3: ${{ secrets.IMAGINEPRO_API_KEY_3 }}
@@ -64,7 +65,7 @@ jobs:
           const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
           const POSTS_FILE = 'automation/x-posts.json';
           const GENERATED_IMAGE_FILE = 'automation/generated-image-url.txt';
-          const requiredEnv = ['BUFFER_API_KEY'];
+          const requiredEnv = ['BUFFER_API_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
           for (const name of requiredEnv) if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
 
           function assertDate(value, label) { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`${label} must be YYYY-MM-DD`); }
@@ -142,13 +143,41 @@ jobs:
             const generatedImageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
             if (!generatedImageUrl || !/^https?:\/\//i.test(generatedImageUrl)) throw new Error('ImaginePro did not produce a valid public image URL.');
 
-            // ImaginePro returns a direct public CDN object URL.
-            // Use it directly for Buffer; third-party proxying can introduce timeouts or redirects.
-            // The URL must remain publicly reachable until the scheduled post publishes.
-            const imageUrl = generatedImageUrl;
-            const probe = execFileSync('curl', ['--fail', '--location', '--silent', '--show-error', '--max-time', '30', '-o', '/dev/null', '-w', '%{http_code} %{content_type}', imageUrl], { encoding: 'utf8' }).trim();
-            if (!/^200 image\//i.test(probe)) throw new Error(`Public media URL validation failed: ${probe}`);
-            console.log(`Verified public ImaginePro media URL for Buffer: ${imageUrl}`);
+            // Copy the generated image into EasyTasksz-owned Supabase Storage.
+            // ImaginePro's CDN URL has repeatedly timed out from GitHub Actions and is not stable
+            // enough to hand directly to Buffer. Buffer requires a public, stable URL.
+            const tempImage = '/tmp/easytasksz-generated.png';
+            execFileSync('curl', [
+              '--fail', '--location', '--ipv4', '--retry', '2', '--retry-all-errors',
+              '--connect-timeout', '10', '--max-time', '90', '--silent', '--show-error',
+              '-o', tempImage, generatedImageUrl
+            ], { stdio: 'inherit' });
+
+            const imageBytes = await fs.readFile(tempImage);
+            if (!imageBytes.length) throw new Error('Downloaded ImaginePro image is empty.');
+            const storagePath = `x/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.png`;
+            const storageUrl = `https://iewdxruivjwblsnsjicq.supabase.co/storage/v1/object/easytasksz-media/${storagePath}`;
+            const uploadResponse = await fetch(storageUrl, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+                'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+                'Content-Type': 'image/png',
+                'x-upsert': 'false'
+              },
+              body: imageBytes
+            });
+            const uploadBody = await uploadResponse.text();
+            if (!uploadResponse.ok) throw new Error(`Supabase Storage upload failed (HTTP ${uploadResponse.status}): ${uploadBody}`);
+
+            const imageUrl = `https://iewdxruivjwblsnsjicq.supabase.co/storage/v1/object/public/easytasksz-media/${storagePath}`;
+            const probe = execFileSync('curl', [
+              '--fail', '--location', '--ipv4', '--silent', '--show-error',
+              '--max-time', '20', '-o', '/dev/null', '-w', '%{http_code} %{content_type}', imageUrl
+            ], { encoding: 'utf8' }).trim();
+            if (!/^200 image\//i.test(probe)) throw new Error(`Supabase public media URL validation failed: ${probe}`);
+            console.log(`Uploaded stable public media for Buffer: ${imageUrl}`);
+
 
             const results = [];
             if (!xDuplicate) {
