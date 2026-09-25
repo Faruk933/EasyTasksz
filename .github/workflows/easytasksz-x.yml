@@ -22,7 +22,7 @@ on:
         options: ["1", "2", "3"]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   publish:
@@ -50,7 +50,7 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
-      - name: Publish one X and Instagram post through Buffer
+      - name: Publish one X post through Buffer
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
@@ -131,19 +131,11 @@ jobs:
             const post = posts.find(p => p.day === day && p.slot === slot);
             if (!post || typeof post.text !== 'string') throw new Error(`No post found for day ${day}, slot ${slot}`);
 
-            const [xChannel, instagramChannel] = await Promise.all([
-              findChannel('twitter', 'X/Twitter'),
-              findChannel('instagram', 'Instagram')
-            ]);
+            const xChannel = await findChannel('twitter', 'X/Twitter');
             console.log(`X channel found: ${xChannel.name}`);
-            console.log(`Instagram channel found: ${instagramChannel.name}`);
-            const [xQueued, instagramQueued] = await Promise.all([
-              getQueuedPosts(xChannel.id, xChannel.organizationId),
-              getQueuedPosts(instagramChannel.id, instagramChannel.organizationId)
-            ]);
+            const xQueued = await getQueuedPosts(xChannel.id, xChannel.organizationId);
             const xDuplicate = xQueued.includes(post.text);
-            const instagramDuplicate = instagramQueued.includes(post.text);
-            if (xDuplicate && instagramDuplicate) { console.log(`Identical post already queued on X and Instagram; skipping day ${day}, slot ${slot}.`); return; }
+            if (xDuplicate) { console.log(`Identical post already queued on X; skipping day ${day}, slot ${slot}.`); return; }
 
             console.log('Generating fresh EasyTasksz image with ImaginePro...');
             execFileSync('node', ['automation/generate-image.js', post.text], { stdio: 'inherit' });
@@ -163,11 +155,6 @@ jobs:
               try { const created = await createPost(xChannel.id, post.text, imageUrl, 'twitter'); results.push(`X scheduled (${created.id})`); }
               catch (error) { results.push(`X FAILED: ${error.message}`); }
             } else results.push('X already queued');
-
-            if (!instagramDuplicate) {
-              try { const created = await createPost(instagramChannel.id, post.text, imageUrl, 'instagram'); results.push(`Instagram scheduled (${created.id})`); }
-              catch (error) { results.push(`Instagram FAILED: ${error.message}`); }
-            } else results.push('Instagram already queued');
 
             console.log(`Campaign day ${day}, slot ${slot} result: ${results.join(' | ')}`);
             if (results.some(result => result.includes('FAILED'))) process.exitCode = 1;
