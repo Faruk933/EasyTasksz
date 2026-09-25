@@ -23,6 +23,8 @@ Deno.serve(async (req) => {
       return new Response("Missing parameters", { status: 400 });
     }
 
+    if (!leadId) return new Response("Missing lead_id", { status: 400 });
+
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     const { data: user, error: userError } = await supabase
