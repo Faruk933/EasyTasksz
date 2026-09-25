@@ -41,8 +41,6 @@ jobs:
       IMAGINEPRO_API_KEY_9: ${{ secrets.IMAGINEPRO_API_KEY_9 }}
       IMAGINEPRO_API_KEY_10: ${{ secrets.IMAGINEPRO_API_KEY_10 }}
       CAMPAIGN_START_DATE_CONFIG: ${{ vars.CAMPAIGN_START_DATE || secrets.CAMPAIGN_START_DATE || '' }}
-      GITHUB_TOKEN: ${{ github.token }}
-      REPOSITORY: ${{ github.repository }}
 
     steps:
       - name: Checkout repository
@@ -67,7 +65,7 @@ jobs:
           const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
           const POSTS_FILE = 'automation/x-posts.json';
           const GENERATED_IMAGE_FILE = 'automation/generated-image-url.txt';
-          const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
+          const requiredEnv = ['BUFFER_API_KEY'];
           for (const name of requiredEnv) if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
 
           function assertDate(value, label) { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`${label} must be YYYY-MM-DD`); }
@@ -153,21 +151,13 @@ jobs:
             const generatedImageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
             if (!generatedImageUrl || !/^https?:\/\//i.test(generatedImageUrl)) throw new Error('ImaginePro did not produce a valid public image URL.');
 
-            // Buffer/X could not fetch ImaginePro's CDN URL directly. Mirror the generated
-            // image into the repository so both Buffer channels receive a stable public URL.
-            execFileSync('curl', ['--fail', '--location', '--silent', '--show-error', generatedImageUrl, '-o', 'automation/generated-image.png'], { stdio: 'inherit' });
-            execFileSync('git', ['config', 'user.name', 'github-actions[bot]']);
-            execFileSync('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
-            execFileSync('git', ['add', 'automation/generated-image.png']);
-            try {
-              execFileSync('git', ['commit', '-m', 'Update generated social image [skip ci]'], { stdio: 'inherit' });
-              execFileSync('git', ['push', 'origin', 'HEAD:main'], { stdio: 'inherit' });
-            } catch (error) {
-              console.log('Generated image commit/push did not create a new commit; continuing.');
-            }
-
-            const imageUrl = `https://raw.githubusercontent.com/${process.env.REPOSITORY}/main/automation/generated-image.png?cache=${Date.now()}`;
-            console.log('One generated image will be used for X and Instagram via the repository mirror.');
+            // The repository is private, so raw.githubusercontent.com is not a public media host.
+            // Use the same public wsrv.nl image proxy already used for X, for both channels.
+            // This keeps Buffer/Instagram independent of GitHub repository visibility.
+            const imageUrl = `https://wsrv.nl/?url=${encodeURIComponent(generatedImageUrl)}&output=png`;
+            const probe = execFileSync('curl', ['--fail', '--location', '--silent', '--show-error', '--max-time', '30', '-o', '/dev/null', '-w', '%{http_code} %{content_type}', imageUrl], { encoding: 'utf8' }).trim();
+            if (!/^200 image\//i.test(probe)) throw new Error(`Public media URL validation failed: ${probe}`);
+            console.log(`Verified public media URL for Buffer: ${imageUrl}`);
 
             const results = [];
             if (!xDuplicate) {
