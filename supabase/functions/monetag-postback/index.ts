@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const POSTBACK_SECRET_SHA256="f5867a9cf6b53715729d22d20a6a170daa07eaa7e82de7ea22d27a388974f58e";
+const POSTBACK_SECRET_SHA256=Deno.env.get("MONETAG_POSTBACK_SECRET_SHA256")!;
 const ZONE_ID="11203298";
 
 async function sha256Hex(value:string):Promise<string>{
