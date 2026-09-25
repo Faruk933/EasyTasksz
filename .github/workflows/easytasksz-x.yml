@@ -22,13 +22,15 @@ on:
         options: ["1", "2", "3"]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      GITHUB_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
       IMAGINEPRO_API_KEY: ${{ secrets.IMAGINEPRO_API_KEY }}
       IMAGINEPRO_API_KEY_2: ${{ secrets.IMAGINEPRO_API_KEY_2 }}
       IMAGINEPRO_API_KEY_3: ${{ secrets.IMAGINEPRO_API_KEY_3 }}
@@ -64,7 +66,7 @@ jobs:
           const CAMPAIGN_FILE = 'automation/campaign_start_date.txt';
           const POSTS_FILE = 'automation/x-posts.json';
           const GENERATED_IMAGE_FILE = 'automation/generated-image-url.txt';
-          const requiredEnv = ['BUFFER_API_KEY'];
+          const requiredEnv = ['BUFFER_API_KEY', 'GITHUB_TOKEN', 'REPOSITORY'];
           for (const name of requiredEnv) if (!process.env[name]) throw new Error(`Missing required environment variable: ${name}`);
 
           function assertDate(value, label) { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`${label} must be YYYY-MM-DD`); }
@@ -142,12 +144,21 @@ jobs:
             const generatedImageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
             if (!generatedImageUrl || !/^https?:\/\//i.test(generatedImageUrl)) throw new Error('ImaginePro did not produce a valid public image URL.');
 
-            // Use the generated ImaginePro CDN URL directly, as the original EasyTasksz X workflow did.
-            // Buffer receives the same public image URL that ImaginePro returned.
-            // Do not preflight it from GitHub Actions: the ImaginePro CDN can time out for GitHub's
-            // curl even when Buffer can fetch the URL.
-            const imageUrl = generatedImageUrl;
-            console.log(`Using ImaginePro public media URL for Buffer: ${imageUrl}`);
+            // Mirror the generated image into the public GitHub repository.
+            // This is the exact media-hosting method used by the successful previous run.
+            execFileSync('curl', ['--fail', '--location', '--silent', '--show-error', generatedImageUrl, '-o', 'automation/generated-image.png'], { stdio: 'inherit' });
+            execFileSync('git', ['config', 'user.name', 'github-actions[bot]']);
+            execFileSync('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
+            execFileSync('git', ['add', 'automation/generated-image.png']);
+            try {
+              execFileSync('git', ['commit', '-m', 'Update generated social image [skip ci]'], { stdio: 'inherit' });
+              execFileSync('git', ['remote', 'set-url', 'origin', `https://x-access-token:${process.env.GITHUB_TOKEN}@github.com/${process.env.REPOSITORY}.git`]);
+              execFileSync('git', ['push', 'origin', 'HEAD:main'], { stdio: 'inherit' });
+            } catch (error) {
+              console.log('Generated image commit/push did not create a new commit; continuing.');
+            }
+            const imageUrl = `https://raw.githubusercontent.com/${process.env.REPOSITORY}/main/automation/generated-image.png?cache=${Date.now()}`;
+            console.log('Using public GitHub repository mirror for Buffer image.');
 
 
             const results = [];
