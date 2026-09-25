@@ -5,7 +5,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 
-const TELEGRAM_INIT_MAX_AGE_SECONDS = 3600;
+const TELEGRAM_INIT_MAX_AGE_SECONDS = 300;
 const TELEGRAM_FUTURE_SKEW_SECONDS = 30;
 
 function timingSafeEqualHex(a: string, b: string): boolean {
