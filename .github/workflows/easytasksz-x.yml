@@ -150,13 +150,13 @@ jobs:
             const generatedImageUrl = (await fs.readFile(GENERATED_IMAGE_FILE, 'utf8')).trim();
             if (!generatedImageUrl || !/^https?:\/\//i.test(generatedImageUrl)) throw new Error('ImaginePro did not produce a valid public image URL.');
 
-            // The repository is private, so raw.githubusercontent.com is not a public media host.
-            // Use the same public wsrv.nl image proxy already used for X, for both channels.
-            // This keeps Buffer/Instagram independent of GitHub repository visibility.
-            const imageUrl = `https://wsrv.nl/?url=${encodeURIComponent(generatedImageUrl)}&output=png`;
+            // ImaginePro returns a direct public CDN object URL.
+            // Use it directly for Buffer; third-party proxying can introduce timeouts or redirects.
+            // The URL must remain publicly reachable until the scheduled post publishes.
+            const imageUrl = generatedImageUrl;
             const probe = execFileSync('curl', ['--fail', '--location', '--silent', '--show-error', '--max-time', '30', '-o', '/dev/null', '-w', '%{http_code} %{content_type}', imageUrl], { encoding: 'utf8' }).trim();
             if (!/^200 image\//i.test(probe)) throw new Error(`Public media URL validation failed: ${probe}`);
-            console.log(`Verified public media URL for Buffer: ${imageUrl}`);
+            console.log(`Verified public ImaginePro media URL for Buffer: ${imageUrl}`);
 
             const results = [];
             if (!xDuplicate) {
