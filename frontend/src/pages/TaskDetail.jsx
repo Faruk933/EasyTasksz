@@ -75,7 +75,8 @@ export default function TaskDetail() {
       style={{ marginBottom: 16 }}
     >
       ← Back to Tasks
-    </button>\n    <h1 style={{ fontSize: 22, marginBottom: 4 }}>{task.title}</h1>
+    </button>
+    <h1 style={{ fontSize: 22, marginBottom: 4 }}>{task.title}</h1>
     <p style={{ color: "#4ade80", fontWeight: "bold", marginBottom: 16 }}>Reward: ${Number(task.reward_amount).toFixed(2)}</p>
     <div className="wallet-card"><h2>Instructions</h2><p style={{ color: "#cbd5e1", whiteSpace: "pre-wrap" }}>{task.instructions}</p></div>
     <button className="wallet-btn" onClick={handleStartTask} disabled={starting} style={{ marginTop: 12 }}>{starting ? "Starting..." : "Start Task"}</button>
