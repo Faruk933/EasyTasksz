@@ -15,6 +15,23 @@ export default function TaskDetail() {
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    const goBack = () => navigate("/tasks");
+
+    if (tg?.BackButton) {
+      tg.BackButton.onClick(goBack);
+      tg.BackButton.show();
+    }
+
+    return () => {
+      if (tg?.BackButton) {
+        tg.BackButton.offClick(goBack);
+        tg.BackButton.hide();
+      }
+    };
+  }, [navigate]);
+
+  useEffect(() => {
     listTasks().then((tasks) => {
       const found = tasks.find((t) => String(t.id) === String(id));
       if (!found) setError("Task not found"); else setTask(found);
