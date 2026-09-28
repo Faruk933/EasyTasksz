@@ -4,7 +4,12 @@ async function callTasksAdmin(payload) {
   if (!initData) throw new Error("Not running inside Telegram");
   const response = await fetch("https://iewdxruivjwblsnsjicq.supabase.co/functions/v1/tasks-admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData, ...payload }) });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || "Request failed");
+  if (!response.ok) {
+    if (response.status === 401 && result.error === "Invalid Telegram data") {
+      throw new Error("Telegram session expired. Please close and reopen EasyTasksz from Telegram, then try again.");
+    }
+    throw new Error(result.error || "Request failed");
+  }
   return result;
 }
 export function listTasksAdmin() { return callTasksAdmin({ action: "list-tasks" }).then((r) => r.tasks); }
