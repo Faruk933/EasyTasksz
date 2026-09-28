@@ -68,7 +68,7 @@ export default function TaskDetail() {
   if (error) return <div style={{ padding: 16, color: "#f87171" }}>{error}</div>;
 
   return <div style={{ padding: 16 }}>
-    <h1 style={{ fontSize: 22, marginBottom: 4 }}>{task.title}</h1>
+    <button\n      type="button"\n      onClick={() => navigate("/tasks")}\n      className="wallet-btn"\n      style={{ marginBottom: 16 }}\n    >\n      ← Back to Tasks\n    </button>\n    <h1 style={{ fontSize: 22, marginBottom: 4 }}>{task.title}</h1>
     <p style={{ color: "#4ade80", fontWeight: "bold", marginBottom: 16 }}>Reward: ${Number(task.reward_amount).toFixed(2)}</p>
     <div className="wallet-card"><h2>Instructions</h2><p style={{ color: "#cbd5e1", whiteSpace: "pre-wrap" }}>{task.instructions}</p></div>
     <button className="wallet-btn" onClick={handleStartTask} disabled={starting} style={{ marginTop: 12 }}>{starting ? "Starting..." : "Start Task"}</button>
