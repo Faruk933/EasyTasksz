@@ -106,9 +106,19 @@ Deno.serve(async (req) => {
 
     if (action === "update-settings") {
       if (!settingsUpdates || typeof settingsUpdates !== "object") return new Response(JSON.stringify({ error: "Missing settingsUpdates" }), { status: 400, headers: corsHeaders });
-      const allowedSettings = new Set(["minimum_withdrawal", "withdrawal_fee_percent", "referral_commission_percent", "daily_ad_limit", "ad_reward_amount"]);
+      const allowedSettings = new Set(["reward_per_ad", "daily_ad_limit", "minimum_withdrawal", "withdrawal_fee_percent", "referral_commission_percent", "launch_ad_enabled"]);
       for (const [key, value] of Object.entries(settingsUpdates)) {
-        if (!allowedSettings.has(key)) return new Response(JSON.stringify({ error: "Setting is not editable" }), { status: 400, headers: corsHeaders });
+        if (!allowedSettings.has(key)) return new Response(JSON.stringify({ error: "Setting is not editable: " + key }), { status: 400, headers: corsHeaders });
+        if (key === "launch_ad_enabled") {
+          if (value !== "true" && value !== "false" && value !== true && value !== false) return new Response(JSON.stringify({ error: "Invalid launch_ad_enabled value" }), { status: 400, headers: corsHeaders });
+        } else {
+          const n = Number(value);
+          if (!Number.isFinite(n)) return new Response(JSON.stringify({ error: "Invalid numeric setting: " + key }), { status: 400, headers: corsHeaders });
+          if (key === "reward_per_ad" && (n < 0 || n > 1000)) return new Response(JSON.stringify({ error: "Invalid reward_per_ad" }), { status: 400, headers: corsHeaders });
+          if (key === "daily_ad_limit" && (!Number.isInteger(n) || n < 0 || n > 10000)) return new Response(JSON.stringify({ error: "Invalid daily_ad_limit" }), { status: 400, headers: corsHeaders });
+          if (key === "minimum_withdrawal" && (n <= 0 || n > 1000000)) return new Response(JSON.stringify({ error: "Invalid minimum_withdrawal" }), { status: 400, headers: corsHeaders });
+          if (["withdrawal_fee_percent", "referral_commission_percent"].includes(key) && (n < 0 || n > 100)) return new Response(JSON.stringify({ error: "Invalid percentage setting: " + key }), { status: 400, headers: corsHeaders });
+        }
         const { error } = await supabase.from("settings").update({ value: String(value), updated_at: new Date().toISOString() }).eq("key", key);
         if (error) throw error;
       }
