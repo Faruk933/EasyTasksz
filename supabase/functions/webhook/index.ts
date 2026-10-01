@@ -7,7 +7,7 @@ async function session(id:number){const r=await db(`support_sessions?telegram_id
 async function knowledge(telegramId:number){
  const sr=await db("settings?select=key,value,description,updated_at&order=key.asc",{method:"GET"});if(!sr.ok)throw Error("settings read failed");const s=await sr.json();
  const tr=await db("tasks?select=title,reward_amount,is_active,task_type,provider,created_at&is_active=eq.true&order=created_at.desc&limit=100",{method:"GET"});if(!tr.ok)throw Error("tasks read failed");const t=await tr.json();
- const safeS=s.filter((x:any)=>x.key&&x.key!=="support_kb_truth"&&x.key!=="referral_bonus"&&!/(secret|token|api[_-]?key|password|private[_-]?key)/i.test(x.key)).map((x:any)=>`SETTING ${x.key}: ${x.value}${x.description?" — "+x.description:""} (updated ${x.updated_at||"unknown"})`);
+ const safeS=s.filter((x:any)=>x.key&&x.key!=="support_kb_truth"&&!/(secret|token|api[_-]?key|password|private[_-]?key)/i.test(x.key)).map((x:any)=>`SETTING ${x.key}: ${x.value}${x.description?" — "+x.description:""} (updated ${x.updated_at||"unknown"})`);
  const safeT=t.map((x:any)=>({title:String(x.title||"").slice(0,200),reward:x.reward_amount,type:x.task_type||"unknown",provider:x.provider||"unknown"}));
  const ur=await db("users?telegram_id=eq."+encodeURIComponent(String(telegramId))+"&select=referral_code",{method:"GET"});
  let referralLine="";
