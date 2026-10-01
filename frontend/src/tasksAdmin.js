@@ -8,7 +8,8 @@ async function callTasksAdmin(payload) {
     if (response.status === 401 && result.error === "Invalid Telegram data") {
       throw new Error("Telegram session expired. Please close and reopen EasyTasksz from Telegram, then try again.");
     }
-    throw new Error(result.error || "Request failed");
+    const message = typeof result?.error === "string" ? result.error : (result?.error?.message || JSON.stringify(result?.error || result));
+    throw new Error(message || "Request failed");
   }
   return result;
 }
