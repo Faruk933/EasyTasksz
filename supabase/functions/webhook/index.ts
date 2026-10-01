@@ -1,283 +1,52 @@
-const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-const WEBHOOK_SECRET = Deno.env.get("TELEGRAM_WEBHOOK_SECRET")?.trim() || "";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ASHNA_API_KEY = Deno.env.get("ASHNA_API_KEY")?.trim() || "";
-const ASHNA_MODEL = Deno.env.get("ASHNA_SUPPORT_MODEL")?.trim() || "gpt-4o-mini";
-
-const SUPPORT_KB = `EasyTasksz is a Telegram-based earning platform.
-Verified rules:
-- Users can earn from available manual tasks, available offer tasks/offers, rewarded ads when enabled and within the daily limit, and referral commissions.
-- Referral rewards are commission only. There is NO referral bonus.
-- Telegram authentication is required.
-- Offer rewards can depend on provider confirmation/postback.
-- Support sessions last 30 minutes and allow up to 20 user messages.
-- The support AI cannot inspect private balances, transaction records, withdrawal status, Telegram authentication data, or admin controls.
-- Never invent task availability, rewards, eligibility rules, payment methods, processing times, or policies.
-- If a requested fact is not in the verified knowledge or live settings, say that it is not verified and direct the user to human support.
-- Answer EasyTasksz questions directly and naturally. Questions unrelated to EasyTasksz are outside the support scope.`;
-
-const SUPPORT_MINUTES = 30;
-const MAX_MESSAGES_PER_SESSION = 20;
-const MAX_HISTORY_MESSAGES = 12;
-const MAX_USER_MESSAGE_LENGTH = 1000;
-const MAX_REPLY_LENGTH = 3500;
-
-const SUPPORT_SYSTEM = `You are the EasyTasksz support assistant on Telegram.
-Help users understand and use EasyTasksz: tasks, offer tasks, rewards, referrals, withdrawals, and general app usage.
-Be concise, friendly, and factual.
-You do NOT have access to private account balances, transaction records, withdrawal status, Telegram authentication data, or admin controls.
-Never ask for passwords, bot tokens, API keys, Telegram login codes, or other secrets.
-Never tell a user that a reward, withdrawal, or conversion has been completed unless the user provides that information.
-If a question requires checking or changing an account, explain that the support assistant cannot perform that action and direct the user to the EasyTasksz app or human support.
-Do not invent policies, task availability, rewards, or processing times.\nUse the verified EasyTasksz knowledge and live context supplied with each request.\n${SUPPORT_KB}
-If the user reports a missing offer reward, explain that provider confirmation/postback is required and that support may need to investigate.
-Do not provide instructions for bypassing fraud checks, VPN/proxy restrictions, task requirements, or security controls.`;
-
-function timingSafeEqualText(a: string, b: string): boolean {
-  if (!a || !b || a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
+const BOT_TOKEN=Deno.env.get("TELEGRAM_BOT_TOKEN")!;const WEBHOOK_SECRET=Deno.env.get("TELEGRAM_WEBHOOK_SECRET")?.trim()||"";const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;const GROQ=Deno.env.get("GROQ_API_KEY")?.trim()||"";const MODEL=Deno.env.get("GROQ_SUPPORT_MODEL")?.trim()||"openai/gpt-oss-20b";const MAX=1000,SESSION=30*60*1000,LIMIT=20;
+function safe(a:string,b:string){if(!a||!b||a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0}
+function fmt(s:string){return s.replace(/\\n/g,"\n").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\*\*(.+?)\*\*/gs,"<b>$1</b>")}
+async function tg(m:string,b:any){if(m==="sendMessage"&&typeof b.text==="string"){b={...b,text:fmt(b.text),parse_mode:"HTML"}}return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${m}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)})}
+async function db(p:string,i:RequestInit){return fetch(`${SUPABASE_URL}/rest/v1/${p}`,{...i,headers:{apikey:KEY,Authorization:`Bearer ${KEY}`,"Content-Type":"application/json",...(i.headers||{})}})}
+async function session(id:number){const r=await db(`support_sessions?telegram_id=eq.${id}&select=telegram_id,active_until,history,message_count`,{method:"GET"});if(!r.ok)throw Error("session read failed");return (await r.json())[0]||null}
+async function knowledge(telegramId:number){
+ const sr=await db("settings?select=key,value,description,updated_at&order=key.asc",{method:"GET"});if(!sr.ok)throw Error("settings read failed");const s=await sr.json();
+ const tr=await db("tasks?select=title,reward_amount,is_active,task_type,provider,created_at&is_active=eq.true&order=created_at.desc&limit=100",{method:"GET"});if(!tr.ok)throw Error("tasks read failed");const t=await tr.json();
+ const safeS=s.filter((x:any)=>x.key&&x.key!=="support_kb_truth"&&x.key!=="referral_bonus"&&!/(secret|token|api[_-]?key|password|private[_-]?key)/i.test(x.key)).map((x:any)=>`SETTING ${x.key}: ${x.value}${x.description?" — "+x.description:""} (updated ${x.updated_at||"unknown"})`);
+ const safeT=t.map((x:any)=>({title:String(x.title||"").slice(0,200),reward:x.reward_amount,type:x.task_type||"unknown",provider:x.provider||"unknown"}));
+ const ur=await db("users?telegram_id=eq."+encodeURIComponent(String(telegramId))+"&select=referral_code",{method:"GET"});
+ let referralLine="";
+ if(ur.ok){const uu=await ur.json();const code=uu?.[0]?.referral_code;if(code) referralLine="USER-SPECIFIC REFERRAL LINK: https://t.me/Easytasksz_bot?startapp="+encodeURIComponent(String(code));}
+ return ["CURRENT LIVE SETTINGS:",...safeS,"","CURRENT ACTIVE TASKS:",JSON.stringify(safeT),referralLine,"","VERIFIED RULES: Telegram authentication is required and auth data is fresh for 5 minutes. Support sessions last 30 minutes and allow 20 user messages. /stop ends a session. Only describe tasks listed above as currently active. Offer rewards can depend on provider confirmation/postback. The assistant cannot inspect private balances, transactions, withdrawal status, Telegram auth data, or admin controls. If information is not present in current data, never guess; direct the user to human support."].join("\n")
 }
-
-async function telegram(method: string, body: Record<string, unknown>) {
-  return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+async function exact(q:string){const r=await db("settings?select=key,value&order=key.asc",{method:"GET"});if(!r.ok)return null;const a=await r.json();const m=[[/minimum\\s+withdrawal|withdrawal\\s+minimum|minimum.*cash.?out/i,"minimum_withdrawal","minimum withdrawal"," USDT"],[/withdrawal\\s+fee|cash.?out.*fee|fee.*withdrawal/i,"withdrawal_fee_percent","withdrawal fee","%"],[/daily.*ad.*limit|how many.*ads|ads.*per day/i,"daily_ad_limit","daily ad limit",""],[/reward.*per.*ad|how much.*ad|ad.*reward/i,"reward_per_ad","reward per ad"," USDT"],[/referral.*bonus|bonus.*referral/i,"referral_bonus","referral bonus"," USDT"],[/referral.*commission|commission.*referral/i,"referral_commission_percent","referral commission","%"]];const n=q.toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/ +/g," ").trim();let x=m.find(v=>v[0].test(n));if(!x && (n.includes("minimum withdrawal")||n.includes("withdrawal minimum"))){x=m[0]}if(!x)return null;const row=a.find((v:any)=>v.key===x[1]);return row?.value!=null?`The current ${x[2]} is ${row.value}${x[3]}.`:null}
+function overview(s:any[],t:any[]){
+ const v=(k:string)=>s.find((x:any)=>x.key===k)?.value;
+ let out="**EasyTasksz** is a Telegram-based earning platform.\\n\\n**What you can do**\\n\\n- **Tasks & offers:** Complete tasks and offers that appear in the app.\\n";
+ if(v("ads_enabled")==="true") out+=`- **Rewarded ads:** Watch up to **${v("daily_ad_limit")} ads per day** and earn **${v("reward_per_ad")} USDT** per completed ad.\\n`;
+ else out+="- **Rewarded ads:** Currently disabled.\\n";
+ out+="\\n**Referral program**\\n";
+ out+=`- **Referral commission:** ${v("referral_commission_percent")}% of referred-user earnings.\\n\\n`;
+ out+="**Withdrawals**\\n";
+ if(v("withdrawals_enabled")==="true") out+=`- **Minimum withdrawal:** ${v("minimum_withdrawal")} USDT.\\n- **Withdrawal fee:** ${v("withdrawal_fee_percent")}%.\\n`;
+ else out+="- Withdrawals are currently disabled.\\n";
+ if(t.length) out+="\\n**Currently active tasks**\\n"+t.slice(0,8).map((x:any)=>`- ${x.title} — **${x.reward}**`).join("\\n")+"\\n";
+ else out+="\\n**Current status**\\n- No active tasks are listed at the moment.\\n";
+ return out.trim();
 }
+async function ask(h:any[],telegramId:number){if(!GROQ)throw Error("no groq");const k=await knowledge(telegramId);const sys=`You are the EasyTasksz Telegram support assistant. Be concise, friendly, factual, and well organized. Use ONLY the CURRENT LIVE DATA below. Live settings override old knowledge and conversation history. Never guess. Never invent availability, rewards, fees, limits, eligibility or processing times. If current data does not answer the question, say so and direct the user to human support. Never expose private account data or secrets. Never give bypass instructions. EasyTasksz does NOT pay a referral bonus. Never state, imply, or invent any referral bonus; only the current referral commission applies.
 
-async function db(path: string, init: RequestInit) {
-  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    ...init,
-    headers: {
-      apikey: SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      "Content-Type": "application/json",
-      ...(init.headers || {}),
-    },
-  });
-}
-
-async function getSession(telegramId: number) {
-  const response = await db(
-    `support_sessions?telegram_id=eq.${encodeURIComponent(String(telegramId))}&select=telegram_id,active_until,history,message_count`,
-    { method: "GET" },
-  );
-  if (!response.ok) throw new Error("Failed to read support session");
-  const rows = await response.json();
-  return rows[0] || null;
-}
-
-async function startSession(telegramId: number) {
-  const activeUntil = new Date(Date.now() + SUPPORT_MINUTES * 60_000).toISOString();
-  await db("support_sessions", {
-    method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify({
-      telegram_id: telegramId,
-      active_until: activeUntil,
-      history: [],
-      message_count: 0,
-      updated_at: new Date().toISOString(),
-    }),
-  });
-}
-
-async function endSession(telegramId: number) {
-  await db(`support_sessions?telegram_id=eq.${encodeURIComponent(String(telegramId))}`, { method: "DELETE" });
-}
-
-async function saveSession(telegramId: number, history: Array<{ role: string; content: string }>, count: number) {
-  const activeUntil = new Date(Date.now() + SUPPORT_MINUTES * 60_000).toISOString();
-  const trimmed = history.slice(-MAX_HISTORY_MESSAGES);
-  const response = await db(`support_sessions?telegram_id=eq.${encodeURIComponent(String(telegramId))}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({
-      active_until: activeUntil,
-      history: trimmed,
-      message_count: count,
-      updated_at: new Date().toISOString(),
-    }),
-  });
-  if (!response.ok) throw new Error("Failed to save support session");
-}
-
-async function getLiveSupportContext(telegramId: number) {
-  const settingsResponse = await db("settings?select=key,value", { method: "GET" });
-  if (!settingsResponse.ok) throw new Error("Failed to read live settings");
-  const rows = await settingsResponse.json();
-  const settings: Record<string, string> = {};
-  for (const row of rows) {
-    if (["ads_enabled","daily_ad_limit","reward_per_ad","minimum_withdrawal","referral_commission_percent","withdrawal_fee_percent","withdrawals_enabled"].includes(row.key)) {
-      settings[row.key] = String(row.value);
-    }
-  }
-
-  const userResponse = await db("users?telegram_id=eq." + encodeURIComponent(String(telegramId)) + "&select=referral_code", { method: "GET" });
-  if (!userResponse.ok) throw new Error("Failed to read support user context");
-  const users = await userResponse.json();
-  const referralCode = users?.[0]?.referral_code ? String(users[0].referral_code) : "";
-
-  const lines = [
-    "LIVE EASYTASKSZ SETTINGS (authoritative for this response):",
-    "Ads enabled: " + (settings.ads_enabled ?? "unknown"),
-    "Daily ad limit: " + (settings.daily_ad_limit ?? "unknown"),
-    "Reward per ad: " + (settings.reward_per_ad ?? "unknown") + " USDT",
-    "Minimum withdrawal: " + (settings.minimum_withdrawal ?? "unknown") + " USDT",
-    "Referral commission: " + (settings.referral_commission_percent ?? "unknown") + "%",
-    "Withdrawal fee: " + (settings.withdrawal_fee_percent ?? "unknown") + "%",
-    "Withdrawals enabled: " + (settings.withdrawals_enabled ?? "unknown"),
-  ];
-  if (referralCode) {
-    lines.push("The user's referral code is " + referralCode + ". Their referral link is https://t.me/Easytasksz_bot?startapp=" + encodeURIComponent(referralCode));
-  }
-  return lines.join("\n");
-}
-
-async function askAshna(history: Array<{ role: string; content: string }>, liveContext: string) {
-  if (!ASHNA_API_KEY) throw new Error("Support AI is not configured");
-
-  const response = await fetch("https://api.ashna.ai/v1/api/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${ASHNA_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: ASHNA_MODEL,
-      messages: [{ role: "system", content: SUPPORT_SYSTEM + "\n\n" + liveContext }, ...history],
-      temperature: 0.3,
-      max_tokens: 500,
-    }),
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    console.error("Ashna API error", response.status, data?.error?.message || "unknown");
-    throw new Error("Support AI request failed");
-  }
-
-  const answer = data?.choices?.[0]?.message?.content;
-  if (typeof answer !== "string" || !answer.trim()) throw new Error("Support AI returned no answer");
-  return answer.trim().slice(0, MAX_REPLY_LENGTH);
-}
-
-Deno.serve(async (req) => {
-  try {
-    if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
-
-    if (
-      !WEBHOOK_SECRET ||
-      !timingSafeEqualText(
-        req.headers.get("X-Telegram-Bot-Api-Secret-Token") || "",
-        WEBHOOK_SECRET,
-      )
-    ) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
-    const update = await req.json();
-    const message = update.message;
-    if (!message || !message.text) return new Response("ok");
-
-    const chatId = Number(message.chat?.id);
-    const text = String(message.text).trim();
-    if (!Number.isSafeInteger(chatId)) return new Response("ok");
-
-    if (/^\/start(?:@\w+)?(?:\s|$)/i.test(text)) {
-      const parts = text.split(/\s+/);
-      const referralCode = parts.length > 1 ? parts[1] : "";
-      const webAppUrl = referralCode
-        ? `https://easytasksz.pages.dev/?startapp=${encodeURIComponent(referralCode)}`
-        : "https://easytasksz.pages.dev/";
-
-      await telegram("sendMessage", {
-        chat_id: chatId,
-        text: "👋 Welcome to EasyTasksz!\n\nTap below to start earning.\n\nNeed help? Use /support.",
-        reply_markup: {
-          inline_keyboard: [[{ text: "🚀 Open EasyTasksz", web_app: { url: webAppUrl } }]],
-        },
-      });
-      return new Response("ok");
-    }
-
-    if (/^\/support(?:@\w+)?$/i.test(text)) {
-      await startSession(chatId);
-      await telegram("sendMessage", {
-        chat_id: chatId,
-        text: "🤖 EasyTasksz Support is ready. Ask me your question.\n\nThis support session stays active for 30 minutes. Use /stop to end it.",
-      });
-      return new Response("ok");
-    }
-
-    if (/^\/stop(?:@\w+)?$/i.test(text)) {
-      await endSession(chatId);
-      await telegram("sendMessage", {
-        chat_id: chatId,
-        text: "Support chat ended. Use /support whenever you need help again.",
-      });
-      return new Response("ok");
-    }
-
-    const session = await getSession(chatId);
-    if (!session || new Date(session.active_until).getTime() <= Date.now()) {
-      await telegram("sendMessage", {
-        chat_id: chatId,
-        text: "Use /support to start an EasyTasksz support chat.",
-      });
-      return new Response("ok");
-    }
-
-    if (text.length === 0 || text.length > MAX_USER_MESSAGE_LENGTH) {
-      await telegram("sendMessage", {
-        chat_id: chatId,
-        text: `Please keep your support message under ${MAX_USER_MESSAGE_LENGTH} characters.`,
-      });
-      return new Response("ok");
-    }
-
-    const count = Number(session.message_count || 0);
-    if (count >= MAX_MESSAGES_PER_SESSION) {
-      await telegram("sendMessage", {
-        chat_id: chatId,
-        text: "This support session has reached its message limit. Use /support to start a new session.",
-      });
-      return new Response("ok");
-    }
-
-    const previousHistory = Array.isArray(session.history) ? session.history : [];
-    const history = [
-      ...previousHistory,
-      { role: "user", content: text },
-    ].slice(-MAX_HISTORY_MESSAGES);
-
-    let answer: string;
-    try {
-      const liveContext = await getLiveSupportContext(chatId);\n      answer = await askAshna(history, liveContext);
-    } catch (error) {
-      console.error(error);
-      await telegram("sendMessage", {
-        chat_id: chatId,
-        text: "Sorry, support AI is temporarily unavailable. Please try again shortly.",
-      });
-      return new Response("ok");
-    }
-
-    const updatedHistory = [...history, { role: "assistant", content: answer }].slice(-MAX_HISTORY_MESSAGES);
-    await saveSession(chatId, updatedHistory, count + 1);
-
-    await telegram("sendMessage", {
-      chat_id: chatId,
-      text: answer,
-    });
-
-    return new Response("ok");
-  } catch (err) {
-    console.error(err);
-    return new Response("ok");
-  }
-});
+TELEGRAM RESPONSE FORMAT:
+- Never use Markdown tables or pipe characters for tables.
+- Never write long blocks of text.
+- Use short sections with a clear heading when useful.
+- Use bullet points for multiple items.
+- Use **bold** for important values or labels.
+- Leave a blank line between sections.
+- For broad questions, keep the answer easy to scan and normally under 8 bullet points.
+- Give the direct answer first, then brief supporting details.
+- Do not add unnecessary greetings or repeated disclaimers.
+- Do not use Markdown links unless the user asks for a link.
+- The system will convert **bold** formatting into Telegram bold text.\n\nCURRENT LIVE DATA:\n${k}`;const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{Authorization:`Bearer ${GROQ}`,"Content-Type":"application/json"},body:JSON.stringify({model:MODEL,messages:[{role:"system",content:sys},...h],temperature:.2,max_completion_tokens:500})});const d=await r.json();if(!r.ok)throw Error(`groq ${r.status}: ${d?.error?.message||"error"}`);const x=d?.choices?.[0]?.message?.content;if(!x)throw Error("empty groq");return x.trim().slice(0,3500)}
+Deno.serve(async req=>{try{if(req.method!=="POST")return new Response("Method not allowed",{status:405});if(!WEBHOOK_SECRET||!safe(req.headers.get("X-Telegram-Bot-Api-Secret-Token")||"",WEBHOOK_SECRET))return new Response("Unauthorized",{status:401});const u=await req.json(),m=u.message;if(!m?.text)return new Response("ok");const id=Number(m.chat?.id),q=String(m.text).trim();if(!Number.isSafeInteger(id))return new Response("ok");
+if(/^\/start(?:@\w+)?$/i.test(q)){const sr=await db("settings?select=key,value&order=key.asc",{method:"GET"});let s:any[]=[];if(sr.ok)s=await sr.json();const v=(k:string)=>s.find((x:any)=>x.key===k)?.value;const name=String(m.from?.first_name||"there").replace(/[<&>]/g,"");let x="🎉 Welcome to EasyTasksz!\n\nHello, "+name+"!\n\n💰 Complete available tasks and offers to earn USDT\n";if(v("ads_enabled")==="true")x+="📺 Watch up to "+(v("daily_ad_limit")||"0")+" rewarded ads per day and earn "+(v("reward_per_ad")||"0")+" USDT per ad\n";x+="👥 Earn "+(v("referral_commission_percent")||"0")+"% referral commission from referred-user earnings\n💸 Minimum withdrawal: "+(v("minimum_withdrawal")||"0")+" USDT\n🤖 Need help? Use /support\n\n👇 Tap below to open EasyTasksz and start earning!";await tg("sendMessage",{chat_id:id,text:x,reply_markup:{inline_keyboard:[[{text:"🚀 OPEN EASYTASKSZ",url:"https://t.me/Easytasksz_bot?startapp"}]]}});return new Response("ok")}
+if(/^\/support(?:@\w+)?$/i.test(q)){await db("support_sessions",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({telegram_id:id,active_until:new Date(Date.now()+SESSION).toISOString(),history:[],message_count:0,updated_at:new Date().toISOString()})});await tg("sendMessage",{chat_id:id,text:"🤖 EasyTasksz Support is ready. Ask me your question.\n\nThis support session stays active for 30 minutes. Use /stop to end it."});return new Response("ok")}
+if(/^\/stop(?:@\w+)?$/i.test(q)){await db(`support_sessions?telegram_id=eq.${id}`,{method:"DELETE"});await tg("sendMessage",{chat_id:id,text:"Support chat ended. Use /support whenever you need help again."});return new Response("ok")}
+const s=await session(id);if(!s||new Date(s.active_until).getTime()<=Date.now()){await tg("sendMessage",{chat_id:id,text:"Use /support to start an EasyTasksz support chat."});return new Response("ok")}if(q.length<1||q.length>MAX){await tg("sendMessage",{chat_id:id,text:`Please keep your support message under ${MAX} characters.`});return new Response("ok")}const n=Number(s.message_count||0);if(n>=LIMIT){await tg("sendMessage",{chat_id:id,text:"This support session has reached its message limit. Use /support to start a new session."});return new Response("ok")}
+const cleanHistory=(Array.isArray(s.history)?s.history:[]).filter((x:any)=>!String(x?.content||"").toLowerCase().includes("referral bonus"));const h=[...cleanHistory,{role:"user",content:q}].slice(-12);let a;try{const broad=/tell me more|about eas(?:y)?tasksz|what is eas(?:y)?tasksz|how does eas(?:y)?tasksz work|what can i do/i.test(q.toLowerCase());if(broad){const sr=await db("settings?select=key,value,description,updated_at&order=key.asc",{method:"GET"});const tr=await db("tasks?select=title,reward_amount,is_active,task_type,provider,created_at&is_active=eq.true&order=created_at.desc&limit=100",{method:"GET"});if(!sr.ok||!tr.ok)throw Error("live data read failed");a=overview(await sr.json(),(await tr.json()).map((x:any)=>({title:String(x.title||"").slice(0,200),reward:x.reward_amount,type:x.task_type||"unknown",provider:x.provider||"unknown"})))}else a=await exact(q)||await ask(h,id)}catch(e){console.error(e);await tg("sendMessage",{chat_id:id,text:"Sorry, support AI is temporarily unavailable. Please try again shortly."});return new Response("ok")}
+const nh=[...h,{role:"assistant",content:a}].slice(-12);await db(`support_sessions?telegram_id=eq.${id}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({active_until:new Date(Date.now()+SESSION).toISOString(),history:nh,message_count:n+1,updated_at:new Date().toISOString()})});await tg("sendMessage",{chat_id:id,text:a});return new Response("ok")}catch(e){console.error(e);return new Response("ok")}});
