@@ -52,6 +52,10 @@ export function deleteUser(targetTelegramId) {
   return callAdmin({ action: "delete-user", targetTelegramId });
 }
 
+export function sendUserMessage(targetTelegramId, message) {
+  return callAdmin({ action: "send-user-message", targetTelegramId, message });
+}
+
 export function getSettings() {
   return callAdmin({ action: "get-settings" }).then((r) => r.settings);
 }
