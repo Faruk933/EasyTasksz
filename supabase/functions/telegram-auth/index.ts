@@ -123,6 +123,9 @@ Deno.serve(async (req) => {
       }
     }
 
+    const todayLagos = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
+    userRow = { ...userRow, ads_watched_today: userRow.last_ad_date === todayLagos ? Number(userRow.ads_watched_today || 0) : 0 };
+
     return new Response(JSON.stringify({ user: userRow }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
