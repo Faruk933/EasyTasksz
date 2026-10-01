@@ -5,6 +5,18 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ASHNA_API_KEY = Deno.env.get("ASHNA_API_KEY")?.trim() || "";
 const ASHNA_MODEL = Deno.env.get("ASHNA_SUPPORT_MODEL")?.trim() || "gpt-4o-mini";
 
+const SUPPORT_KB = `EasyTasksz is a Telegram-based earning platform.
+Verified rules:
+- Users can earn from available manual tasks, available offer tasks/offers, rewarded ads when enabled and within the daily limit, and referral commissions.
+- Referral rewards are commission only. There is NO referral bonus.
+- Telegram authentication is required.
+- Offer rewards can depend on provider confirmation/postback.
+- Support sessions last 30 minutes and allow up to 20 user messages.
+- The support AI cannot inspect private balances, transaction records, withdrawal status, Telegram authentication data, or admin controls.
+- Never invent task availability, rewards, eligibility rules, payment methods, processing times, or policies.
+- If a requested fact is not in the verified knowledge or live settings, say that it is not verified and direct the user to human support.
+- Answer EasyTasksz questions directly and naturally. Questions unrelated to EasyTasksz are outside the support scope.`;
+
 const SUPPORT_MINUTES = 30;
 const MAX_MESSAGES_PER_SESSION = 20;
 const MAX_HISTORY_MESSAGES = 12;
@@ -18,7 +30,7 @@ You do NOT have access to private account balances, transaction records, withdra
 Never ask for passwords, bot tokens, API keys, Telegram login codes, or other secrets.
 Never tell a user that a reward, withdrawal, or conversion has been completed unless the user provides that information.
 If a question requires checking or changing an account, explain that the support assistant cannot perform that action and direct the user to the EasyTasksz app or human support.
-Do not invent policies, task availability, rewards, or processing times.
+Do not invent policies, task availability, rewards, or processing times.\nUse the verified EasyTasksz knowledge and live context supplied with each request.\n${SUPPORT_KB}
 If the user reports a missing offer reward, explain that provider confirmation/postback is required and that support may need to investigate.
 Do not provide instructions for bypassing fraud checks, VPN/proxy restrictions, task requirements, or security controls.`;
 
@@ -94,7 +106,39 @@ async function saveSession(telegramId: number, history: Array<{ role: string; co
   if (!response.ok) throw new Error("Failed to save support session");
 }
 
-async function askAshna(history: Array<{ role: string; content: string }>) {
+async function getLiveSupportContext(telegramId: number) {
+  const settingsResponse = await db("settings?select=key,value", { method: "GET" });
+  if (!settingsResponse.ok) throw new Error("Failed to read live settings");
+  const rows = await settingsResponse.json();
+  const settings: Record<string, string> = {};
+  for (const row of rows) {
+    if (["ads_enabled","daily_ad_limit","reward_per_ad","minimum_withdrawal","referral_commission_percent","withdrawal_fee_percent","withdrawals_enabled"].includes(row.key)) {
+      settings[row.key] = String(row.value);
+    }
+  }
+
+  const userResponse = await db("users?telegram_id=eq." + encodeURIComponent(String(telegramId)) + "&select=referral_code", { method: "GET" });
+  if (!userResponse.ok) throw new Error("Failed to read support user context");
+  const users = await userResponse.json();
+  const referralCode = users?.[0]?.referral_code ? String(users[0].referral_code) : "";
+
+  const lines = [
+    "LIVE EASYTASKSZ SETTINGS (authoritative for this response):",
+    "Ads enabled: " + (settings.ads_enabled ?? "unknown"),
+    "Daily ad limit: " + (settings.daily_ad_limit ?? "unknown"),
+    "Reward per ad: " + (settings.reward_per_ad ?? "unknown") + " USDT",
+    "Minimum withdrawal: " + (settings.minimum_withdrawal ?? "unknown") + " USDT",
+    "Referral commission: " + (settings.referral_commission_percent ?? "unknown") + "%",
+    "Withdrawal fee: " + (settings.withdrawal_fee_percent ?? "unknown") + "%",
+    "Withdrawals enabled: " + (settings.withdrawals_enabled ?? "unknown"),
+  ];
+  if (referralCode) {
+    lines.push("The user's referral code is " + referralCode + ". Their referral link is https://t.me/Easytasksz_bot?startapp=" + encodeURIComponent(referralCode));
+  }
+  return lines.join("\n");
+}
+
+async function askAshna(history: Array<{ role: string; content: string }>, liveContext: string) {
   if (!ASHNA_API_KEY) throw new Error("Support AI is not configured");
 
   const response = await fetch("https://api.ashna.ai/v1/api/chat/completions", {
@@ -105,7 +149,7 @@ async function askAshna(history: Array<{ role: string; content: string }>) {
     },
     body: JSON.stringify({
       model: ASHNA_MODEL,
-      messages: [{ role: "system", content: SUPPORT_SYSTEM }, ...history],
+      messages: [{ role: "system", content: SUPPORT_SYSTEM + "\n\n" + liveContext }, ...history],
       temperature: 0.3,
       max_tokens: 500,
     }),
@@ -213,7 +257,7 @@ Deno.serve(async (req) => {
 
     let answer: string;
     try {
-      answer = await askAshna(history);
+      const liveContext = await getLiveSupportContext(chatId);\n      answer = await askAshna(history, liveContext);
     } catch (error) {
       console.error(error);
       await telegram("sendMessage", {
