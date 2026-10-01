@@ -17,4 +17,5 @@ export function createTask(title, instructions, rewardAmount, taskUrl, taskType,
 export function updateTask(taskId, updates) { return callTasksAdmin({ action: "update-task", taskId, ...updates }); }
 export function deleteTask(taskId) { return callTasksAdmin({ action: "delete-task", taskId }); }
 export function listSubmissions() { return callTasksAdmin({ action: "list-submissions" }).then((r) => r.submissions); }
+export function listUserCompletedTasks(targetTelegramId) { return callTasksAdmin({ action: "list-user-completed-tasks", targetTelegramId }).then((r) => r.submissions); }
 export function reviewSubmission(submissionId, status, comment) { return callTasksAdmin({ action: "review-submission", submissionId, status, comment }); }
