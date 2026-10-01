@@ -12,3 +12,9 @@ alter table public.support_sessions enable row level security;
 
 revoke all on public.support_sessions from anon, authenticated, public;
 grant all on public.support_sessions to service_role;
+
+create policy support_sessions_deny_browser on public.support_sessions
+  for all
+  to anon, authenticated
+  using (false)
+  with check (false);
