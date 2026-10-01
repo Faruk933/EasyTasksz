@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginWithTelegram } from "../telegramAuth";
 
-const OFFERWALLME_IFRAME_KEY = "COkR9DZeI3ihOWAcd7yRyayPWDx32P";
-
 const backButtonStyle = {position:"fixed",bottom:18,left:18,zIndex:1002,border:"1px solid rgba(255,255,255,0.25)",borderRadius:14,padding:"12px 18px",background:"rgba(11,15,20,0.95)",color:"#fff",fontWeight:700,fontSize:16,boxShadow:"0 4px 16px rgba(0,0,0,0.3)",cursor:"pointer"};
 
 export default function OfferwallMeOfferwall() {
@@ -14,11 +12,19 @@ export default function OfferwallMeOfferwall() {
   useEffect(() => {
     let mounted = true;
     loginWithTelegram()
-      .then((user) => {
-        const telegramId = user?.telegram_id ?? user?.id;
-        if (!telegramId) throw new Error("Could not load Telegram user.");
-        const offerwallUrl = `https://offerwall.me/offerwall/${encodeURIComponent(OFFERWALLME_IFRAME_KEY)}/${encodeURIComponent(String(telegramId))}`;
-        if (mounted) setUrl(offerwallUrl);
+      .then(async () => {
+        const initData = window.Telegram?.WebApp?.initData;
+        if (!initData) throw new Error("TELEGRAM_INITDATA_MISSING");
+        const response = await fetch("https://iewdxruivjwblsnsjicq.supabase.co/functions/v1/offerwallme-auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result?.url) {
+          throw new Error(result?.error || "Could not create signed Offerwall.me link.");
+        }
+        if (mounted) setUrl(result.url);
       })
       .catch((err) => {
         if (mounted) setError(err?.message || "Could not load Offerwall.me.");
