@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       const totalBalanceOwed = (balanceData || []).reduce((sum, u) => sum + Number(u.balance || 0), 0);
       const { data: withdrawnData } = await supabase.from("withdrawals").select("amount").eq("status", "approved");
       const totalWithdrawn = (withdrawnData || []).reduce((sum, w) => sum + Number(w.amount || 0), 0);
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
       const { data: adsData } = await supabase.from("users").select("ads_watched_today, last_ad_date").eq("last_ad_date", today);
       const adsToday = (adsData || []).reduce((sum, u) => sum + Number(u.ads_watched_today || 0), 0);
       return new Response(JSON.stringify({ totalUsers, totalBalanceOwed, totalWithdrawn, adsToday }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
