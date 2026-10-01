@@ -21,6 +21,7 @@ import Tasks from "./pages/Tasks";
 import TaskDetail from "./pages/TaskDetail";
 import AdminTasks from "./pages/AdminTasks";
 import AdminSubmissions from "./pages/AdminSubmissions";
+import AdminUserTasks from "./pages/AdminUserTasks";
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 
@@ -63,6 +64,7 @@ export default function App(){
         <Route path="/tasks/:id" element={<TaskDetail/>}/>
         <Route path="/admin/tasks" element={<AdminTasks/>}/>
         <Route path="/admin/submissions" element={<AdminSubmissions/>}/>
+        <Route path="/admin/users/:telegramId/tasks" element={<AdminUserTasks/>}/>
       </Routes>
       {!isImmersiveOfferwall&&<BottomNav/>}
     </div>
