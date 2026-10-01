@@ -15,7 +15,14 @@ export default function AdminSettings() {
 
   async function save() {
     setSaving(true);
-    try { await updateSettings(settings); alert("Settings updated!"); }
+    try {
+      const editable = {};
+      ["reward_per_ad", "daily_ad_limit", "minimum_withdrawal", "withdrawal_fee_percent", "referral_commission_percent", "launch_ad_enabled"].forEach((key) => {
+        if (settings[key] !== undefined) editable[key] = settings[key];
+      });
+      await updateSettings(editable);
+      alert("Settings updated!");
+    }
     catch (err) { alert(err.message || "Failed to update settings"); }
     finally { setSaving(false); }
   }
