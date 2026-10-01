@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
 
       await telegram("sendMessage", {
         chat_id: chatId,
-        text: "👋 Welcome to EasyTasksz!\\n\\nTap below to start earning.\\n\\nNeed help? Use /support.",
+        text: "👋 Welcome to EasyTasksz!\n\nTap below to start earning.\n\nNeed help? Use /support.",
         reply_markup: {
           inline_keyboard: [[{ text: "🚀 Open EasyTasksz", web_app: { url: webAppUrl } }]],
         },
@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
       await startSession(chatId);
       await telegram("sendMessage", {
         chat_id: chatId,
-        text: "🤖 EasyTasksz Support is ready. Ask me your question.\\n\\nThis support session stays active for 30 minutes. Use /stop to end it.",
+        text: "🤖 EasyTasksz Support is ready. Ask me your question.\n\nThis support session stays active for 30 minutes. Use /stop to end it.",
       });
       return new Response("ok");
     }
