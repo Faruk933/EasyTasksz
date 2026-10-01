@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listWithdrawals, processWithdrawal, getStats, listUsers, toggleUserBan, getSettings, updateSettings } from "../admin";
+import { listWithdrawals, processWithdrawal, getStats, listUsers, toggleUserBan, deleteUser, getSettings, updateSettings } from "../admin";
 import "./Admin.css";
 
 export default function Admin() {
@@ -53,6 +53,19 @@ export default function Admin() {
     catch (err) { alert(err.message || "Failed to update ban status"); }
   }
 
+  async function handleDeleteUser(user) {
+    const label = user.username ? "@" + user.username : String(user.telegram_id);
+    if (!window.confirm("Delete " + label + " permanently? This removes the user's database record and associated user data and cannot be undone.")) return;
+    try {
+      await deleteUser(user.telegram_id);
+      setUsers((prev) => prev.filter((item) => item.id !== user.id));
+      getStats().then(setStats).catch(() => {});
+      alert("User deleted permanently.");
+    } catch (err) {
+      alert(err.message || "Failed to delete user");
+    }
+  }
+
   async function handleSaveSettings() {
     try {
       await updateSettings(settingsForm);
@@ -94,7 +107,7 @@ export default function Admin() {
 
       {tab === "withdrawals" && <div>{withdrawals.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No withdrawal requests</p> : withdrawals.map((w) => <div className="admin-item" key={w.id}><div className="admin-item-top"><span className="admin-username">@{w.users?.username || w.users?.telegram_id || "unknown"}</span><span className="admin-amount">${Number(w.amount).toFixed(2)}</span></div><div className="admin-address">{w.wallet_address}</div><div style={{ marginBottom: 10, fontSize: 12, color: "#94a3b8" }}>Status: {w.status} - {new Date(w.created_at).toLocaleString()}</div>{w.status === "pending" && <div className="admin-actions"><button className="admin-btn admin-btn-approve" disabled={processingId === w.id} onClick={() => handleAction(w.id, "approved")}>Approve</button><button className="admin-btn admin-btn-reject" disabled={processingId === w.id} onClick={() => handleAction(w.id, "rejected")}>Reject</button></div>}</div>)}</div>}
 
-      {tab === "users" && <div><div style={{ display: "flex", gap: 8, marginBottom: 16 }}><input type="text" placeholder="Search username or Telegram ID" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }} style={{ flex: 1, padding: 10, borderRadius: 10, border: "1px solid #334155", background: "#0f172a", color: "white" }} /><button onClick={handleSearch} disabled={searching} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#3b82f6", color: "white", fontWeight: "bold" }}>{searching ? "Searching..." : "Search"}</button></div>{users.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No users found</p> : users.map((u) => <div className="admin-item" key={u.id}><div className="admin-item-top"><span className="admin-username">@{u.username || u.telegram_id}{u.is_admin && " (admin)"}{u.is_banned && " (banned)"}</span><span className="admin-amount">${Number(u.balance).toFixed(2)}</span></div><div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10 }}>Earned: ${Number(u.total_earned).toFixed(2)} - Ads: {u.ads_watched} - Referrals: {u.referral_count}</div><div className="admin-user-footer"><span className={`admin-status ${u.is_banned ? "banned" : "active"}`}>{u.is_banned ? "Banned" : "Active"}</span><button className={`admin-ban-btn ${u.is_banned ? "unban" : ""}`} onClick={() => handleToggleBan(u.telegram_id)}>{u.is_banned ? "Unban user" : "Ban user"}</button></div></div>)}</div>}
+      {tab === "users" && <div><div style={{ display: "flex", gap: 8, marginBottom: 16 }}><input type="text" placeholder="Search username or Telegram ID" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }} style={{ flex: 1, padding: 10, borderRadius: 10, border: "1px solid #334155", background: "#0f172a", color: "white" }} /><button onClick={handleSearch} disabled={searching} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#3b82f6", color: "white", fontWeight: "bold" }}>{searching ? "Searching..." : "Search"}</button></div>{users.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No users found</p> : users.map((u) => <div className="admin-item" key={u.id}><div className="admin-item-top"><span className="admin-username">@{u.username || u.telegram_id}{u.is_admin && " (admin)"}{u.is_banned && " (banned)"}</span><span className="admin-amount">${Number(u.balance).toFixed(2)}</span></div><div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10 }}>Earned: ${Number(u.total_earned).toFixed(2)} - Ads: {u.ads_watched} - Referrals: {u.referral_count}</div><div className="admin-user-footer"><span className={`admin-status ${u.is_banned ? "banned" : "active"}`}>{u.is_banned ? "Banned" : "Active"}</span><button className={`admin-ban-btn ${u.is_banned ? "unban" : ""}`} onClick={() => handleToggleBan(u.telegram_id)}>{u.is_banned ? "Unban user" : "Ban user"}</button>{!u.is_admin && <button className="admin-ban-btn" onClick={() => handleDeleteUser(u)}>Delete user</button>}</div></div>)}</div>}
 
       {tab === "settings" && settings && <div><p>Use Platform Settings above to manage live platform economics.</p><button onClick={handleSaveSettings}>Save Settings</button></div>}
     </div>
