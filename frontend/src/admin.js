@@ -48,6 +48,10 @@ export function toggleUserBan(targetTelegramId) {
   return callAdmin({ action: "toggle-ban", targetTelegramId });
 }
 
+export function deleteUser(targetTelegramId) {
+  return callAdmin({ action: "delete-user", targetTelegramId });
+}
+
 export function getSettings() {
   return callAdmin({ action: "get-settings" }).then((r) => r.settings);
 }
