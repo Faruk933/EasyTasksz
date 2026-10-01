@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: corsHeaders });
   try {
     const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-    const { initData, action, withdrawalId, status, search, targetTelegramId, newBalance, settingsUpdates } = await req.json();
+    const { initData, action, withdrawalId, status, search, targetTelegramId, newBalance, settingsUpdates, message } = await req.json();
     if (!initData) return new Response(JSON.stringify({ error: "Missing initData" }), { status: 400, headers: corsHeaders });
     const tgUser = await verifyTelegramData(initData, BOT_TOKEN);
     if (!tgUser) return new Response(JSON.stringify({ error: "Invalid Telegram data" }), { status: 401, headers: corsHeaders });
@@ -126,6 +126,42 @@ Deno.serve(async (req) => {
       });
       if (error) throw error;
       return new Response(JSON.stringify({ user: updatedUser }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "send-user-message") {
+      if (!targetTelegramId || typeof message !== "string" || !message.trim()) {
+        return new Response(JSON.stringify({ error: "Missing targetTelegramId or message" }), { status: 400, headers: corsHeaders });
+      }
+      const targetId = Number(targetTelegramId);
+      if (!Number.isSafeInteger(targetId)) {
+        return new Response(JSON.stringify({ error: "Invalid targetTelegramId" }), { status: 400, headers: corsHeaders });
+      }
+      const text = message.trim();
+      if (text.length > 4096) {
+        return new Response(JSON.stringify({ error: "Message is too long. Telegram allows up to 4096 characters." }), { status: 400, headers: corsHeaders });
+      }
+      const { data: targetUser, error: targetError } = await supabase
+        .from("users")
+        .select("telegram_id, username, is_admin")
+        .eq("telegram_id", targetId)
+        .maybeSingle();
+      if (targetError) throw targetError;
+      if (!targetUser) {
+        return new Response(JSON.stringify({ error: "User not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (targetUser.is_admin) {
+        return new Response(JSON.stringify({ error: "Direct messaging admin accounts is disabled here." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const telegramResponse = await fetch("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: targetId, text }),
+      });
+      const telegramResult = await telegramResponse.json();
+      if (!telegramResponse.ok || !telegramResult.ok) {
+        return new Response(JSON.stringify({ error: telegramResult?.description || "Telegram failed to send the message" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ success: true, telegram_id: targetId, message_id: telegramResult.result?.message_id || null }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "toggle-ban") {
