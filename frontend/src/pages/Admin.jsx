@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listWithdrawals, processWithdrawal, getStats, listUsers, toggleUserBan, deleteUser, getSettings, updateSettings } from "../admin";
+import { listWithdrawals, processWithdrawal, getStats, listUsers, toggleUserBan, deleteUser, sendUserMessage, getSettings, updateSettings } from "../admin";
 import "./Admin.css";
 
 export default function Admin() {
@@ -15,6 +15,9 @@ export default function Admin() {
   const [stats, setStats] = useState(null);
   const [settings, setSettings] = useState(null);
   const [settingsForm, setSettingsForm] = useState({});
+  const [messageUser, setMessageUser] = useState(null);
+  const [messageText, setMessageText] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -66,6 +69,26 @@ export default function Admin() {
     }
   }
 
+  async function handleSendMessage() {
+    const text = messageText.trim();
+    if (!messageUser || !text) return;
+    if (text.length > 4096) {
+      alert("Message is too long. Telegram allows up to 4096 characters.");
+      return;
+    }
+    try {
+      setSendingMessage(true);
+      await sendUserMessage(messageUser.telegram_id, text);
+      setMessageUser(null);
+      setMessageText("");
+      alert("Message sent successfully.");
+    } catch (err) {
+      alert(err.message || "Failed to send message");
+    } finally {
+      setSendingMessage(false);
+    }
+  }
+
   async function handleSaveSettings() {
     try {
       await updateSettings(settingsForm);
@@ -107,9 +130,19 @@ export default function Admin() {
 
       {tab === "withdrawals" && <div>{withdrawals.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No withdrawal requests</p> : withdrawals.map((w) => <div className="admin-item" key={w.id}><div className="admin-item-top"><span className="admin-username">@{w.users?.username || w.users?.telegram_id || "unknown"}</span><span className="admin-amount">${Number(w.amount).toFixed(2)}</span></div><div className="admin-address">{w.wallet_address}</div><div style={{ marginBottom: 10, fontSize: 12, color: "#94a3b8" }}>Status: {w.status} - {new Date(w.created_at).toLocaleString()}</div>{w.status === "pending" && <div className="admin-actions"><button className="admin-btn admin-btn-approve" disabled={processingId === w.id} onClick={() => handleAction(w.id, "approved")}>Approve</button><button className="admin-btn admin-btn-reject" disabled={processingId === w.id} onClick={() => handleAction(w.id, "rejected")}>Reject</button></div>}</div>)}</div>}
 
-      {tab === "users" && <div><div style={{ display: "flex", gap: 8, marginBottom: 16 }}><input type="text" placeholder="Search username or Telegram ID" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }} style={{ flex: 1, padding: 10, borderRadius: 10, border: "1px solid #334155", background: "#0f172a", color: "white" }} /><button onClick={handleSearch} disabled={searching} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#3b82f6", color: "white", fontWeight: "bold" }}>{searching ? "Searching..." : "Search"}</button></div>{users.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No users found</p> : users.map((u) => <div className="admin-item" key={u.id}><div className="admin-item-top"><span className="admin-username">@{u.username || u.telegram_id}{u.is_admin && " (admin)"}{u.is_banned && " (banned)"}</span><span className="admin-amount">${Number(u.balance).toFixed(2)}</span></div><div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10 }}>Earned: ${Number(u.total_earned).toFixed(2)} - Ads: {u.ads_watched} - Referrals: {u.referral_count}</div><div className="admin-user-footer"><span className={`admin-status ${u.is_banned ? "banned" : "active"}`}>{u.is_banned ? "Banned" : "Active"}</span><button className={`admin-ban-btn ${u.is_banned ? "unban" : ""}`} onClick={() => handleToggleBan(u.telegram_id)}>{u.is_banned ? "Unban user" : "Ban user"}</button>{!u.is_admin && <button className="admin-ban-btn" onClick={() => handleDeleteUser(u)}>Delete user</button>}</div></div>)}</div>}
+      {tab === "users" && <div><div style={{ display: "flex", gap: 8, marginBottom: 16 }}><input type="text" placeholder="Search username or Telegram ID" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }} style={{ flex: 1, padding: 10, borderRadius: 10, border: "1px solid #334155", background: "#0f172a", color: "white" }} /><button onClick={handleSearch} disabled={searching} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#3b82f6", color: "white", fontWeight: "bold" }}>{searching ? "Searching..." : "Search"}</button></div>{users.length === 0 ? <p style={{ color: "#94a3b8", textAlign: "center" }}>No users found</p> : users.map((u) => <div className="admin-item" key={u.id}><div className="admin-item-top"><span className="admin-username">@{u.username || u.telegram_id}{u.is_admin && " (admin)"}{u.is_banned && " (banned)"}</span><span className="admin-amount">${Number(u.balance).toFixed(2)}</span></div><div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10 }}>Earned: ${Number(u.total_earned).toFixed(2)} - Ads: {u.ads_watched} - Referrals: {u.referral_count}</div><div className="admin-user-footer"><span className={`admin-status ${u.is_banned ? "banned" : "active"}`}>{u.is_banned ? "Banned" : "Active"}</span><button className={`admin-ban-btn ${u.is_banned ? "unban" : ""}`} onClick={() => handleToggleBan(u.telegram_id)}>{u.is_banned ? "Unban user" : "Ban user"}</button>{!u.is_admin && <><button className="admin-ban-btn" onClick={() => setMessageUser(u)}>Message</button><button className="admin-ban-btn" onClick={() => handleDeleteUser(u)}>Delete user</button></>}</div></div>)}</div>}
 
       {tab === "settings" && settings && <div><p>Use Platform Settings above to manage live platform economics.</p><button onClick={handleSaveSettings}>Save Settings</button></div>}
+      {messageUser && <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
+        <div style={{ width: "100%", maxWidth: 520, background: "#1e293b", borderRadius: 16, padding: 18 }}>
+          <h3 style={{ marginTop: 0 }}>Message @{messageUser.username || messageUser.telegram_id}</h3>
+          <textarea autoFocus value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." maxLength={4096} rows={7} style={{ width: "100%", boxSizing: "border-box", padding: 12, borderRadius: 10, border: "1px solid #334155", background: "#0f172a", color: "white", resize: "vertical" }} />
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
+            <button onClick={() => { setMessageUser(null); setMessageText(""); }} disabled={sendingMessage} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid #475569", background: "transparent", color: "white" }}>Cancel</button>
+            <button onClick={handleSendMessage} disabled={sendingMessage || !messageText.trim()} style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#3b82f6", color: "white", fontWeight: "bold" }}>{sendingMessage ? "Sending..." : "Send message"}</button>
+          </div>
+        </div>
+      </div>}
     </div>
   );
 }
