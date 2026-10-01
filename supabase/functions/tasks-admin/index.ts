@@ -27,4 +27,4 @@ const {data:result,error}=await s.rpc("process_task_submission_atomic",{p_submis
 if(error)throw error;
 return new Response(JSON.stringify(result),{status:200,headers:{...C,"Content-Type":"application/json"}});
 }
-return new Response(JSON.stringify({error:"Unknown action"}),{status:400,headers:C})}catch(err){return new Response(JSON.stringify({error:String(err)}),{status:500,headers:C});}});
+return new Response(JSON.stringify({error:"Unknown action"}),{status:400,headers:C})}catch(err){const message=err?.message||err?.error_description||(typeof err==="string"?err:JSON.stringify(err));return new Response(JSON.stringify({error:message||"Internal server error"}),{status:500,headers:{...C,"Content-Type":"application/json"}});}});
