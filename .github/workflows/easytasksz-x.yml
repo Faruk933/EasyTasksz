@@ -124,7 +124,7 @@ jobs:
             const campaignStart = await readCampaignStart();
             let day = dateDiffDays(campaignStart, watDate()) + 1;
             if (process.env.EVENT_NAME === 'push' && day < 1) day = 1;
-            if (day < 1 || day > 30) throw new Error(`Campaign day ${day} is outside 1-30`);
+            if (day < 1 || day > 30) { console.log(`Campaign is inactive (day ${day}); no X post will be scheduled.`); return; }
             let slot;
             if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_SLOT) slot = Number(process.env.MANUAL_SLOT);
             else if (process.env.EVENT_NAME === 'push') slot = 1;
