@@ -122,9 +122,9 @@ jobs:
             const posts = JSON.parse(require('node:fs').readFileSync(POSTS_FILE, 'utf8'));
             if (!Array.isArray(posts) || posts.length !== 90) throw new Error('Expected exactly 90 posts');
             const campaignStart = await readCampaignStart();
-            let day = dateDiffDays(campaignStart, watDate()) + 1;
-            if (process.env.EVENT_NAME === 'push' && day < 1) day = 1;
-            if (day < 1 || day > 30) { console.log(`Campaign is inactive (day ${day}); no X post will be scheduled.`); return; }
+            const elapsedDays = dateDiffDays(campaignStart, watDate()) + 1;
+            // Loop the 30-day campaign continuously: day 31 returns to day 1, day 32 to day 2, etc.
+            let day = elapsedDays < 1 ? 1 : ((elapsedDays - 1) % 30) + 1;
             let slot;
             if (process.env.EVENT_NAME === 'workflow_dispatch' && process.env.MANUAL_SLOT) slot = Number(process.env.MANUAL_SLOT);
             else if (process.env.EVENT_NAME === 'push') slot = 1;
