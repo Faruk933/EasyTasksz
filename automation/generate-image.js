@@ -23,7 +23,7 @@ if (!API_KEYS.length) throw new Error("No ImaginePro API keys are configured");
 if (!POST_TEXT) throw new Error("Missing post text");
 
 const LOGO_URL =
-  "https://cdn.phototourl.com/free/2026-08-20-c1e0ec26-54bf-497e-b36b-966a8cbe73d1.png";
+  "https://cdn.phototourl.com/member/2026-11-26-09d4e4ba-f6ba-4148-a7e5-27fb2b9f6d51.jpg";
 
 const SUBMIT_URL =
   "https://api.imaginepro.ai/api/v1/universal/imagine";
